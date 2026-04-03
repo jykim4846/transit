@@ -1731,6 +1731,7 @@
             <div class="summary-line">${escapeHtml(recommendation.totalTimeText)}<small>${escapeHtml(recommendation.firstTransitLabel || "도보")}</small></div>
             <div class="summary-note">${escapeHtml(describeRecommendation(route, recommendation))}</div>
             ${recommendation.boardingApproachText ? `<div class="summary-subline"><strong>탑승 정류장</strong>${escapeHtml(recommendation.boardingApproachText)}</div>` : ""}
+            ${recommendation.alightingStopName ? `<div class="summary-subline"><strong>마지막 하차</strong>${escapeHtml(recommendation.alightingStopName)}</div>` : ""}
           </div>
           <div class="score-badge">
             <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
@@ -2108,6 +2109,20 @@
     });
   }
 
+  function getPathSectionTime(subPaths) {
+    return (subPaths || []).reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
+  }
+
+  function getLastTransit(subPaths) {
+    for (let index = (subPaths || []).length - 1; index >= 0; index -= 1) {
+      const segment = subPaths[index];
+      if (segment.trafficType === 1 || segment.trafficType === 2) {
+        return segment;
+      }
+    }
+    return null;
+  }
+
   async function fetchRealtimeWaitDirect(firstTransit) {
     if (!firstTransit || firstTransit.trafficType !== 2 || !firstTransit.startID) return null;
     const payload = await fetchOdsayDirect("realtimeStation", {
@@ -2178,9 +2193,11 @@
         }
       }
       const unavailableBusRealtime = route.priority === "best_eta" && firstTransit?.trafficType === 2 && firstWaitMin == null;
-      const totalTime = Number(info.totalTime || 0);
+      const totalTime = getPathSectionTime(subPaths);
       const transferCount = inferTransferCount(info);
       const walkTime = subPaths.filter((segment) => segment.trafficType === 3).reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
+      const lastTransit = getLastTransit(subPaths);
+      const alightingStopName = lastTransit?.endName || lastTransit?.endStationName || null;
       let scoreValue = totalTime;
       let scoreDisplay = `${totalTime}분`;
       let note = "총 소요시간이 가장 짧은 후보를 우선합니다.";
@@ -2224,6 +2241,7 @@
         boardingApproachText: firstTransitStartName
           ? (initialWalkTime > 0 ? `도보 후 ${firstTransitStartName} 탑승` : `${firstTransitStartName} 탑승`)
           : null,
+        alightingStopName,
         summarySteps: summarizeCandidateSteps(subPaths),
         note,
         segments: normalizeSegments(subPaths)

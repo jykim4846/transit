@@ -87,6 +87,10 @@ function getWalkTime(subPaths) {
     .reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
 }
 
+function getPathSectionTime(subPaths) {
+  return subPaths.reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
+}
+
 function inferTransferCount(info) {
   const rides = Number(info.busTransitCount || 0) + Number(info.subwayTransitCount || 0);
   return Math.max(0, rides - 1);
@@ -166,6 +170,21 @@ function getBoardingStopName(firstTransit) {
   return firstTransit.startName || firstTransit.startStationName || null;
 }
 
+function getLastTransit(subPaths) {
+  for (let index = subPaths.length - 1; index >= 0; index -= 1) {
+    const segment = subPaths[index];
+    if (segment.trafficType === 1 || segment.trafficType === 2) {
+      return segment;
+    }
+  }
+  return null;
+}
+
+function getAlightingStopName(lastTransit) {
+  if (!lastTransit) return null;
+  return lastTransit.endName || lastTransit.endStationName || null;
+}
+
 function buildCandidate(path, index, priority, realtimeWait) {
   const info = path.info || {};
   const subPaths = path.subPath || [];
@@ -173,11 +192,12 @@ function buildCandidate(path, index, priority, realtimeWait) {
   const firstTransit = firstTransitIndex >= 0 ? subPaths[firstTransitIndex] : null;
   const wait = getEstimatedWait(priority, firstTransit, realtimeWait);
   const initialWalkTime = getInitialWalkTime(subPaths, firstTransitIndex);
-  const totalTime = Number(info.totalTime || 0);
+  const totalTime = getPathSectionTime(subPaths);
   const transferCount = inferTransferCount(info);
   const walkTime = getWalkTime(subPaths);
   const summarySteps = summarizeSteps(subPaths);
   const boardingStopName = getBoardingStopName(firstTransit);
+  const alightingStopName = getAlightingStopName(getLastTransit(subPaths));
   const unavailableBusRealtime = isUnavailableBusForBestEta(firstTransit, wait);
 
   let scoreValue;
@@ -233,6 +253,7 @@ function buildCandidate(path, index, priority, realtimeWait) {
     boardingApproachText: boardingStopName
       ? (initialWalkTime > 0 ? `도보 후 ${boardingStopName} 탑승` : `${boardingStopName} 탑승`)
       : null,
+    alightingStopName,
     initialWalkTime,
     summarySteps,
     note,
