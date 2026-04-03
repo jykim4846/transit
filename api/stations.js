@@ -1,6 +1,11 @@
 const { GLOBAL_CACHE, getCached, setCached, fetchOdsay, sendJson } = require("./_odsay");
 
 const STATION_TTL = 7 * 24 * 60 * 60 * 1000;
+const PLACE_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
+
+function roundedKey(x, y) {
+  return `${Number(x).toFixed(5)}:${Number(y).toFixed(5)}`;
+}
 
 function normalizeStation(station) {
   const stationType = Number(station.stationType ?? 0);
@@ -13,6 +18,36 @@ function normalizeStation(station) {
     stationID: station.stationID || null,
     kind: isSubway ? "지하철" : "버스"
   };
+}
+
+async function searchPlaces(query) {
+  const params = new URLSearchParams({
+    q: query,
+    format: "jsonv2",
+    limit: "5",
+    countrycodes: "kr",
+    addressdetails: "0",
+    "accept-language": "ko"
+  });
+
+  const response = await fetch(`${PLACE_SEARCH_URL}?${params.toString()}`, {
+    headers: {
+      "User-Agent": "transit-app/1.0 (contact: transit-app)"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`장소 검색 실패 (${response.status})`);
+  }
+
+  const payload = await response.json().catch(() => []);
+  return payload.map((place) => ({
+    name: place.display_name?.split(",")[0]?.trim() || place.name || "",
+    x: place.lon,
+    y: place.lat,
+    stationID: null,
+    kind: "장소"
+  })).filter((place) => place.name && place.x && place.y);
 }
 
 module.exports = async function handler(req, res) {
@@ -35,10 +70,25 @@ module.exports = async function handler(req, res) {
     const payload = await fetchOdsay("searchStation", {
       stationName: q
     });
-    const stations = (payload.result?.station || [])
+    const stationResults = (payload.result?.station || [])
       .slice(0, 8)
       .map(normalizeStation)
       .filter((station) => station.name && station.x && station.y);
+
+    let placeResults = [];
+    try {
+      placeResults = await searchPlaces(q);
+    } catch {
+      placeResults = [];
+    }
+
+    const seen = new Set();
+    const stations = [...stationResults, ...placeResults].filter((item) => {
+      const key = `${item.name}:${roundedKey(item.x, item.y)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 8);
 
     const result = { stations };
     setCached(GLOBAL_CACHE.stationSearch, cacheKey, result, STATION_TTL);
