@@ -769,9 +769,16 @@
     display: block;
   }
 
+  .autocomplete-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    min-height: 250px;
+    max-height: min(420px, 56vh);
+  }
+
   .autocomplete-preview {
-    height: 154px;
-    border-bottom: 1px solid rgba(71, 57, 29, 0.08);
+    min-height: 250px;
+    border-right: 1px solid rgba(71, 57, 29, 0.08);
     background: linear-gradient(135deg, rgba(30, 122, 95, 0.08), rgba(28, 91, 183, 0.08));
   }
 
@@ -786,9 +793,42 @@
     padding: 14px;
   }
 
+  .autocomplete-results {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: rgba(255, 252, 247, 0.92);
+  }
+
+  .autocomplete-results-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .autocomplete-results-head strong {
+    font-size: 13px;
+    letter-spacing: -0.02em;
+  }
+
+  .autocomplete-results-head span {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+
+  .autocomplete-scroll {
+    overflow-y: auto;
+    min-height: 0;
+  }
+
   .autocomplete-item,
   .autocomplete-empty {
-    padding: 12px 14px;
+    padding: 14px;
   }
 
   .autocomplete-item {
@@ -797,6 +837,7 @@
     justify-content: space-between;
     gap: 12px;
     align-items: flex-start;
+    border-bottom: 1px solid rgba(71, 57, 29, 0.06);
   }
 
   .autocomplete-item:hover,
@@ -824,13 +865,19 @@
   }
 
   .autocomplete-meta {
-    color: var(--text-muted);
-    font-size: 12px;
+    color: var(--accent-strong);
+    background: rgba(30, 122, 95, 0.1);
+    border: 1px solid rgba(30, 122, 95, 0.12);
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
     flex-shrink: 0;
   }
 
   .autocomplete-empty {
     color: var(--text-muted);
+    line-height: 1.5;
   }
 
   .autocomplete-warning {
@@ -963,6 +1010,17 @@
     .form-grid,
     .preview-grid {
       grid-template-columns: 1fr;
+    }
+
+    .autocomplete-panel {
+      grid-template-columns: 1fr;
+      max-height: min(70vh, 520px);
+    }
+
+    .autocomplete-preview {
+      min-height: 150px;
+      border-right: none;
+      border-bottom: 1px solid rgba(71, 57, 29, 0.08);
     }
 
     .state-line {
@@ -2083,29 +2141,55 @@
     let closeTimer = null;
     let pointerInsideDropdown = false;
 
+    const renderDropdownShell = (previewContent, rightContent) => {
+      dropdown.innerHTML = `
+        <div class="autocomplete-panel">
+          <div class="autocomplete-preview${previewContent.empty ? " empty" : ""}" id="route-${selectionKey}-dropdown-preview">${previewContent.html}</div>
+          <div class="autocomplete-results">${rightContent}</div>
+        </div>
+      `;
+      dropdown.classList.add("open");
+    };
+
     const renderDropdown = (items, loading = false, warnings = []) => {
       currentItems = items;
       focusedIndex = -1;
       if (loading) {
-        dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">검색 중...</div><div class="autocomplete-empty">검색 중...</div>';
-        dropdown.classList.add("open");
+        renderDropdownShell(
+          { empty: true, html: "검색 중..." },
+          '<div class="autocomplete-empty">위치 후보를 불러오고 있습니다.</div>'
+        );
         return;
       }
       if (!items.length) {
-        dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">검색 결과가 없어 위치를 미리 볼 수 없습니다.</div><div class="autocomplete-empty">검색 결과 없음</div>';
-        dropdown.classList.add("open");
+        renderDropdownShell(
+          { empty: true, html: "검색 결과가 없어 위치를 미리 볼 수 없습니다." },
+          '<div class="autocomplete-empty">검색 결과 없음</div>' + (warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : "")
+        );
         return;
       }
-      dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다.</div>' + items.map((station, index) => `
-        <div class="autocomplete-item" data-index="${index}">
+      const listHtml = items.map((station, index) => `
+        <div class="autocomplete-item ${index === 0 ? "focused" : ""}" data-index="${index}">
           <span class="autocomplete-text">
             <span class="autocomplete-name">${escapeHtml(station.name)}</span>
             ${station.detail ? `<span class="autocomplete-detail">${escapeHtml(station.detail)}</span>` : ""}
           </span>
           <span class="autocomplete-meta">${escapeHtml(station.kind)}</span>
         </div>
-      `).join("") + (warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : "");
-      dropdown.classList.add("open");
+      `).join("");
+
+      renderDropdownShell(
+        { empty: true, html: "목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다." },
+        `
+          <div class="autocomplete-results-head">
+            <strong>검색 결과</strong>
+            <span>${items.length}건</span>
+          </div>
+          <div class="autocomplete-scroll">${listHtml}</div>
+          ${warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : ""}
+        `
+      );
+      focusedIndex = 0;
       updateAutocompletePreview(selectionKey, items[0]);
     };
 
@@ -2144,8 +2228,10 @@
         const result = await searchStations(value);
         renderDropdown(result.stations, false, result.warnings);
       } catch (error) {
-        dropdown.innerHTML = '<div class="autocomplete-empty">' + escapeHtml(error.message || "검색 실패") + '</div>';
-        dropdown.classList.add("open");
+        renderDropdownShell(
+          { empty: true, html: "검색을 완료하지 못했습니다." },
+          '<div class="autocomplete-empty">' + escapeHtml(error.message || "검색 실패") + '</div>'
+        );
       }
     }, 320);
 
