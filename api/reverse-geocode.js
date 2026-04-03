@@ -26,7 +26,8 @@ module.exports = async function handler(req, res) {
     const response = await fetch(`${REVERSE_URL}?${params.toString()}`, {
       headers: {
         "User-Agent": "transit-app/1.0 (contact: transit-app)"
-      }
+      },
+      cache: "no-store"
     });
 
     if (!response.ok) {
@@ -59,7 +60,7 @@ module.exports = async function handler(req, res) {
         x: lon,
         y: lat
       }
-    }, "public, s-maxage=86400, stale-while-revalidate=604800");
+    });
   } catch (error) {
     return sendJson(res, 500, { error: error.message || "역지오코딩에 실패했습니다" });
   }

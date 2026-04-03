@@ -1,6 +1,4 @@
-const { GLOBAL_CACHE, getCached, setCached, fetchOdsay, sendJson } = require("./_odsay");
-
-const STATION_TTL = 7 * 24 * 60 * 60 * 1000;
+const { fetchOdsay, sendJson } = require("./_odsay");
 const PLACE_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
 
 function roundedKey(x, y) {
@@ -39,7 +37,8 @@ async function searchPlaces(query) {
   const response = await fetch(`${PLACE_SEARCH_URL}?${params.toString()}`, {
     headers: {
       "User-Agent": "transit-app/1.0 (contact: transit-app)"
-    }
+    },
+    cache: "no-store"
   });
 
   if (!response.ok) {
@@ -65,12 +64,6 @@ module.exports = async function handler(req, res) {
   const q = String(req.query.q || "").trim();
   if (q.length < 2) {
     return sendJson(res, 400, { error: "검색어는 두 글자 이상이어야 합니다" });
-  }
-
-  const cacheKey = q.toLowerCase();
-  const cached = getCached(GLOBAL_CACHE.stationSearch, cacheKey);
-  if (cached) {
-    return sendJson(res, 200, cached, "public, s-maxage=604800, stale-while-revalidate=86400");
   }
 
   let stationResults = [];
@@ -114,6 +107,5 @@ module.exports = async function handler(req, res) {
   if (placeError) warnings.push(`장소 검색 일부 실패: ${placeError.message}`);
 
   const result = warnings.length ? { stations, warnings } : { stations };
-  setCached(GLOBAL_CACHE.stationSearch, cacheKey, result, STATION_TTL);
-  return sendJson(res, 200, result, "public, s-maxage=604800, stale-while-revalidate=86400");
+  return sendJson(res, 200, result);
 };

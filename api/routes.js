@@ -1,7 +1,4 @@
-const { GLOBAL_CACHE, getCached, setCached, fetchOdsay, sendJson } = require("./_odsay");
-
-const ROUTE_TTL = 10 * 60 * 1000;
-const REALTIME_TTL = 20 * 1000;
+const { fetchOdsay, sendJson } = require("./_odsay");
 
 const FILTER_TO_PATH_TYPE = {
   all: "0",
@@ -105,13 +102,8 @@ function normalizeRealtimeEntry(entry) {
   };
 }
 
-async function getRealtimeArrivals(stationID, forceRefresh = false) {
+async function getRealtimeArrivals(stationID) {
   const cacheKey = String(stationID);
-  if (!forceRefresh) {
-    const cached = getCached(GLOBAL_CACHE.realtimeArrival, cacheKey);
-    if (cached) return cached;
-  }
-
   const payload = await fetchOdsay("realtimeStation", {
     stationID: cacheKey,
     stationBase: "0"
@@ -120,7 +112,7 @@ async function getRealtimeArrivals(stationID, forceRefresh = false) {
   const list = (payload.result?.real || payload.result?.realtime || payload.result?.station || [])
     .map(normalizeRealtimeEntry);
 
-  return setCached(GLOBAL_CACHE.realtimeArrival, cacheKey, list, REALTIME_TTL);
+  return list;
 }
 
 function findBestBusArrival(firstTransit, arrivals) {
@@ -247,28 +239,22 @@ module.exports = async function handler(req, res) {
   const toY = toNumber(req.query.toY);
   const priority = String(req.query.priority || "fastest");
   const transportFilter = String(req.query.transportFilter || "all");
-  const forceRefresh = String(req.query.force || "") === "1";
 
   if ([fromX, fromY, toX, toY].some((value) => value == null)) {
     return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
   }
 
   const pathType = FILTER_TO_PATH_TYPE[transportFilter] || "0";
-  const cacheKey = [fromX, fromY, toX, toY, pathType].join(":");
 
   try {
-    let routePayload = forceRefresh ? null : getCached(GLOBAL_CACHE.routeSearch, cacheKey);
-    if (!routePayload) {
-      routePayload = await fetchOdsay("searchPubTransPathR", {
-        SX: String(fromX),
-        SY: String(fromY),
-        EX: String(toX),
-        EY: String(toY),
-        SearchPathType: pathType,
-        OPT: "0"
-      });
-      setCached(GLOBAL_CACHE.routeSearch, cacheKey, routePayload, ROUTE_TTL);
-    }
+    const routePayload = await fetchOdsay("searchPubTransPathR", {
+      SX: String(fromX),
+      SY: String(fromY),
+      EX: String(toX),
+      EY: String(toY),
+      SearchPathType: pathType,
+      OPT: "0"
+    });
 
     const rawPaths = routePayload.result?.path || [];
     if (!rawPaths.length) {
@@ -286,7 +272,7 @@ module.exports = async function handler(req, res) {
       if (priority === "best_eta" && firstTransit?.trafficType === 2 && firstTransit.startID) {
         const stationKey = String(firstTransit.startID);
         if (!realtimeCache.has(stationKey)) {
-          realtimeCache.set(stationKey, await getRealtimeArrivals(stationKey, forceRefresh));
+          realtimeCache.set(stationKey, await getRealtimeArrivals(stationKey));
         }
         realtimeWait = findBestBusArrival(firstTransit, realtimeCache.get(stationKey));
       }
@@ -303,13 +289,7 @@ module.exports = async function handler(req, res) {
       candidates: sorted.slice(0, 4)
     };
 
-    const cacheControl = forceRefresh
-      ? "no-store"
-      : (priority === "best_eta"
-        ? "public, s-maxage=20, stale-while-revalidate=40"
-        : "public, s-maxage=600, stale-while-revalidate=120");
-
-    return sendJson(res, 200, result, cacheControl);
+    return sendJson(res, 200, result);
   } catch (error) {
     return sendJson(res, error.statusCode || 500, { error: error.message || "경로 검색에 실패했습니다" });
   }

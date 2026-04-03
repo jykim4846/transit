@@ -1350,7 +1350,6 @@
   const STORAGE_KEY = "transit-routes-v2";
   const LEGACY_STORAGE_KEY = "transit-routes";
   const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
-  const STATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
   const AUTOCOMPLETE_MIN_LENGTH = 2;
   const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
 
@@ -1391,8 +1390,7 @@
     autocompleteSelection: {
       from: null,
       to: null
-    },
-    stationCache: loadStationCache()
+    }
   };
 
   function uid() {
@@ -1405,16 +1403,6 @@
     return new Date().toISOString();
   }
 
-  function loadStationCache() {
-    try {
-      const raw = JSON.parse(localStorage.getItem("transit-station-cache") || "{}");
-      if (!raw || typeof raw !== "object") return {};
-      return raw;
-    } catch {
-      return {};
-    }
-  }
-
   function getBrowserOdsayKey() {
     return localStorage.getItem(ODSAY_BROWSER_KEY_STORAGE) || "";
   }
@@ -1425,10 +1413,6 @@
       return;
     }
     localStorage.setItem(ODSAY_BROWSER_KEY_STORAGE, value.trim());
-  }
-
-  function saveStationCache() {
-    localStorage.setItem("transit-station-cache", JSON.stringify(state.stationCache));
   }
 
   function normalizeLegacyRoute(route) {
@@ -1903,7 +1887,6 @@
     state.autocompleteSelection[selectionKey] = picked;
     const input = document.getElementById(`route-${selectionKey}-input`);
     if (input) input.value = picked.name;
-    cacheStation(picked.name, picked);
     closeMapPicker();
     updateMapPickButtons();
     updateLocationPreview(selectionKey, picked);
@@ -1998,7 +1981,7 @@
   }
 
   async function fetchJson(url) {
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       throw new Error(payload.error || "요청에 실패했습니다");
@@ -2007,7 +1990,7 @@
   }
 
   async function fetchJsonDirect(url) {
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok || payload?.error) {
       throw new Error(payload?.error?.msg || payload?.error?.message || payload?.error?.code || payload.error || "ODsay 직접 호출 실패");
@@ -2027,14 +2010,6 @@
       ...params
     });
     return fetchJsonDirect(`${ODSAY_API_ROOT}/${endpoint}?${query.toString()}`);
-  }
-
-  function cacheStation(name, station) {
-    state.stationCache[name] = {
-      ts: Date.now(),
-      station
-    };
-    saveStationCache();
   }
 
   async function searchStations(query) {
@@ -2075,11 +2050,8 @@
   async function resolveStationByName(name) {
     const normalized = name.trim();
     if (!normalized) throw new Error("역 이름이 비어 있습니다");
-    const cached = state.stationCache[normalized];
-    if (cached && Date.now() - cached.ts < STATION_CACHE_TTL) return cached.station;
     const result = await searchStations(normalized);
     if (!result.stations.length) throw new Error('"' + normalized + '" 검색 결과가 없습니다');
-    cacheStation(normalized, result.stations[0]);
     return result.stations[0];
   }
 
@@ -2260,17 +2232,13 @@
     try {
       const from = route.from?.x != null && route.from?.y != null ? route.from : await resolveStationByName(route.from?.name || "");
       const to = route.to?.x != null && route.to?.y != null ? route.to : await resolveStationByName(route.to?.name || "");
-      cacheStation(from.name, from);
-      cacheStation(to.name, to);
-
       const params = new URLSearchParams({
         fromX: String(from.x),
         fromY: String(from.y),
         toX: String(to.x),
         toY: String(to.y),
         priority: route.priority,
-        transportFilter: route.transportFilter,
-        force: "1"
+        transportFilter: route.transportFilter
       });
 
       let payload;
@@ -2524,7 +2492,6 @@
       updateMapPickButtons();
       state.autocompleteSelection[selectionKey] = station;
       input.value = station.name;
-      cacheStation(station.name, station);
       updateLocationPreview(selectionKey, station);
       closeDropdown();
     };
@@ -2639,6 +2606,7 @@
     document.body.classList.add("is-standalone");
   }
 
+  localStorage.removeItem("transit-station-cache");
   state.routes = migrateAndLoadRoutes();
   bindStaticEvents();
   updateMapPickButtons();
