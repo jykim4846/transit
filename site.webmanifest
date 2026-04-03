@@ -1,0 +1,24 @@
+{
+  "name": "Transit",
+  "short_name": "Transit",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f2ece1",
+  "theme_color": "#f2ece1",
+  "description": "자주 가는 루트를 저장하고 지금 탈 한 가지를 바로 고르는 Transit.",
+  "icons": [
+    {
+      "src": "/icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

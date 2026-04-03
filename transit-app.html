@@ -2,9 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f2ece1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Transit">
 <title>Transit</title>
 <link rel="icon" href="data:,">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -41,11 +47,16 @@
   html, body {
     margin: 0;
     min-height: 100%;
+    background: #f2ece1;
   }
 
   body {
     font-family: "IBM Plex Sans KR", sans-serif;
     color: var(--text);
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
     background:
       radial-gradient(circle at top left, rgba(28, 91, 183, 0.1), transparent 28%),
       radial-gradient(circle at top right, rgba(30, 122, 95, 0.12), transparent 26%),
@@ -68,9 +79,13 @@
   .app-shell {
     width: min(860px, calc(100vw - 28px));
     margin: 0 auto;
-    padding: 26px 0 48px;
+    padding: calc(26px + env(safe-area-inset-top, 0px)) 0 calc(48px + env(safe-area-inset-bottom, 0px));
     position: relative;
     z-index: 1;
+  }
+
+  body.is-standalone .app-shell {
+    padding-top: calc(18px + env(safe-area-inset-top, 0px));
   }
 
   .hero {
@@ -2216,6 +2231,10 @@
       clearTimeout(timer);
       timer = setTimeout(() => fn(...args), ms);
     };
+  }
+
+  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
+    document.body.classList.add("is-standalone");
   }
 
   state.routes = migrateAndLoadRoutes();
