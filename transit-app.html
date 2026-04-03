@@ -2164,7 +2164,20 @@
         .reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
       const realtimeWait = route.priority === "best_eta" ? await fetchRealtimeWaitDirect(firstTransit) : null;
       const interval = Number(firstTransit?.intervalTime || 0);
-      const firstWaitMin = realtimeWait != null ? realtimeWait : (route.priority === "best_eta" && interval > 0 ? Math.max(1, Math.round(interval / 2)) : null);
+      let firstWaitMin = null;
+      let firstWaitSource = "not_applicable";
+      if (route.priority === "best_eta") {
+        if (firstTransit?.trafficType === 2) {
+          firstWaitMin = realtimeWait;
+          firstWaitSource = realtimeWait != null ? "realtime" : "none";
+        } else if (interval > 0) {
+          firstWaitMin = Math.max(1, Math.round(interval / 2));
+          firstWaitSource = "interval";
+        } else {
+          firstWaitSource = "none";
+        }
+      }
+      const unavailableBusRealtime = route.priority === "best_eta" && firstTransit?.trafficType === 2 && firstWaitMin == null;
       const totalTime = Number(info.totalTime || 0);
       const transferCount = inferTransferCount(info);
       const walkTime = subPaths.filter((segment) => segment.trafficType === 3).reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
@@ -2177,11 +2190,17 @@
         scoreDisplay = `${transferCount}회`;
         note = transferCount === 0 ? "환승 없이 가는 후보입니다." : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
       } else if (route.priority === "best_eta") {
-        scoreValue = totalTime + (firstWaitMin || 0);
-        scoreDisplay = `${scoreValue}분`;
-        note = firstWaitMin != null
-          ? `첫 탑승 대기 ${firstWaitMin}분과 총 이동시간을 합쳐 비교했습니다.`
-          : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+        if (unavailableBusRealtime) {
+          scoreValue = totalTime + 9999;
+          scoreDisplay = "정보 없음";
+          note = "첫 버스의 실시간 도착 정보를 확인하지 못해 추천 우선순위를 크게 낮췄습니다.";
+        } else {
+          scoreValue = totalTime + (firstWaitMin || 0);
+          scoreDisplay = `${scoreValue}분`;
+          note = firstWaitMin != null
+            ? `첫 탑승 대기 ${firstWaitMin}분과 총 이동시간을 합쳐 비교했습니다.`
+            : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+        }
       }
 
       candidates.push({
@@ -2195,8 +2214,11 @@
         walkTime,
         walkTimeText: `${walkTime}분`,
         firstWaitMin,
-        firstWaitText: firstWaitMin != null ? `${firstWaitMin}분` : "즉시",
-        firstWaitSource: realtimeWait != null ? "realtime" : (firstWaitMin != null ? "interval" : "none"),
+        firstWaitText: route.priority !== "best_eta"
+          ? "기준 아님"
+          : (unavailableBusRealtime ? "정보 없음" : (firstWaitMin != null ? `${firstWaitMin}분` : "정보 없음")),
+        firstWaitSource,
+        unavailableBusRealtime,
         firstTransitLabel: firstTransit ? (firstTransit.trafficType === 2 ? (firstTransit.lane?.[0]?.busNo || "버스") : (firstTransit.lane?.[0]?.name || "지하철")) : "도보",
         boardingStopName: firstTransitStartName,
         boardingApproachText: firstTransitStartName

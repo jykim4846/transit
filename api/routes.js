@@ -132,7 +132,11 @@ function findBestBusArrival(firstTransit, arrivals) {
   return Math.max(1, Math.ceil(Math.min(...matches) / 60));
 }
 
-function getEstimatedWait(firstTransit, realtimeWait) {
+function getEstimatedWait(priority, firstTransit, realtimeWait) {
+  if (priority !== "best_eta") {
+    return { minutes: null, source: "not_applicable" };
+  }
+
   if (!firstTransit) {
     return { minutes: 0, source: "none" };
   }
@@ -141,12 +145,20 @@ function getEstimatedWait(firstTransit, realtimeWait) {
     return { minutes: realtimeWait, source: "realtime" };
   }
 
+  if (firstTransit.trafficType === 2) {
+    return { minutes: null, source: "none" };
+  }
+
   const interval = toNumber(firstTransit.intervalTime) || 0;
   if (interval > 0) {
     return { minutes: Math.max(1, Math.round(interval / 2)), source: "interval" };
   }
 
-  return { minutes: 0, source: "none" };
+  return { minutes: null, source: "none" };
+}
+
+function isUnavailableBusForBestEta(firstTransit, wait) {
+  return firstTransit?.trafficType === 2 && wait.source === "none";
 }
 
 function getBoardingStopName(firstTransit) {
@@ -159,13 +171,14 @@ function buildCandidate(path, index, priority, realtimeWait) {
   const subPaths = path.subPath || [];
   const firstTransitIndex = subPaths.findIndex((segment) => segment.trafficType === 1 || segment.trafficType === 2);
   const firstTransit = firstTransitIndex >= 0 ? subPaths[firstTransitIndex] : null;
-  const wait = getEstimatedWait(firstTransit, realtimeWait);
+  const wait = getEstimatedWait(priority, firstTransit, realtimeWait);
   const initialWalkTime = getInitialWalkTime(subPaths, firstTransitIndex);
   const totalTime = Number(info.totalTime || 0);
   const transferCount = inferTransferCount(info);
   const walkTime = getWalkTime(subPaths);
   const summarySteps = summarizeSteps(subPaths);
   const boardingStopName = getBoardingStopName(firstTransit);
+  const unavailableBusRealtime = isUnavailableBusForBestEta(firstTransit, wait);
 
   let scoreValue;
   let scoreDisplay;
@@ -178,11 +191,17 @@ function buildCandidate(path, index, priority, realtimeWait) {
       ? "환승 없이 가는 후보입니다."
       : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
   } else if (priority === "best_eta") {
-    scoreValue = totalTime + wait.minutes;
-    scoreDisplay = `${scoreValue}분`;
-    note = wait.minutes > 0
-      ? `첫 탑승 대기 ${wait.minutes}분과 총 이동시간을 합쳐 비교했습니다.`
-      : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+    if (unavailableBusRealtime) {
+      scoreValue = totalTime + 9999;
+      scoreDisplay = "정보 없음";
+      note = "첫 버스의 실시간 도착 정보를 확인하지 못해 추천 우선순위를 크게 낮췄습니다.";
+    } else {
+      scoreValue = totalTime + wait.minutes;
+      scoreDisplay = `${scoreValue}분`;
+      note = wait.minutes > 0
+        ? `첫 탑승 대기 ${wait.minutes}분과 총 이동시간을 합쳐 비교했습니다.`
+        : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+    }
   } else {
     scoreValue = totalTime;
     scoreDisplay = `${totalTime}분`;
@@ -203,9 +222,12 @@ function buildCandidate(path, index, priority, realtimeWait) {
     transferCountText: formatTransferCount(transferCount),
     walkTime,
     walkTimeText: formatMinutes(walkTime),
-    firstWaitMin: wait.minutes || null,
-    firstWaitText: wait.minutes ? formatMinutes(wait.minutes) : "즉시",
+    firstWaitMin: wait.minutes,
+    firstWaitText: priority !== "best_eta"
+      ? "기준 아님"
+      : (unavailableBusRealtime ? "정보 없음" : (wait.minutes != null ? formatMinutes(wait.minutes) : "정보 없음")),
     firstWaitSource: wait.source,
+    unavailableBusRealtime,
     firstTransitLabel,
     boardingStopName,
     boardingApproachText: boardingStopName
