@@ -915,6 +915,10 @@
     padding: 12px 14px;
     border-bottom: 1px solid rgba(71, 57, 29, 0.08);
     background: rgba(255, 255, 255, 0.72);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
   }
 
   .place-preview-head strong {
@@ -933,6 +937,7 @@
   .place-preview-map {
     height: 150px;
     background: linear-gradient(135deg, rgba(30, 122, 95, 0.08), rgba(28, 91, 183, 0.08));
+    position: relative;
   }
 
   .place-preview-map.empty {
@@ -948,6 +953,40 @@
 
   .leaflet-container {
     background: #efe8da;
+  }
+
+  .mini-map-btn {
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.84);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .mini-map-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .map-pick-hint {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 450;
+    padding: 9px 10px;
+    border-radius: 12px;
+    background: rgba(32, 24, 16, 0.78);
+    color: white;
+    font-size: 11px;
+    line-height: 1.4;
+    pointer-events: none;
   }
 
   .toast {
@@ -1110,15 +1149,21 @@
         <div class="preview-grid">
           <div class="place-preview">
             <div class="place-preview-head">
-              <strong>출발지</strong>
-              <span id="route-from-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+              <div>
+                <strong>출발지</strong>
+                <span id="route-from-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+              </div>
+              <button class="mini-map-btn" type="button" data-map-pick="from" id="route-from-map-pick-btn">지도에서 찍기</button>
             </div>
             <div class="place-preview-map empty" id="route-from-preview-map">검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.</div>
           </div>
           <div class="place-preview">
             <div class="place-preview-head">
-              <strong>도착지</strong>
-              <span id="route-to-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+              <div>
+                <strong>도착지</strong>
+                <span id="route-to-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+              </div>
+              <button class="mini-map-btn" type="button" data-map-pick="to" id="route-to-map-pick-btn">지도에서 찍기</button>
             </div>
             <div class="place-preview-map empty" id="route-to-preview-map">검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.</div>
           </div>
@@ -1218,6 +1263,10 @@
     expandedRouteIds: new Set(),
     modalRouteId: null,
     previewMaps: {},
+    mapPickMode: {
+      from: false,
+      to: false
+    },
     autocompleteSelection: {
       from: null,
       to: null
@@ -1354,16 +1403,20 @@
     const labelEl = document.getElementById(labelId);
     if (!mapEl || !labelEl) return;
 
-    if (!location || location.x == null || location.y == null) {
+    const picking = state.mapPickMode[selectionKey];
+
+    if ((!location || location.x == null || location.y == null) && !picking) {
       clearLocationPreview(selectionKey);
       return;
     }
 
     mapEl.classList.remove("empty");
-    labelEl.textContent = [location.kind, location.detail].filter(Boolean).join(" · ") || location.name;
+    labelEl.textContent = picking
+      ? "지도를 눌러 좌표를 선택하세요. 선택 후 경로 계산에 바로 사용할 수 있습니다."
+      : ([location.kind, location.detail].filter(Boolean).join(" · ") || location.name);
 
-    const lat = Number(location.y);
-    const lng = Number(location.x);
+    const lat = location?.y != null ? Number(location.y) : 37.5665;
+    const lng = location?.x != null ? Number(location.x) : 126.9780;
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       clearLocationPreview(selectionKey);
       return;
@@ -1375,36 +1428,73 @@
         mapEl.innerHTML = "";
         if (typeof L === "undefined") {
           mapEl.classList.add("empty");
-          mapEl.textContent = `${location.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+          mapEl.textContent = `${location?.name || "선택한 위치"} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
           return;
         }
         const map = L.map(mapId, {
           zoomControl: false,
           attributionControl: false,
-          dragging: false,
+          dragging: picking,
           scrollWheelZoom: false,
           doubleClickZoom: false,
-          touchZoom: false,
+          touchZoom: picking,
           keyboard: false
         });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19
         }).addTo(map);
-        const marker = L.circleMarker([lat, lng], {
-          radius: 8,
-          color: "#165c47",
-          weight: 2,
-          fillColor: "#1e7a5f",
-          fillOpacity: 0.9
-        }).addTo(map);
+        let marker = null;
+        if (location?.x != null && location?.y != null) {
+          marker = L.circleMarker([lat, lng], {
+            radius: 8,
+            color: "#165c47",
+            weight: 2,
+            fillColor: "#1e7a5f",
+            fillOpacity: 0.9
+          }).addTo(map);
+        }
+        map.on("click", (event) => {
+          if (!state.mapPickMode[selectionKey]) return;
+          handleMapPick(selectionKey, event.latlng.lat, event.latlng.lng);
+        });
         preview = { map, marker };
         state.previewMaps[selectionKey] = preview;
       } else {
-        preview.marker.setLatLng([lat, lng]);
+        if (location?.x != null && location?.y != null) {
+          if (!preview.marker) {
+            preview.marker = L.circleMarker([lat, lng], {
+              radius: 8,
+              color: "#165c47",
+              weight: 2,
+              fillColor: "#1e7a5f",
+              fillOpacity: 0.9
+            }).addTo(preview.map);
+          } else {
+            preview.marker.setLatLng([lat, lng]);
+          }
+        }
       }
 
-      preview.map.setView([lat, lng], 15);
+      if (preview.map.dragging) {
+        if (picking) preview.map.dragging.enable();
+        else preview.map.dragging.disable();
+      }
+      if (preview.map.touchZoom) {
+        if (picking) preview.map.touchZoom.enable();
+        else preview.map.touchZoom.disable();
+      }
+      preview.map.getContainer().style.cursor = picking ? "crosshair" : "default";
+      preview.map.setView([lat, lng], location?.x != null && location?.y != null ? 15 : 13);
       preview.map.invalidateSize();
+
+      const oldHint = mapEl.querySelector(".map-pick-hint");
+      if (oldHint) oldHint.remove();
+      if (picking) {
+        const hint = document.createElement("div");
+        hint.className = "map-pick-hint";
+        hint.textContent = "지도를 눌러 이 위치를 선택하세요.";
+        mapEl.appendChild(hint);
+      }
     });
   }
 
@@ -1695,6 +1785,53 @@
     toast.classList.add("show");
     clearTimeout(showToast._timer);
     showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
+  function updateMapPickButtons() {
+    ["from", "to"].forEach((selectionKey) => {
+      const button = document.getElementById(`route-${selectionKey}-map-pick-btn`);
+      if (!button) return;
+      const active = state.mapPickMode[selectionKey];
+      button.classList.toggle("active", active);
+      button.textContent = active ? "지도 선택 중" : "지도에서 찍기";
+    });
+  }
+
+  async function reverseGeocode(lat, lng) {
+    try {
+      const payload = await fetchJson(`/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`);
+      return payload.location || null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function handleMapPick(selectionKey, lat, lng) {
+    const location = await reverseGeocode(lat, lng);
+    const fallbackName = selectionKey === "from" ? "지도 선택 출발지" : "지도 선택 도착지";
+    const picked = {
+      name: location?.name || fallbackName,
+      detail: location?.detail || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+      kind: location?.kind || "지도 선택",
+      x: lng,
+      y: lat,
+      stationID: null
+    };
+
+    state.autocompleteSelection[selectionKey] = picked;
+    const input = document.getElementById(`route-${selectionKey}-input`);
+    if (input) input.value = picked.name;
+    cacheStation(picked.name, picked);
+    state.mapPickMode[selectionKey] = false;
+    updateMapPickButtons();
+    updateLocationPreview(selectionKey, picked);
+    showToast(`${selectionKey === "from" ? "출발지" : "도착지"}를 지도에서 선택했습니다`);
+  }
+
+  function toggleMapPickMode(selectionKey) {
+    state.mapPickMode[selectionKey] = !state.mapPickMode[selectionKey];
+    updateMapPickButtons();
+    updateLocationPreview(selectionKey, state.autocompleteSelection[selectionKey]);
   }
 
   function configureBrowserKey() {
@@ -2008,6 +2145,8 @@
 
   function openModal(routeId = null) {
     state.modalRouteId = routeId;
+    state.mapPickMode.from = false;
+    state.mapPickMode.to = false;
     const route = state.routes.find((item) => item.id === routeId) || null;
 
     document.getElementById("modal-title").textContent = route ? "루트 편집" : "새 루트 추가";
@@ -2017,6 +2156,7 @@
 
     state.autocompleteSelection.from = route?.from?.x != null && route?.from?.y != null ? route.from : null;
     state.autocompleteSelection.to = route?.to?.x != null && route?.to?.y != null ? route.to : null;
+    updateMapPickButtons();
     updateLocationPreview("from", state.autocompleteSelection.from);
     updateLocationPreview("to", state.autocompleteSelection.to);
 
@@ -2028,8 +2168,11 @@
 
   function closeModal() {
     state.modalRouteId = null;
+    state.mapPickMode.from = false;
+    state.mapPickMode.to = false;
     state.autocompleteSelection.from = null;
     state.autocompleteSelection.to = null;
+    updateMapPickButtons();
     clearLocationPreview("from");
     clearLocationPreview("to");
     document.getElementById("route-from-dropdown").classList.remove("open");
@@ -2108,6 +2251,8 @@
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
+    document.getElementById("route-from-map-pick-btn").addEventListener("click", () => toggleMapPickMode("from"));
+    document.getElementById("route-to-map-pick-btn").addEventListener("click", () => toggleMapPickMode("to"));
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
     document.getElementById("modal-save-btn").addEventListener("click", saveRoute);
@@ -2210,6 +2355,8 @@
     };
 
     const selectItem = (station) => {
+      state.mapPickMode[selectionKey] = false;
+      updateMapPickButtons();
       state.autocompleteSelection[selectionKey] = station;
       input.value = station.name;
       cacheStation(station.name, station);
@@ -2236,6 +2383,10 @@
     }, 320);
 
     input.addEventListener("input", () => {
+      if (state.mapPickMode[selectionKey]) {
+        state.mapPickMode[selectionKey] = false;
+        updateMapPickButtons();
+      }
       state.autocompleteSelection[selectionKey] = null;
       clearLocationPreview(selectionKey);
       debouncedSearch();
@@ -2325,6 +2476,7 @@
 
   state.routes = migrateAndLoadRoutes();
   bindStaticEvents();
+  updateMapPickButtons();
   setupAutocomplete("route-from-input", "route-from-dropdown", "from");
   setupAutocomplete("route-to-input", "route-to-dropdown", "to");
   setOptionGroupValue("priority", "fastest");
