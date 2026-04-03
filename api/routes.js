@@ -155,6 +155,11 @@ function getEstimatedWait(firstTransit, realtimeWait) {
   return { minutes: 0, source: "none" };
 }
 
+function getBoardingStopName(firstTransit) {
+  if (!firstTransit) return null;
+  return firstTransit.startName || firstTransit.startStationName || null;
+}
+
 function buildCandidate(path, index, priority, realtimeWait) {
   const info = path.info || {};
   const subPaths = path.subPath || [];
@@ -166,6 +171,7 @@ function buildCandidate(path, index, priority, realtimeWait) {
   const transferCount = inferTransferCount(info);
   const walkTime = getWalkTime(subPaths);
   const summarySteps = summarizeSteps(subPaths);
+  const boardingStopName = getBoardingStopName(firstTransit);
 
   let scoreValue;
   let scoreDisplay;
@@ -207,6 +213,10 @@ function buildCandidate(path, index, priority, realtimeWait) {
     firstWaitText: wait.minutes ? formatMinutes(wait.minutes) : "즉시",
     firstWaitSource: wait.source,
     firstTransitLabel,
+    boardingStopName,
+    boardingApproachText: boardingStopName
+      ? (initialWalkTime > 0 ? `도보 후 ${boardingStopName} 탑승` : `${boardingStopName} 탑승`)
+      : null,
     initialWalkTime,
     summarySteps,
     note,
