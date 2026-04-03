@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transit</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4efe6;
+    --bg-strong: #e8decf;
+    --paper: rgba(255, 252, 247, 0.84);
+    --paper-strong: #fffaf2;
+    --line: rgba(71, 57, 29, 0.14);
+    --text: #201810;
+    --text-muted: #70634f;
+    --accent: #1e7a5f;
+    --accent-strong: #165c47;
+    --accent-soft: rgba(30, 122, 95, 0.12);
+    --orange: #c5631f;
+    --orange-soft: rgba(197, 99, 31, 0.12);
+    --blue: #1c5bb7;
+    --blue-soft: rgba(28, 91, 183, 0.12);
+    --danger: #b44343;
+    --shadow: 0 22px 60px rgba(68, 51, 30, 0.12);
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --mono: "Space Mono", monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    min-height: 100%;
+  }
+
+  body {
+    font-family: "IBM Plex Sans KR", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(28, 91, 183, 0.1), transparent 28%),
+      radial-gradient(circle at top right, rgba(30, 122, 95, 0.12), transparent 26%),
+      linear-gradient(180deg, #f7f0e4 0%, #f2ece1 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent 80%);
+    opacity: 0.25;
+  }
+
+  .app-shell {
+    width: min(860px, calc(100vw - 28px));
+    margin: 0 auto;
+    padding: 26px 0 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, rgba(255, 250, 242, 0.92), rgba(255, 246, 232, 0.82));
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    border-radius: 32px;
+    padding: 26px 24px 22px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    margin: 12px 0 10px;
+    font-size: clamp(30px, 6vw, 46px);
+    line-height: 1.03;
+    letter-spacing: -0.04em;
+  }
+
+  .hero p {
+    margin: 0;
+    max-width: 560px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .clock-badge {
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(32, 24, 16, 0.05);
+    color: var(--accent-strong);
+    border: 1px solid rgba(30, 122, 95, 0.12);
+    min-width: 104px;
+    text-align: center;
+  }
+
+  .hero-note {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .hero-note-card {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .hero-note-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .hero-note-card span {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .section {
+    margin-top: 24px;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: -0.03em;
+  }
+
+  .section-head span {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .route-list {
+    display: grid;
+    gap: 14px;
+  }
+
+  .route-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+  }
+
+  .route-card.loading {
+    opacity: 0.76;
+  }
+
+  .route-main {
+    padding: 22px 22px 18px;
+  }
+
+  .route-main-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .route-names {
+    min-width: 0;
+  }
+
+  .route-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    border: 1px solid transparent;
+  }
+
+  .pill.label {
+    background: rgba(32, 24, 16, 0.06);
+    color: var(--text);
+  }
+
+  .pill.priority-fastest,
+  .pill.priority-best_eta {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border-color: rgba(30, 122, 95, 0.12);
+  }
+
+  .pill.priority-fewest_transfers {
+    background: var(--blue-soft);
+    color: var(--blue);
+    border-color: rgba(28, 91, 183, 0.12);
+  }
+
+  .pill.transport {
+    background: var(--orange-soft);
+    color: var(--orange);
+    border-color: rgba(197, 99, 31, 0.12);
+  }
+
+  .route-title {
+    font-size: clamp(21px, 4vw, 28px);
+    line-height: 1.18;
+    letter-spacing: -0.04em;
+    word-break: keep-all;
+  }
+
+  .route-title .arrow {
+    color: var(--text-muted);
+    margin: 0 8px;
+  }
+
+  .route-subtitle {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .route-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  button {
+    font: inherit;
+  }
+
+  .btn {
+    border: none;
+    cursor: pointer;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    cursor: wait;
+    opacity: 0.64;
+    transform: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-weight: 700;
+  }
+
+  .btn-secondary,
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-weight: 600;
+  }
+
+  .btn-ghost {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .btn-danger {
+    color: var(--danger);
+  }
+
+  .summary-board {
+    margin-top: 18px;
+    background: var(--paper-strong);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    border-radius: 22px;
+    padding: 18px;
+  }
+
+  .summary-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .summary-head strong {
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .summary-line {
+    font-size: clamp(24px, 5vw, 34px);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .summary-line small {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .summary-note {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .score-badge {
+    min-width: 120px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background: rgba(32, 24, 16, 0.05);
+    text-align: right;
+  }
+
+  .score-badge .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .score-badge .value {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .metric {
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .metric .label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .metric .value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .transport-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .transport-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  .transport-step.walk {
+    color: var(--text-muted);
+  }
+
+  .transport-step.bus {
+    color: var(--orange);
+    background: rgba(197, 99, 31, 0.08);
+  }
+
+  .transport-step.subway {
+    color: var(--blue);
+    background: rgba(28, 91, 183, 0.08);
+  }
+
+  .state-line {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .state-line .stamp {
+    font-family: var(--mono);
+  }
+
+  .detail-toggle {
+    margin-top: 16px;
+  }
+
+  .route-details {
+    border-top: 1px solid rgba(71, 57, 29, 0.08);
+    padding: 0 22px 22px;
+    display: none;
+  }
+
+  .route-card.expanded .route-details {
+    display: block;
+  }
+
+  .detail-block {
+    margin-top: 18px;
+  }
+
+  .detail-block h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+  }
+
+  .candidate-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .candidate-card {
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .candidate-card.recommended {
+    border-color: rgba(30, 122, 95, 0.25);
+    box-shadow: inset 0 0 0 1px rgba(30, 122, 95, 0.1);
+  }
+
+  .candidate-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .candidate-card strong {
+    font-size: 15px;
+  }
+
+  .candidate-card .meta {
+    margin-top: 6px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .candidate-score {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  .segment-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .segment-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .segment-item .name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .segment-item .kind {
+    width: 54px;
+    font-size: 11px;
+    text-align: center;
+    padding: 5px 6px;
+    border-radius: 999px;
+    background: rgba(32, 24, 16, 0.05);
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .segment-item .text {
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .segment-item .time {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    padding: 22px;
+    border-radius: var(--radius-xl);
+    border: 1px dashed rgba(71, 57, 29, 0.22);
+    background: rgba(255, 255, 255, 0.56);
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .empty-state strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text);
+    font-size: 16px;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(24, 16, 12, 0.42);
+    z-index: 30;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal {
+    width: min(680px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    background: var(--paper-strong);
+    border-radius: 28px;
+    box-shadow: 0 28px 80px rgba(32, 24, 16, 0.22);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    padding: 24px;
+  }
+
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 22px;
+  }
+
+  .modal-head h3 {
+    margin: 0 0 8px;
+    font-size: 24px;
+    letter-spacing: -0.04em;
+  }
+
+  .modal-head p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.5;
+    font-size: 14px;
+  }
+
+  .icon-button {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+    cursor: pointer;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 8px;
+  }
+
+  .form-row.full {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(71, 57, 29, 0.12);
+    background: rgba(255, 255, 255, 0.88);
+    padding: 0 14px;
+    font: inherit;
+    color: var(--text);
+  }
+
+  input[type="text"]:focus {
+    outline: 2px solid rgba(30, 122, 95, 0.16);
+    border-color: rgba(30, 122, 95, 0.28);
+  }
+
+  .option-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .option-card {
+    border: 1px solid rgba(71, 57, 29, 0.1);
+    border-radius: 16px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.64);
+    cursor: pointer;
+  }
+
+  .option-card input {
+    display: none;
+  }
+
+  .option-card.active {
+    border-color: rgba(30, 122, 95, 0.28);
+    background: rgba(30, 122, 95, 0.08);
+  }
+
+  .option-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .option-card span {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .autocomplete-wrap {
+    position: relative;
+  }
+
+  .autocomplete-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    display: none;
+    z-index: 4;
+    background: #fffdf8;
+    border: 1px solid rgba(71, 57, 29, 0.12);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(32, 24, 16, 0.12);
+    overflow: hidden;
+  }
+
+  .autocomplete-dropdown.open {
+    display: block;
+  }
+
+  .autocomplete-item,
+  .autocomplete-empty {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .autocomplete-item {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .autocomplete-item:hover,
+  .autocomplete-item.focused {
+    background: rgba(30, 122, 95, 0.08);
+  }
+
+  .autocomplete-meta {
+    color: var(--text-muted);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .autocomplete-empty {
+    color: var(--text-muted);
+  }
+
+  .modal-actions {
+    margin-top: 22px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%) translateY(16px);
+    background: rgba(32, 24, 16, 0.9);
+    color: white;
+    padding: 13px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 60;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 760px) {
+    .app-shell {
+      width: calc(100vw - 18px);
+      padding-top: 12px;
+    }
+
+    .hero,
+    .route-main,
+    .route-details,
+    .modal {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .hero-top,
+    .route-main-top,
+    .summary-head,
+    .modal-head,
+    .section-head {
+      flex-direction: column;
+    }
+
+    .route-actions,
+    .hero-actions {
+      width: 100%;
+      justify-content: stretch;
+    }
+
+    .route-actions .btn,
+    .hero-actions .btn {
+      flex: 1;
+    }
+
+    .hero-note,
+    .metric-grid,
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .state-line {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">My Transit Decision Board</div>
+        <h1>열자마자<br>뭘 탈지 보이게</h1>
+        <p>
+          저장 루트마다 기준을 하나만 정하고, 필요할 때만 추천을 갱신합니다.
+          첫 화면은 여러 경로를 나열하지 않고 지금 고를 한 가지를 먼저 보여줍니다.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <div class="clock-badge" id="clock">--:--</div>
+        <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
+      </div>
+    </div>
+    <div class="hero-note">
+      <div class="hero-note-card">
+        <strong>자동 호출 없음</strong>
+        <span>앱 로드 시 ODsay를 치지 않습니다. 저장된 결과만 먼저 보여줍니다.</span>
+      </div>
+      <div class="hero-note-card">
+        <strong>루트별 기준 고정</strong>
+        <span>출근이면 최소시간, 퇴근이면 최소환승처럼 각 루트의 판단 기준을 저장합니다.</span>
+      </div>
+      <div class="hero-note-card">
+        <strong>필요할 때만 갱신</strong>
+        <span>버스 실시간 대기가 필요한 경우에도 `추천 갱신`을 눌렀을 때만 서버를 호출합니다.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>저장 루트</h2>
+      <span id="route-count">0개 루트</span>
+    </div>
+    <div class="route-list" id="route-list"></div>
+  </section>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title">새 루트 추가</h3>
+        <p>루트 목적, 추천 기준, 허용 교통수단을 먼저 정한 뒤 저장합니다.</p>
+      </div>
+      <button class="icon-button" id="modal-close-btn" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-row full">
+        <label for="route-label-input">루트 라벨</label>
+        <input type="text" id="route-label-input" placeholder="예: 출근, 퇴근, 병원" maxlength="18">
+      </div>
+
+      <div class="form-row">
+        <label for="route-from-input">출발지</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="route-from-input" placeholder="예: 강남역" autocomplete="off">
+          <div class="autocomplete-dropdown" id="route-from-dropdown"></div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="route-to-input">도착지</label>
+        <div class="autocomplete-wrap">
+          <input type="text" id="route-to-input" placeholder="예: 여의도역" autocomplete="off">
+          <div class="autocomplete-dropdown" id="route-to-dropdown"></div>
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <label>추천 기준</label>
+        <div class="option-grid" id="priority-options">
+          <label class="option-card" data-priority="fastest">
+            <input type="radio" name="priority" value="fastest">
+            <strong>최소시간</strong>
+            <span>총 소요시간이 가장 짧은 후보를 추천합니다.</span>
+          </label>
+          <label class="option-card" data-priority="fewest_transfers">
+            <input type="radio" name="priority" value="fewest_transfers">
+            <strong>최소환승</strong>
+            <span>환승 수가 가장 적은 후보를 우선합니다.</span>
+          </label>
+          <label class="option-card" data-priority="best_eta">
+            <input type="radio" name="priority" value="best_eta">
+            <strong>지금 출발 기준</strong>
+            <span>첫 탑승 대기와 총 이동시간을 함께 반영합니다.</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <label>허용 교통수단</label>
+        <div class="option-grid" id="transport-options">
+          <label class="option-card" data-transport="all">
+            <input type="radio" name="transport" value="all">
+            <strong>버스 + 지하철</strong>
+            <span>둘 다 허용합니다.</span>
+          </label>
+          <label class="option-card" data-transport="bus">
+            <input type="radio" name="transport" value="bus">
+            <strong>버스만</strong>
+            <span>버스만 포함된 경로만 비교합니다.</span>
+          </label>
+          <label class="option-card" data-transport="subway">
+            <input type="radio" name="transport" value="subway">
+            <strong>지하철만</strong>
+            <span>지하철만 포함된 경로만 비교합니다.</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="modal-cancel-btn">취소</button>
+      <button class="btn btn-primary" id="modal-save-btn">저장</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const STORAGE_KEY = "transit-routes-v2";
+  const LEGACY_STORAGE_KEY = "transit-routes";
+  const STATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+  const AUTOCOMPLETE_MIN_LENGTH = 2;
+
+  const PRIORITY_META = {
+    fastest: {
+      label: "최소시간",
+      className: "priority-fastest",
+      scoreLabel: "총 이동",
+      staleText: "가장 빠른 총 소요시간 기준"
+    },
+    fewest_transfers: {
+      label: "최소환승",
+      className: "priority-fewest_transfers",
+      scoreLabel: "환승 우선",
+      staleText: "환승 수가 가장 적은 기준"
+    },
+    best_eta: {
+      label: "지금 출발",
+      className: "priority-best_eta",
+      scoreLabel: "출발 기준",
+      staleText: "첫 탑승 대기까지 반영한 기준"
+    }
+  };
+
+  const TRANSPORT_META = {
+    all: { label: "버스+지하철" },
+    bus: { label: "버스만" },
+    subway: { label: "지하철만" }
+  };
+
+  const state = {
+    routes: [],
+    loadingRouteIds: new Set(),
+    expandedRouteIds: new Set(),
+    modalRouteId: null,
+    autocompleteSelection: {
+      from: null,
+      to: null
+    },
+    stationCache: loadStationCache()
+  };
+
+  function uid() {
+    return typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : "route-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+  }
+
+  function nowStamp() {
+    return new Date().toISOString();
+  }
+
+  function loadStationCache() {
+    try {
+      const raw = JSON.parse(localStorage.getItem("transit-station-cache") || "{}");
+      if (!raw || typeof raw !== "object") return {};
+      return raw;
+    } catch {
+      return {};
+    }
+  }
+
+  function saveStationCache() {
+    localStorage.setItem("transit-station-cache", JSON.stringify(state.stationCache));
+  }
+
+  function normalizeLegacyRoute(route) {
+    return {
+      id: uid(),
+      label: route.tag || "루트",
+      from: { name: route.from || "", x: null, y: null },
+      to: { name: route.to || "", x: null, y: null },
+      priority: route.tag === "퇴근" ? "fewest_transfers" : "fastest",
+      transportFilter: "all",
+      lastResult: null,
+      createdAt: nowStamp()
+    };
+  }
+
+  function migrateAndLoadRoutes() {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) {
+      try {
+        return JSON.parse(current) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return [];
+
+    try {
+      const migrated = (JSON.parse(legacy) || []).map(normalizeLegacyRoute);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    } catch {
+      return [];
+    }
+  }
+
+  function persistRoutes() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.routes));
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function formatTime(dateLike) {
+    if (!dateLike) return "미갱신";
+    const date = new Date(dateLike);
+    if (Number.isNaN(date.getTime())) return "미갱신";
+    return date.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function relativeTime(dateLike) {
+    if (!dateLike) return "아직 추천을 가져오지 않았습니다";
+    const diffMin = Math.max(0, Math.floor((Date.now() - new Date(dateLike).getTime()) / 60000));
+    if (diffMin < 1) return "방금 갱신";
+    if (diffMin < 60) return diffMin + "분 전 갱신";
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return diffHour + "시간 전 갱신";
+    return Math.floor(diffHour / 24) + "일 전 갱신";
+  }
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").textContent = now.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function priorityLabel(value) {
+    return PRIORITY_META[value]?.label || value;
+  }
+
+  function transportLabel(value) {
+    return TRANSPORT_META[value]?.label || value;
+  }
+
+  function describeRecommendation(route, recommendation) {
+    if (!recommendation) return "저장된 추천이 없습니다. 필요할 때만 직접 갱신하세요.";
+    if (route.priority === "fastest") {
+      return "총 이동시간이 가장 짧은 후보를 상단에 고정했습니다.";
+    }
+    if (route.priority === "fewest_transfers") {
+      return "환승 수를 먼저 줄이고, 동률이면 더 빠른 후보를 선택합니다.";
+    }
+    if (recommendation.firstWaitMin == null) {
+      return "첫 탑승 대기 추정치와 총 이동시간을 함께 반영한 결과입니다.";
+    }
+    const source = recommendation.firstWaitSource === "realtime" ? "실시간 버스 도착" : "배차간격 추정";
+    return "첫 탑승 대기 " + recommendation.firstWaitMin + "분(" + source + ")을 반영해 지금 출발 기준으로 정렬했습니다.";
+  }
+
+  function renderTransportSteps(steps) {
+    if (!steps?.length) return "";
+    return steps.map((step) => {
+      return '<span class="transport-step ' + escapeHtml(step.type) + '">' + escapeHtml(step.label) + "</span>";
+    }).join("");
+  }
+
+  function renderCandidate(candidate, isRecommended) {
+    return `
+      <div class="candidate-card ${isRecommended ? "recommended" : ""}">
+        <div class="candidate-card-top">
+          <div>
+            <strong>${escapeHtml(candidate.firstTransitLabel || "도보 중심")}</strong>
+            <div class="meta">
+              ${escapeHtml(candidate.note)}
+            </div>
+          </div>
+          <div class="candidate-score">${escapeHtml(candidate.scoreDisplay)}</div>
+        </div>
+        <div class="transport-strip" style="margin-top:12px;">${renderTransportSteps(candidate.summarySteps)}</div>
+      </div>
+    `;
+  }
+
+  function renderSegments(segments) {
+    if (!segments?.length) {
+      return '<div class="empty-state"><strong>상세 구간이 없습니다</strong>다음 갱신 때 다시 확인해주세요.</div>';
+    }
+    return '<div class="segment-list">' + segments.map((segment) => `
+      <div class="segment-item">
+        <div class="name">
+          <span class="kind">${escapeHtml(segment.kind)}</span>
+          <div class="text">${escapeHtml(segment.text)}</div>
+        </div>
+        <div class="time">${escapeHtml(segment.time)}</div>
+      </div>
+    `).join("") + "</div>";
+  }
+
+  function renderEmptyCard() {
+    return `
+      <div class="empty-state">
+        <strong>저장된 루트가 없습니다</strong>
+        자주 가는 경로를 저장해두고, 각 루트마다 추천 기준과 허용 교통수단을 따로 정해보세요.
+      </div>
+    `;
+  }
+
+  function renderRouteCard(route) {
+    const loading = state.loadingRouteIds.has(route.id);
+    const expanded = state.expandedRouteIds.has(route.id);
+    const result = route.lastResult;
+    const recommendation = result?.recommendation || null;
+    const priorityMeta = PRIORITY_META[route.priority] || PRIORITY_META.fastest;
+    const fetchedAt = result?.fetchedAt || null;
+
+    const summaryHtml = recommendation ? `
+      <div class="summary-board">
+        <div class="summary-head">
+          <div>
+            <strong>지금 고를 한 가지</strong>
+            <div class="summary-line">${escapeHtml(recommendation.totalTimeText)}<small>${escapeHtml(recommendation.firstTransitLabel || "도보")}</small></div>
+            <div class="summary-note">${escapeHtml(describeRecommendation(route, recommendation))}</div>
+          </div>
+          <div class="score-badge">
+            <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
+            <span class="value">${escapeHtml(recommendation.scoreDisplay)}</span>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <span class="label">총 이동</span>
+            <span class="value">${escapeHtml(recommendation.totalTimeText)}</span>
+          </div>
+          <div class="metric">
+            <span class="label">첫 대기</span>
+            <span class="value">${escapeHtml(recommendation.firstWaitText)}</span>
+          </div>
+          <div class="metric">
+            <span class="label">환승</span>
+            <span class="value">${escapeHtml(recommendation.transferCountText)}</span>
+          </div>
+          <div class="metric">
+            <span class="label">도보</span>
+            <span class="value">${escapeHtml(recommendation.walkTimeText)}</span>
+          </div>
+        </div>
+
+        <div class="transport-strip">${renderTransportSteps(recommendation.summarySteps)}</div>
+        <div class="state-line">
+          <span>${escapeHtml(recommendation.note)}</span>
+          <span class="stamp">${escapeHtml(relativeTime(fetchedAt))}</span>
+        </div>
+      </div>
+    ` : `
+      <div class="summary-board">
+        <div class="summary-head">
+          <div>
+            <strong>저장된 추천 없음</strong>
+            <div class="summary-line">아직 미조회</div>
+            <div class="summary-note">
+              앱을 열 때는 자동 호출하지 않습니다. 필요할 때 추천 갱신을 눌러 결과를 가져옵니다.
+            </div>
+          </div>
+          <div class="score-badge">
+            <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
+            <span class="value">--</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const detailsHtml = result ? `
+      <div class="detail-block">
+        <h3>비교 후보</h3>
+        <div class="candidate-list">
+          ${(result.candidates || []).map((candidate) => renderCandidate(candidate, candidate.id === result.recommendedId)).join("")}
+        </div>
+      </div>
+      <div class="detail-block">
+        <h3>추천 상세</h3>
+        ${renderSegments(recommendation?.segments)}
+      </div>
+    ` : `
+      <div class="detail-block">
+        <h3>다음 단계</h3>
+        <div class="empty-state">
+          <strong>루트는 저장되었지만 추천 데이터는 아직 없습니다</strong>
+          추천 갱신 버튼을 누르면 현재 기준으로 후보를 하나 골라 저장합니다.
+        </div>
+      </div>
+    `;
+
+    return `
+      <article class="route-card ${loading ? "loading" : ""} ${expanded ? "expanded" : ""}">
+        <div class="route-main">
+          <div class="route-main-top">
+            <div class="route-names">
+              <div class="route-kicker">
+                <span class="pill label">${escapeHtml(route.label || "루트")}</span>
+                <span class="pill ${escapeHtml(priorityMeta.className)}">${escapeHtml(priorityLabel(route.priority))}</span>
+                <span class="pill transport">${escapeHtml(transportLabel(route.transportFilter))}</span>
+              </div>
+              <div class="route-title">
+                ${escapeHtml(route.from?.name || "")}
+                <span class="arrow">→</span>
+                ${escapeHtml(route.to?.name || "")}
+              </div>
+              <div class="route-subtitle">
+                ${escapeHtml(priorityMeta.staleText)} · 마지막 확인 ${escapeHtml(formatTime(fetchedAt))}
+              </div>
+            </div>
+            <div class="route-actions">
+              <button class="btn btn-primary" data-action="refresh" data-id="${escapeHtml(route.id)}">${loading ? "갱신 중..." : "추천 갱신"}</button>
+              <button class="btn btn-secondary" data-action="toggle" data-id="${escapeHtml(route.id)}">${expanded ? "접기" : "상세"}</button>
+              <button class="btn btn-ghost" data-action="edit" data-id="${escapeHtml(route.id)}">편집</button>
+              <button class="btn btn-ghost btn-danger" data-action="delete" data-id="${escapeHtml(route.id)}">삭제</button>
+            </div>
+          </div>
+          ${summaryHtml}
+        </div>
+        <div class="route-details">${detailsHtml}</div>
+      </article>
+    `;
+  }
+
+  function renderRoutes() {
+    const list = document.getElementById("route-list");
+    document.getElementById("route-count").textContent = state.routes.length + "개 루트";
+    if (state.routes.length === 0) {
+      list.innerHTML = renderEmptyCard();
+      return;
+    }
+    list.innerHTML = state.routes.map(renderRouteCard).join("");
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
+  async function fetchJson(url) {
+    const response = await fetch(url);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || "요청에 실패했습니다");
+    }
+    return payload;
+  }
+
+  function cacheStation(name, station) {
+    state.stationCache[name] = {
+      ts: Date.now(),
+      station
+    };
+    saveStationCache();
+  }
+
+  async function searchStations(query) {
+    const normalized = query.trim();
+    if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) return [];
+    const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
+    return payload.stations || [];
+  }
+
+  async function resolveStationByName(name) {
+    const normalized = name.trim();
+    if (!normalized) throw new Error("역 이름이 비어 있습니다");
+    const cached = state.stationCache[normalized];
+    if (cached && Date.now() - cached.ts < STATION_CACHE_TTL) return cached.station;
+    const stations = await searchStations(normalized);
+    if (!stations.length) throw new Error('"' + normalized + '" 검색 결과가 없습니다');
+    cacheStation(normalized, stations[0]);
+    return stations[0];
+  }
+
+  function buildRoutePayload(baseRoute, resolvedFrom, resolvedTo) {
+    return {
+      ...baseRoute,
+      from: resolvedFrom,
+      to: resolvedTo
+    };
+  }
+
+  async function refreshRoute(routeId) {
+    const route = state.routes.find((item) => item.id === routeId);
+    if (!route || state.loadingRouteIds.has(routeId)) return;
+
+    state.loadingRouteIds.add(routeId);
+    renderRoutes();
+
+    try {
+      const from = route.from?.x != null && route.from?.y != null ? route.from : await resolveStationByName(route.from?.name || "");
+      const to = route.to?.x != null && route.to?.y != null ? route.to : await resolveStationByName(route.to?.name || "");
+      cacheStation(from.name, from);
+      cacheStation(to.name, to);
+
+      const params = new URLSearchParams({
+        fromX: String(from.x),
+        fromY: String(from.y),
+        toX: String(to.x),
+        toY: String(to.y),
+        priority: route.priority,
+        transportFilter: route.transportFilter
+      });
+
+      const payload = await fetchJson("/api/routes?" + params.toString());
+      const nextRoute = buildRoutePayload(route, from, to);
+      nextRoute.lastResult = payload;
+
+      state.routes = state.routes.map((item) => item.id === routeId ? nextRoute : item);
+      persistRoutes();
+      renderRoutes();
+      showToast("추천을 새로 갱신했습니다");
+    } catch (error) {
+      showToast(error.message || "추천 갱신에 실패했습니다");
+      renderRoutes();
+    } finally {
+      state.loadingRouteIds.delete(routeId);
+      renderRoutes();
+    }
+  }
+
+  function deleteRoute(routeId) {
+    state.routes = state.routes.filter((route) => route.id !== routeId);
+    state.loadingRouteIds.delete(routeId);
+    state.expandedRouteIds.delete(routeId);
+    persistRoutes();
+    renderRoutes();
+    showToast("루트를 삭제했습니다");
+  }
+
+  function openModal(routeId = null) {
+    state.modalRouteId = routeId;
+    const route = state.routes.find((item) => item.id === routeId) || null;
+
+    document.getElementById("modal-title").textContent = route ? "루트 편집" : "새 루트 추가";
+    document.getElementById("route-label-input").value = route?.label || "";
+    document.getElementById("route-from-input").value = route?.from?.name || "";
+    document.getElementById("route-to-input").value = route?.to?.name || "";
+
+    state.autocompleteSelection.from = route?.from?.x != null && route?.from?.y != null ? route.from : null;
+    state.autocompleteSelection.to = route?.to?.x != null && route?.to?.y != null ? route.to : null;
+
+    setOptionGroupValue("priority", route?.priority || "fastest");
+    setOptionGroupValue("transport", route?.transportFilter || "all");
+
+    document.getElementById("modal-overlay").classList.add("active");
+  }
+
+  function closeModal() {
+    state.modalRouteId = null;
+    state.autocompleteSelection.from = null;
+    state.autocompleteSelection.to = null;
+    document.getElementById("route-from-dropdown").classList.remove("open");
+    document.getElementById("route-to-dropdown").classList.remove("open");
+    document.getElementById("modal-overlay").classList.remove("active");
+  }
+
+  function setOptionGroupValue(group, value) {
+    document.querySelectorAll('[data-' + group + ']').forEach((card) => {
+      const active = card.dataset[group] === value;
+      card.classList.toggle("active", active);
+      const input = card.querySelector("input");
+      if (input) input.checked = active;
+    });
+  }
+
+  function getSelectedValue(name) {
+    return document.querySelector('input[name="' + name + '"]:checked')?.value;
+  }
+
+  async function saveRoute() {
+    const label = document.getElementById("route-label-input").value.trim() || "루트";
+    const fromName = document.getElementById("route-from-input").value.trim();
+    const toName = document.getElementById("route-to-input").value.trim();
+    const priority = getSelectedValue("priority") || "fastest";
+    const transportFilter = getSelectedValue("transport") || "all";
+
+    if (!fromName || !toName) {
+      showToast("출발지와 도착지를 입력해주세요");
+      return;
+    }
+
+    const original = state.routes.find((item) => item.id === state.modalRouteId);
+
+    const from = state.autocompleteSelection.from && state.autocompleteSelection.from.name === fromName
+      ? state.autocompleteSelection.from
+      : { name: fromName, x: null, y: null };
+
+    const to = state.autocompleteSelection.to && state.autocompleteSelection.to.name === toName
+      ? state.autocompleteSelection.to
+      : { name: toName, x: null, y: null };
+
+    const route = {
+      id: original?.id || uid(),
+      label,
+      from,
+      to,
+      priority,
+      transportFilter,
+      lastResult: null,
+      createdAt: original?.createdAt || nowStamp()
+    };
+
+    if (original) {
+      state.routes = state.routes.map((item) => item.id === route.id ? route : item);
+      showToast("루트 설정을 저장했습니다");
+    } else {
+      state.routes = [route, ...state.routes];
+      showToast("루트를 저장했습니다");
+    }
+
+    persistRoutes();
+    renderRoutes();
+    closeModal();
+  }
+
+  function toggleDetails(routeId) {
+    if (state.expandedRouteIds.has(routeId)) {
+      state.expandedRouteIds.delete(routeId);
+    } else {
+      state.expandedRouteIds.add(routeId);
+    }
+    renderRoutes();
+  }
+
+  function bindStaticEvents() {
+    document.getElementById("add-route-btn").addEventListener("click", () => openModal());
+    document.getElementById("modal-close-btn").addEventListener("click", closeModal);
+    document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
+    document.getElementById("modal-save-btn").addEventListener("click", saveRoute);
+    document.getElementById("modal-overlay").addEventListener("click", (event) => {
+      if (event.target.id === "modal-overlay") closeModal();
+    });
+
+    document.getElementById("route-list").addEventListener("click", (event) => {
+      const target = event.target.closest("[data-action]");
+      if (!target) return;
+      const { action, id } = target.dataset;
+      if (action === "refresh") refreshRoute(id);
+      if (action === "toggle") toggleDetails(id);
+      if (action === "edit") openModal(id);
+      if (action === "delete") deleteRoute(id);
+    });
+
+    document.querySelectorAll("#priority-options .option-card").forEach((card) => {
+      card.addEventListener("click", () => setOptionGroupValue("priority", card.dataset.priority));
+    });
+    document.querySelectorAll("#transport-options .option-card").forEach((card) => {
+      card.addEventListener("click", () => setOptionGroupValue("transport", card.dataset.transport));
+    });
+  }
+
+  function setupAutocomplete(inputId, dropdownId, selectionKey) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+    let currentItems = [];
+    let focusedIndex = -1;
+
+    const renderDropdown = (items, loading = false) => {
+      currentItems = items;
+      focusedIndex = -1;
+      if (loading) {
+        dropdown.innerHTML = '<div class="autocomplete-empty">검색 중...</div>';
+        dropdown.classList.add("open");
+        return;
+      }
+      if (!items.length) {
+        dropdown.innerHTML = '<div class="autocomplete-empty">검색 결과 없음</div>';
+        dropdown.classList.add("open");
+        return;
+      }
+      dropdown.innerHTML = items.map((station, index) => `
+        <div class="autocomplete-item" data-index="${index}">
+          <span>${escapeHtml(station.name)}</span>
+          <span class="autocomplete-meta">${escapeHtml(station.kind)}</span>
+        </div>
+      `).join("");
+      dropdown.classList.add("open");
+    };
+
+    const closeDropdown = () => {
+      dropdown.classList.remove("open");
+      focusedIndex = -1;
+    };
+
+    const selectItem = (station) => {
+      state.autocompleteSelection[selectionKey] = station;
+      input.value = station.name;
+      cacheStation(station.name, station);
+      closeDropdown();
+    };
+
+    const debouncedSearch = debounce(async () => {
+      const value = input.value.trim();
+      if (value.length < AUTOCOMPLETE_MIN_LENGTH) {
+        closeDropdown();
+        return;
+      }
+      renderDropdown([], true);
+      try {
+        const stations = await searchStations(value);
+        renderDropdown(stations);
+      } catch {
+        dropdown.innerHTML = '<div class="autocomplete-empty">검색 실패</div>';
+        dropdown.classList.add("open");
+      }
+    }, 320);
+
+    input.addEventListener("input", () => {
+      state.autocompleteSelection[selectionKey] = null;
+      debouncedSearch();
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (!dropdown.classList.contains("open")) return;
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        focusedIndex = Math.min(focusedIndex + 1, currentItems.length - 1);
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        focusedIndex = Math.max(focusedIndex - 1, 0);
+      } else if (event.key === "Enter") {
+        if (focusedIndex >= 0 && currentItems[focusedIndex]) {
+          event.preventDefault();
+          selectItem(currentItems[focusedIndex]);
+        }
+      } else if (event.key === "Escape") {
+        closeDropdown();
+      } else {
+        return;
+      }
+
+      dropdown.querySelectorAll(".autocomplete-item").forEach((item, index) => {
+        item.classList.toggle("focused", index === focusedIndex);
+      });
+    });
+
+    dropdown.addEventListener("mousedown", (event) => {
+      const item = event.target.closest("[data-index]");
+      if (!item) return;
+      event.preventDefault();
+      selectItem(currentItems[Number(item.dataset.index)]);
+    });
+
+    input.addEventListener("blur", () => setTimeout(closeDropdown, 120));
+  }
+
+  function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  state.routes = migrateAndLoadRoutes();
+  bindStaticEvents();
+  setupAutocomplete("route-from-input", "route-from-dropdown", "from");
+  setupAutocomplete("route-to-input", "route-to-dropdown", "to");
+  setOptionGroupValue("priority", "fastest");
+  setOptionGroupValue("transport", "all");
+  updateClock();
+  setInterval(updateClock, 10000);
+  renderRoutes();
+</script>
+</body>
+</html>
