@@ -2065,6 +2065,8 @@
     const dropdown = document.getElementById(dropdownId);
     let currentItems = [];
     let focusedIndex = -1;
+    let closeTimer = null;
+    let pointerInsideDropdown = false;
 
     const renderDropdown = (items, loading = false, warnings = []) => {
       currentItems = items;
@@ -2093,9 +2095,19 @@
     };
 
     const closeDropdown = () => {
+      clearTimeout(closeTimer);
+      closeTimer = null;
       dropdown.classList.remove("open");
       focusedIndex = -1;
       clearAutocompletePreview(selectionKey);
+    };
+
+    const scheduleCloseDropdown = () => {
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        if (pointerInsideDropdown) return;
+        closeDropdown();
+      }, 180);
     };
 
     const selectItem = (station) => {
@@ -2175,7 +2187,27 @@
       }
     });
 
-    input.addEventListener("blur", () => setTimeout(closeDropdown, 120));
+    dropdown.addEventListener("mouseenter", () => {
+      pointerInsideDropdown = true;
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    });
+
+    dropdown.addEventListener("mouseleave", () => {
+      pointerInsideDropdown = false;
+      if (document.activeElement !== input) {
+        scheduleCloseDropdown();
+      }
+    });
+
+    input.addEventListener("focus", () => {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    });
+
+    input.addEventListener("blur", () => {
+      scheduleCloseDropdown();
+    });
   }
 
   function debounce(fn, ms) {
