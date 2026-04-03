@@ -754,6 +754,23 @@
     display: block;
   }
 
+  .autocomplete-preview {
+    height: 154px;
+    border-bottom: 1px solid rgba(71, 57, 29, 0.08);
+    background: linear-gradient(135deg, rgba(30, 122, 95, 0.08), rgba(28, 91, 183, 0.08));
+  }
+
+  .autocomplete-preview.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 14px;
+  }
+
   .autocomplete-item,
   .autocomplete-empty {
     padding: 12px 14px;
@@ -1309,6 +1326,79 @@
         }).addTo(map);
         preview = { map, marker };
         state.previewMaps[selectionKey] = preview;
+      } else {
+        preview.marker.setLatLng([lat, lng]);
+      }
+
+      preview.map.setView([lat, lng], 15);
+      preview.map.invalidateSize();
+    });
+  }
+
+  function clearAutocompletePreview(selectionKey) {
+    const previewId = "route-" + selectionKey + "-dropdown-preview";
+    const previewEl = document.getElementById(previewId);
+    if (!previewEl) return;
+
+    const existing = state.previewMaps["dropdown-" + selectionKey];
+    if (existing?.map) {
+      existing.map.remove();
+    }
+    delete state.previewMaps["dropdown-" + selectionKey];
+
+    previewEl.classList.add("empty");
+    previewEl.innerHTML = "목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다.";
+  }
+
+  function updateAutocompletePreview(selectionKey, location) {
+    const previewId = "route-" + selectionKey + "-dropdown-preview";
+    const previewEl = document.getElementById(previewId);
+    if (!previewEl) return;
+
+    if (!location || location.x == null || location.y == null) {
+      clearAutocompletePreview(selectionKey);
+      return;
+    }
+
+    previewEl.classList.remove("empty");
+
+    const lat = Number(location.y);
+    const lng = Number(location.x);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      clearAutocompletePreview(selectionKey);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      let preview = state.previewMaps["dropdown-" + selectionKey];
+      if (!preview) {
+        previewEl.innerHTML = "";
+        if (typeof L === "undefined") {
+          previewEl.classList.add("empty");
+          previewEl.textContent = `${location.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+          return;
+        }
+        const map = L.map(previewId, {
+          zoomControl: false,
+          attributionControl: false,
+          dragging: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: false,
+          touchZoom: false,
+          keyboard: false
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19
+        }).addTo(map);
+        const marker = L.circleMarker([lat, lng], {
+          radius: 8,
+          color: "#1c5bb7",
+          weight: 2,
+          fillColor: "#3c7ad1",
+          fillOpacity: 0.9
+        }).addTo(map);
+        preview = { map, marker };
+        state.previewMaps["dropdown-" + selectionKey] = preview;
       } else {
         preview.marker.setLatLng([lat, lng]);
       }
@@ -1980,16 +2070,16 @@
       currentItems = items;
       focusedIndex = -1;
       if (loading) {
-        dropdown.innerHTML = '<div class="autocomplete-empty">검색 중...</div>';
+        dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">검색 중...</div><div class="autocomplete-empty">검색 중...</div>';
         dropdown.classList.add("open");
         return;
       }
       if (!items.length) {
-        dropdown.innerHTML = '<div class="autocomplete-empty">검색 결과 없음</div>';
+        dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">검색 결과가 없어 위치를 미리 볼 수 없습니다.</div><div class="autocomplete-empty">검색 결과 없음</div>';
         dropdown.classList.add("open");
         return;
       }
-      dropdown.innerHTML = items.map((station, index) => `
+      dropdown.innerHTML = '<div class="autocomplete-preview empty" id="route-' + selectionKey + '-dropdown-preview">목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다.</div>' + items.map((station, index) => `
         <div class="autocomplete-item" data-index="${index}">
           <span class="autocomplete-text">
             <span class="autocomplete-name">${escapeHtml(station.name)}</span>
@@ -1999,11 +2089,13 @@
         </div>
       `).join("") + (warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : "");
       dropdown.classList.add("open");
+      updateAutocompletePreview(selectionKey, items[0]);
     };
 
     const closeDropdown = () => {
       dropdown.classList.remove("open");
       focusedIndex = -1;
+      clearAutocompletePreview(selectionKey);
     };
 
     const selectItem = (station) => {
@@ -2058,6 +2150,9 @@
       dropdown.querySelectorAll(".autocomplete-item").forEach((item, index) => {
         item.classList.toggle("focused", index === focusedIndex);
       });
+      if (focusedIndex >= 0 && currentItems[focusedIndex]) {
+        updateAutocompletePreview(selectionKey, currentItems[focusedIndex]);
+      }
     });
 
     dropdown.addEventListener("mousedown", (event) => {
@@ -2065,6 +2160,19 @@
       if (!item) return;
       event.preventDefault();
       selectItem(currentItems[Number(item.dataset.index)]);
+    });
+
+    dropdown.addEventListener("mousemove", (event) => {
+      const item = event.target.closest("[data-index]");
+      if (!item) return;
+      const index = Number(item.dataset.index);
+      if (!Number.isNaN(index) && currentItems[index]) {
+        focusedIndex = index;
+        dropdown.querySelectorAll(".autocomplete-item").forEach((node, nodeIndex) => {
+          node.classList.toggle("focused", nodeIndex === focusedIndex);
+        });
+        updateAutocompletePreview(selectionKey, currentItems[index]);
+      }
     });
 
     input.addEventListener("blur", () => setTimeout(closeDropdown, 120));
