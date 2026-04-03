@@ -14,6 +14,20 @@ function getEnvKey() {
   return key;
 }
 
+function getAppOrigin() {
+  const raw =
+    process.env.APP_BASE_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    "";
+
+  if (!raw) return null;
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw.replace(/\/$/, "");
+  }
+  return `https://${raw}`.replace(/\/$/, "");
+}
+
 function getCached(map, key) {
   const hit = map.get(key);
   if (!hit) return null;
@@ -40,11 +54,24 @@ async function fetchOdsay(endpoint, params) {
     ...params
   });
 
-  const response = await fetch(`https://api.odsay.com/v1/api/${endpoint}?${query.toString()}`);
+  const appOrigin = getAppOrigin();
+  const headers = {
+    "User-Agent": "transit-app/1.0"
+  };
+
+  if (appOrigin) {
+    headers.Origin = appOrigin;
+    headers.Referer = `${appOrigin}/`;
+  }
+
+  const response = await fetch(`https://api.odsay.com/v1/api/${endpoint}?${query.toString()}`, {
+    headers
+  });
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const error = new Error(`ODsay 요청 실패 (${response.status})`);
+    const detail = payload?.error?.msg || payload?.error?.message || payload?.error?.code || "";
+    const error = new Error(detail ? `ODsay 요청 실패 (${response.status}): ${detail}` : `ODsay 요청 실패 (${response.status})`);
     error.statusCode = 502;
     throw error;
   }

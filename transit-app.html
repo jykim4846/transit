@@ -801,6 +801,15 @@
     color: var(--text-muted);
   }
 
+  .autocomplete-warning {
+    padding: 10px 14px 12px;
+    border-top: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(197, 99, 31, 0.08);
+    color: #8b4d1e;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
   .modal-actions {
     margin-top: 22px;
     display: flex;
@@ -1531,7 +1540,10 @@
     const normalized = query.trim();
     if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) return [];
     const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
-    return payload.stations || [];
+    return {
+      stations: payload.stations || [],
+      warnings: payload.warnings || []
+    };
   }
 
   async function resolveStationByName(name) {
@@ -1539,10 +1551,10 @@
     if (!normalized) throw new Error("역 이름이 비어 있습니다");
     const cached = state.stationCache[normalized];
     if (cached && Date.now() - cached.ts < STATION_CACHE_TTL) return cached.station;
-    const stations = await searchStations(normalized);
-    if (!stations.length) throw new Error('"' + normalized + '" 검색 결과가 없습니다');
-    cacheStation(normalized, stations[0]);
-    return stations[0];
+    const result = await searchStations(normalized);
+    if (!result.stations.length) throw new Error('"' + normalized + '" 검색 결과가 없습니다');
+    cacheStation(normalized, result.stations[0]);
+    return result.stations[0];
   }
 
   function buildRoutePayload(baseRoute, resolvedFrom, resolvedTo) {
@@ -1733,7 +1745,7 @@
     let currentItems = [];
     let focusedIndex = -1;
 
-    const renderDropdown = (items, loading = false) => {
+    const renderDropdown = (items, loading = false, warnings = []) => {
       currentItems = items;
       focusedIndex = -1;
       if (loading) {
@@ -1754,7 +1766,7 @@
           </span>
           <span class="autocomplete-meta">${escapeHtml(station.kind)}</span>
         </div>
-      `).join("");
+      `).join("") + (warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : "");
       dropdown.classList.add("open");
     };
 
@@ -1779,10 +1791,10 @@
       }
       renderDropdown([], true);
       try {
-        const stations = await searchStations(value);
-        renderDropdown(stations);
-      } catch {
-        dropdown.innerHTML = '<div class="autocomplete-empty">검색 실패</div>';
+        const result = await searchStations(value);
+        renderDropdown(result.stations, false, result.warnings);
+      } catch (error) {
+        dropdown.innerHTML = '<div class="autocomplete-empty">' + escapeHtml(error.message || "검색 실패") + '</div>';
         dropdown.classList.add("open");
       }
     }, 320);

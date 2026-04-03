@@ -73,34 +73,47 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 200, cached, "public, s-maxage=604800, stale-while-revalidate=86400");
   }
 
+  let stationResults = [];
+  let placeResults = [];
+  let stationError = null;
+  let placeError = null;
+
   try {
     const payload = await fetchOdsay("searchStation", {
       stationName: q
     });
-    const stationResults = (payload.result?.station || [])
+    stationResults = (payload.result?.station || [])
       .slice(0, 8)
       .map(normalizeStation)
       .filter((station) => station.name && station.x && station.y);
-
-    let placeResults = [];
-    try {
-      placeResults = await searchPlaces(q);
-    } catch {
-      placeResults = [];
-    }
-
-    const seen = new Set();
-    const stations = [...stationResults, ...placeResults].filter((item) => {
-      const key = `${item.name}:${roundedKey(item.x, item.y)}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 8);
-
-    const result = { stations };
-    setCached(GLOBAL_CACHE.stationSearch, cacheKey, result, STATION_TTL);
-    return sendJson(res, 200, result, "public, s-maxage=604800, stale-while-revalidate=86400");
   } catch (error) {
-    return sendJson(res, error.statusCode || 500, { error: error.message || "정류장 검색에 실패했습니다" });
+    stationError = error;
   }
+
+  try {
+    placeResults = await searchPlaces(q);
+  } catch (error) {
+    placeError = error;
+  }
+
+  const seen = new Set();
+  const stations = [...stationResults, ...placeResults].filter((item) => {
+    const key = `${item.name}:${roundedKey(item.x, item.y)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 8);
+
+  if (!stations.length && stationError) {
+    const errorMessage = stationError.message || placeError?.message || "검색에 실패했습니다";
+    return sendJson(res, stationError.statusCode || 500, { error: errorMessage });
+  }
+
+  const warnings = [];
+  if (stationError) warnings.push(`역/정류장 검색 일부 실패: ${stationError.message}`);
+  if (placeError) warnings.push(`장소 검색 일부 실패: ${placeError.message}`);
+
+  const result = warnings.length ? { stations, warnings } : { stations };
+  setCached(GLOBAL_CACHE.stationSearch, cacheKey, result, STATION_TTL);
+  return sendJson(res, 200, result, "public, s-maxage=604800, stale-while-revalidate=86400");
 };
