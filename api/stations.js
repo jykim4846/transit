@@ -11,12 +11,18 @@ function normalizeStation(station) {
   const stationType = Number(station.stationType ?? 0);
   const stationClass = Number(station.stationClass ?? 0);
   const isSubway = stationType === 1 || stationClass === 2;
+  const detail = [
+    station.stationCityName,
+    station.stationDistrictName,
+    station.stationDongName
+  ].filter(Boolean).join(" · ");
   return {
     name: station.stationName || station.stationNameKor || "",
     x: station.x,
     y: station.y,
     stationID: station.stationID || null,
-    kind: isSubway ? "지하철" : "버스"
+    kind: isSubway ? "지하철" : "버스",
+    detail
   };
 }
 
@@ -46,7 +52,8 @@ async function searchPlaces(query) {
     x: place.lon,
     y: place.lat,
     stationID: null,
-    kind: "장소"
+    kind: "장소",
+    detail: place.display_name || ""
   })).filter((place) => place.name && place.x && place.y);
 }
 

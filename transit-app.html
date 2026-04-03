@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --bg: #f4efe6;
@@ -755,7 +757,6 @@
   .autocomplete-item,
   .autocomplete-empty {
     padding: 12px 14px;
-    font-size: 14px;
   }
 
   .autocomplete-item {
@@ -763,12 +764,31 @@
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    align-items: center;
+    align-items: flex-start;
   }
 
   .autocomplete-item:hover,
   .autocomplete-item.focused {
     background: rgba(30, 122, 95, 0.08);
+  }
+
+  .autocomplete-text {
+    min-width: 0;
+  }
+
+  .autocomplete-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .autocomplete-detail {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
   }
 
   .autocomplete-meta {
@@ -786,6 +806,60 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .place-preview {
+    border: 1px solid rgba(71, 57, 29, 0.1);
+    border-radius: 18px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.75);
+    min-height: 208px;
+  }
+
+  .place-preview-head {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .place-preview-head strong {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .place-preview-head span {
+    display: block;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text-muted);
+  }
+
+  .place-preview-map {
+    height: 150px;
+    background: linear-gradient(135deg, rgba(30, 122, 95, 0.08), rgba(28, 91, 183, 0.08));
+  }
+
+  .place-preview-map.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .leaflet-container {
+    background: #efe8da;
   }
 
   .toast {
@@ -845,7 +919,8 @@
 
     .hero-note,
     .metric-grid,
-    .form-grid {
+    .form-grid,
+    .preview-grid {
       grid-template-columns: 1fr;
     }
 
@@ -927,6 +1002,26 @@
         <div class="autocomplete-wrap">
           <input type="text" id="route-to-input" placeholder="예: 여의도역, 판교역 카카오" autocomplete="off">
           <div class="autocomplete-dropdown" id="route-to-dropdown"></div>
+        </div>
+      </div>
+
+      <div class="form-row full">
+        <label>선택 위치 확인</label>
+        <div class="preview-grid">
+          <div class="place-preview">
+            <div class="place-preview-head">
+              <strong>출발지</strong>
+              <span id="route-from-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+            </div>
+            <div class="place-preview-map empty" id="route-from-preview-map">검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.</div>
+          </div>
+          <div class="place-preview">
+            <div class="place-preview-head">
+              <strong>도착지</strong>
+              <span id="route-to-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
+            </div>
+            <div class="place-preview-map empty" id="route-to-preview-map">검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.</div>
+          </div>
         </div>
       </div>
 
@@ -1020,6 +1115,7 @@
     loadingRouteIds: new Set(),
     expandedRouteIds: new Set(),
     modalRouteId: null,
+    previewMaps: {},
     autocompleteSelection: {
       from: null,
       to: null
@@ -1117,6 +1213,85 @@
     const diffHour = Math.floor(diffMin / 60);
     if (diffHour < 24) return diffHour + "시간 전 갱신";
     return Math.floor(diffHour / 24) + "일 전 갱신";
+  }
+
+  function clearLocationPreview(selectionKey) {
+    const mapId = "route-" + selectionKey + "-preview-map";
+    const labelId = "route-" + selectionKey + "-preview-label";
+    const mapEl = document.getElementById(mapId);
+    const labelEl = document.getElementById(labelId);
+    if (!mapEl || !labelEl) return;
+
+    const existing = state.previewMaps[selectionKey];
+    if (existing?.map) {
+      existing.map.remove();
+    }
+    delete state.previewMaps[selectionKey];
+
+    mapEl.classList.add("empty");
+    mapEl.innerHTML = "검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.";
+    labelEl.textContent = "위치를 선택하면 이곳에 지도가 보입니다.";
+  }
+
+  function updateLocationPreview(selectionKey, location) {
+    const mapId = "route-" + selectionKey + "-preview-map";
+    const labelId = "route-" + selectionKey + "-preview-label";
+    const mapEl = document.getElementById(mapId);
+    const labelEl = document.getElementById(labelId);
+    if (!mapEl || !labelEl) return;
+
+    if (!location || location.x == null || location.y == null) {
+      clearLocationPreview(selectionKey);
+      return;
+    }
+
+    mapEl.classList.remove("empty");
+    labelEl.textContent = [location.kind, location.detail].filter(Boolean).join(" · ") || location.name;
+
+    const lat = Number(location.y);
+    const lng = Number(location.x);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      clearLocationPreview(selectionKey);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      let preview = state.previewMaps[selectionKey];
+      if (!preview) {
+        mapEl.innerHTML = "";
+        if (typeof L === "undefined") {
+          mapEl.classList.add("empty");
+          mapEl.textContent = `${location.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+          return;
+        }
+        const map = L.map(mapId, {
+          zoomControl: false,
+          attributionControl: false,
+          dragging: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: false,
+          touchZoom: false,
+          keyboard: false
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19
+        }).addTo(map);
+        const marker = L.circleMarker([lat, lng], {
+          radius: 8,
+          color: "#165c47",
+          weight: 2,
+          fillColor: "#1e7a5f",
+          fillOpacity: 0.9
+        }).addTo(map);
+        preview = { map, marker };
+        state.previewMaps[selectionKey] = preview;
+      } else {
+        preview.marker.setLatLng([lat, lng]);
+      }
+
+      preview.map.setView([lat, lng], 15);
+      preview.map.invalidateSize();
+    });
   }
 
   function updateClock() {
@@ -1437,6 +1612,8 @@
 
     state.autocompleteSelection.from = route?.from?.x != null && route?.from?.y != null ? route.from : null;
     state.autocompleteSelection.to = route?.to?.x != null && route?.to?.y != null ? route.to : null;
+    updateLocationPreview("from", state.autocompleteSelection.from);
+    updateLocationPreview("to", state.autocompleteSelection.to);
 
     setOptionGroupValue("priority", route?.priority || "fastest");
     setOptionGroupValue("transport", route?.transportFilter || "all");
@@ -1448,6 +1625,8 @@
     state.modalRouteId = null;
     state.autocompleteSelection.from = null;
     state.autocompleteSelection.to = null;
+    clearLocationPreview("from");
+    clearLocationPreview("to");
     document.getElementById("route-from-dropdown").classList.remove("open");
     document.getElementById("route-to-dropdown").classList.remove("open");
     document.getElementById("modal-overlay").classList.remove("active");
@@ -1495,7 +1674,7 @@
       to,
       priority,
       transportFilter,
-      lastResult: null,
+      lastResult: original?.lastResult || null,
       createdAt: original?.createdAt || nowStamp()
     };
 
@@ -1569,7 +1748,10 @@
       }
       dropdown.innerHTML = items.map((station, index) => `
         <div class="autocomplete-item" data-index="${index}">
-          <span>${escapeHtml(station.name)}</span>
+          <span class="autocomplete-text">
+            <span class="autocomplete-name">${escapeHtml(station.name)}</span>
+            ${station.detail ? `<span class="autocomplete-detail">${escapeHtml(station.detail)}</span>` : ""}
+          </span>
           <span class="autocomplete-meta">${escapeHtml(station.kind)}</span>
         </div>
       `).join("");
@@ -1585,6 +1767,7 @@
       state.autocompleteSelection[selectionKey] = station;
       input.value = station.name;
       cacheStation(station.name, station);
+      updateLocationPreview(selectionKey, station);
       closeDropdown();
     };
 
@@ -1606,6 +1789,7 @@
 
     input.addEventListener("input", () => {
       state.autocompleteSelection[selectionKey] = null;
+      clearLocationPreview(selectionKey);
       debouncedSearch();
     });
 
