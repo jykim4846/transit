@@ -954,6 +954,7 @@
       </div>
       <div class="hero-actions">
         <div class="clock-badge" id="clock">--:--</div>
+        <button class="btn btn-secondary" id="key-settings-btn">ODsay 키</button>
         <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
       </div>
     </div>
@@ -1089,8 +1090,10 @@
 <script>
   const STORAGE_KEY = "transit-routes-v2";
   const LEGACY_STORAGE_KEY = "transit-routes";
+  const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
   const STATION_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
   const AUTOCOMPLETE_MIN_LENGTH = 2;
+  const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
 
   const PRIORITY_META = {
     fastest: {
@@ -1150,6 +1153,18 @@
     } catch {
       return {};
     }
+  }
+
+  function getBrowserOdsayKey() {
+    return localStorage.getItem(ODSAY_BROWSER_KEY_STORAGE) || "";
+  }
+
+  function setBrowserOdsayKey(value) {
+    if (!value) {
+      localStorage.removeItem(ODSAY_BROWSER_KEY_STORAGE);
+      return;
+    }
+    localStorage.setItem(ODSAY_BROWSER_KEY_STORAGE, value.trim());
   }
 
   function saveStationCache() {
@@ -1519,6 +1534,17 @@
     showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
   }
 
+  function configureBrowserKey() {
+    const current = getBrowserOdsayKey();
+    const input = window.prompt(
+      "서버 호출이 막힐 때 브라우저에서 직접 ODsay를 호출할 키를 입력하세요. 비우고 저장하면 삭제됩니다.",
+      current
+    );
+    if (input === null) return;
+    setBrowserOdsayKey(input);
+    showToast(input.trim() ? "브라우저 fallback용 ODsay 키를 저장했습니다" : "저장된 ODsay 키를 삭제했습니다");
+  }
+
   async function fetchJson(url) {
     const response = await fetch(url);
     const payload = await response.json().catch(() => ({}));
@@ -1526,6 +1552,29 @@
       throw new Error(payload.error || "요청에 실패했습니다");
     }
     return payload;
+  }
+
+  async function fetchJsonDirect(url) {
+    const response = await fetch(url);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.error?.msg || payload?.error?.message || payload?.error?.code || payload.error || "ODsay 직접 호출 실패");
+    }
+    return payload;
+  }
+
+  async function fetchOdsayDirect(endpoint, params) {
+    const key = getBrowserOdsayKey();
+    if (!key) {
+      throw new Error("서버 호출이 실패했고 브라우저 fallback용 ODsay 키도 저장되지 않았습니다");
+    }
+    const query = new URLSearchParams({
+      apiKey: key,
+      lang: "0",
+      output: "json",
+      ...params
+    });
+    return fetchJsonDirect(`${ODSAY_API_ROOT}/${endpoint}?${query.toString()}`);
   }
 
   function cacheStation(name, station) {
@@ -1538,12 +1587,37 @@
 
   async function searchStations(query) {
     const normalized = query.trim();
-    if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) return [];
-    const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
-    return {
-      stations: payload.stations || [],
-      warnings: payload.warnings || []
-    };
+    if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) {
+      return {
+        stations: [],
+        warnings: []
+      };
+    }
+    try {
+      const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
+      return {
+        stations: payload.stations || [],
+        warnings: payload.warnings || []
+      };
+    } catch (error) {
+      const fallbackPayload = await fetchOdsayDirect("searchStation", { stationName: normalized });
+      const stations = (fallbackPayload.result?.station || []).slice(0, 8).map((station) => ({
+        name: station.stationName || station.stationNameKor || "",
+        x: station.x,
+        y: station.y,
+        stationID: station.stationID || null,
+        kind: Number(station.stationType ?? 0) === 1 || Number(station.stationClass ?? 0) === 2 ? "지하철" : "버스",
+        detail: [
+          station.stationCityName,
+          station.stationDistrictName,
+          station.stationDongName
+        ].filter(Boolean).join(" · ")
+      })).filter((station) => station.name && station.x && station.y);
+      return {
+        stations,
+        warnings: ["서버 경로가 막혀 브라우저 직접 호출로 검색했습니다", error.message]
+      };
+    }
   }
 
   async function resolveStationByName(name) {
@@ -1558,10 +1632,160 @@
   }
 
   function buildRoutePayload(baseRoute, resolvedFrom, resolvedTo) {
+      return {
+        ...baseRoute,
+        from: resolvedFrom,
+        to: resolvedTo
+      };
+  }
+
+  function inferTransferCount(info) {
+    const rides = Number(info.busTransitCount || 0) + Number(info.subwayTransitCount || 0);
+    return Math.max(0, rides - 1);
+  }
+
+  function summarizeCandidateSteps(subPaths) {
+    return (subPaths || []).filter((segment) =>
+      segment.trafficType === 1 ||
+      segment.trafficType === 2 ||
+      (segment.trafficType === 3 && Number(segment.sectionTime || 0) > 0)
+    ).map((segment) => {
+      if (segment.trafficType === 3) {
+        return { type: "walk", label: `도보 ${segment.sectionTime || 0}분` };
+      }
+      if (segment.trafficType === 2) {
+        return { type: "bus", label: segment.lane?.[0]?.busNo || "버스" };
+      }
+      return { type: "subway", label: segment.lane?.[0]?.name || "지하철" };
+    }).slice(0, 6);
+  }
+
+  function normalizeSegments(subPaths) {
+    return (subPaths || []).map((segment) => {
+      if (segment.trafficType === 3) {
+        return {
+          kind: "도보",
+          text: `${segment.startName || "이동"} → ${segment.endName || "연결"}`,
+          time: `${segment.sectionTime || 0}분`
+        };
+      }
+      if (segment.trafficType === 2) {
+        return {
+          kind: "버스",
+          text: `${segment.lane?.[0]?.busNo || "버스"} · ${segment.startName || ""} → ${segment.endName || ""}`,
+          time: `${segment.sectionTime || 0}분`
+        };
+      }
+      return {
+        kind: "지하철",
+        text: `${segment.lane?.[0]?.name || "지하철"} · ${segment.startName || ""} → ${segment.endName || ""}`,
+        time: `${segment.sectionTime || 0}분`
+      };
+    });
+  }
+
+  async function fetchRealtimeWaitDirect(firstTransit) {
+    if (!firstTransit || firstTransit.trafficType !== 2 || !firstTransit.startID) return null;
+    const payload = await fetchOdsayDirect("realtimeStation", {
+      stationID: String(firstTransit.startID),
+      stationBase: "0"
+    }).catch(() => null);
+    const list = payload?.result?.real || payload?.result?.realtime || payload?.result?.station || [];
+    const lanes = firstTransit.lane || [];
+    const candidates = [];
+
+    list.forEach((entry) => {
+      lanes.forEach((lane) => {
+        const busIdMatch = lane.busID && entry.busID && String(lane.busID) === String(entry.busID);
+        const routeIdMatch = lane.busLocalBlID && (entry.routeID || entry.routeId) && String(lane.busLocalBlID) === String(entry.routeID || entry.routeId);
+        const routeNoMatch = lane.busNo && (entry.routeNo || entry.busNo) && String(lane.busNo) === String(entry.routeNo || entry.busNo);
+        if (!busIdMatch && !routeIdMatch && !routeNoMatch) return;
+        const sec1 = Number(entry.arrival1?.arrivalSec);
+        const sec2 = Number(entry.arrival2?.arrivalSec);
+        if (Number.isFinite(sec1)) candidates.push(sec1);
+        if (Number.isFinite(sec2)) candidates.push(sec2);
+      });
+    });
+
+    if (!candidates.length) return null;
+    return Math.max(1, Math.ceil(Math.min(...candidates) / 60));
+  }
+
+  async function fetchRouteRecommendationDirect(route, from, to) {
+    const pathType = route.transportFilter === "subway" ? "1" : route.transportFilter === "bus" ? "2" : "0";
+    const payload = await fetchOdsayDirect("searchPubTransPathR", {
+      SX: String(from.x),
+      SY: String(from.y),
+      EX: String(to.x),
+      EY: String(to.y),
+      SearchPathType: pathType,
+      OPT: "0"
+    });
+
+    const rawPaths = payload.result?.path || [];
+    if (!rawPaths.length) {
+      throw new Error("조건에 맞는 경로가 없습니다");
+    }
+
+    const candidates = [];
+    for (let index = 0; index < rawPaths.length; index += 1) {
+      const path = rawPaths[index];
+      const info = path.info || {};
+      const subPaths = path.subPath || [];
+      const firstTransit = subPaths.find((segment) => segment.trafficType === 1 || segment.trafficType === 2) || null;
+      const realtimeWait = route.priority === "best_eta" ? await fetchRealtimeWaitDirect(firstTransit) : null;
+      const interval = Number(firstTransit?.intervalTime || 0);
+      const firstWaitMin = realtimeWait != null ? realtimeWait : (route.priority === "best_eta" && interval > 0 ? Math.max(1, Math.round(interval / 2)) : null);
+      const totalTime = Number(info.totalTime || 0);
+      const transferCount = inferTransferCount(info);
+      const walkTime = subPaths.filter((segment) => segment.trafficType === 3).reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
+      let scoreValue = totalTime;
+      let scoreDisplay = `${totalTime}분`;
+      let note = "총 소요시간이 가장 짧은 후보를 우선합니다.";
+
+      if (route.priority === "fewest_transfers") {
+        scoreValue = transferCount * 1000 + totalTime;
+        scoreDisplay = `${transferCount}회`;
+        note = transferCount === 0 ? "환승 없이 가는 후보입니다." : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
+      } else if (route.priority === "best_eta") {
+        scoreValue = totalTime + (firstWaitMin || 0);
+        scoreDisplay = `${scoreValue}분`;
+        note = firstWaitMin != null
+          ? `첫 탑승 대기 ${firstWaitMin}분과 총 이동시간을 합쳐 비교했습니다.`
+          : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+      }
+
+      candidates.push({
+        id: `path-${index}`,
+        scoreValue,
+        scoreDisplay,
+        totalTime,
+        totalTimeText: `${totalTime}분`,
+        transferCount,
+        transferCountText: `${transferCount}회`,
+        walkTime,
+        walkTimeText: `${walkTime}분`,
+        firstWaitMin,
+        firstWaitText: firstWaitMin != null ? `${firstWaitMin}분` : "즉시",
+        firstWaitSource: realtimeWait != null ? "realtime" : (firstWaitMin != null ? "interval" : "none"),
+        firstTransitLabel: firstTransit ? (firstTransit.trafficType === 2 ? (firstTransit.lane?.[0]?.busNo || "버스") : (firstTransit.lane?.[0]?.name || "지하철")) : "도보",
+        summarySteps: summarizeCandidateSteps(subPaths),
+        note,
+        segments: normalizeSegments(subPaths)
+      });
+    }
+
+    candidates.sort((a, b) => {
+      if (a.scoreValue !== b.scoreValue) return a.scoreValue - b.scoreValue;
+      if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
+      return a.transferCount - b.transferCount;
+    });
+
     return {
-      ...baseRoute,
-      from: resolvedFrom,
-      to: resolvedTo
+      fetchedAt: new Date().toISOString(),
+      recommendedId: candidates[0].id,
+      recommendation: candidates[0],
+      candidates: candidates.slice(0, 4)
     };
   }
 
@@ -1587,7 +1811,13 @@
         transportFilter: route.transportFilter
       });
 
-      const payload = await fetchJson("/api/routes?" + params.toString());
+      let payload;
+      try {
+        payload = await fetchJson("/api/routes?" + params.toString());
+      } catch (error) {
+        payload = await fetchRouteRecommendationDirect(route, from, to);
+        showToast("서버 호출이 막혀 브라우저 직접 호출로 갱신했습니다");
+      }
       const nextRoute = buildRoutePayload(route, from, to);
       nextRoute.lastResult = payload;
 
@@ -1714,6 +1944,7 @@
 
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
+    document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
     document.getElementById("modal-save-btn").addEventListener("click", saveRoute);
