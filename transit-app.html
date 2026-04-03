@@ -989,6 +989,77 @@
     pointer-events: none;
   }
 
+  .map-picker-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: none;
+    background: rgba(24, 16, 12, 0.56);
+    padding: 18px;
+  }
+
+  .map-picker-overlay.active {
+    display: block;
+  }
+
+  .map-picker-sheet {
+    width: min(980px, 100%);
+    height: min(88dvh, 920px);
+    margin: 0 auto;
+    background: var(--paper-strong);
+    border-radius: 28px;
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    box-shadow: 0 28px 80px rgba(32, 24, 16, 0.22);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .map-picker-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .map-picker-head h3 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    letter-spacing: -0.04em;
+  }
+
+  .map-picker-head p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .map-picker-map {
+    position: relative;
+    min-height: 0;
+    background: linear-gradient(135deg, rgba(30, 122, 95, 0.08), rgba(28, 91, 183, 0.08));
+  }
+
+  .map-picker-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 14px 18px 18px;
+    border-top: 1px solid rgba(71, 57, 29, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .map-picker-footer span {
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
   .toast {
     position: fixed;
     left: 50%;
@@ -1065,6 +1136,23 @@
     .state-line {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .map-picker-overlay {
+      padding: 0;
+    }
+
+    .map-picker-sheet {
+      width: 100%;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+    }
+
+    .map-picker-head,
+    .map-picker-footer {
+      padding-left: 14px;
+      padding-right: 14px;
     }
   }
 </style>
@@ -1220,6 +1308,23 @@
   </div>
 </div>
 
+<div class="map-picker-overlay" id="map-picker-overlay">
+  <div class="map-picker-sheet">
+    <div class="map-picker-head">
+      <div>
+        <h3 id="map-picker-title">지도에서 위치 선택</h3>
+        <p id="map-picker-subtitle">지도를 눌러 저장할 좌표를 선택하세요.</p>
+      </div>
+      <button class="icon-button" id="map-picker-close-btn" aria-label="닫기">✕</button>
+    </div>
+    <div class="map-picker-map" id="map-picker-map"></div>
+    <div class="map-picker-footer">
+      <span id="map-picker-status">현재 저장된 좌표나 서울 중심으로 지도를 엽니다.</span>
+      <button class="btn btn-secondary" id="map-picker-cancel-btn" type="button">취소</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1263,10 +1368,7 @@
     expandedRouteIds: new Set(),
     modalRouteId: null,
     previewMaps: {},
-    mapPickMode: {
-      from: false,
-      to: false
-    },
+    mapPickerTarget: null,
     autocompleteSelection: {
       from: null,
       to: null
@@ -1403,20 +1505,16 @@
     const labelEl = document.getElementById(labelId);
     if (!mapEl || !labelEl) return;
 
-    const picking = state.mapPickMode[selectionKey];
-
-    if ((!location || location.x == null || location.y == null) && !picking) {
+    if (!location || location.x == null || location.y == null) {
       clearLocationPreview(selectionKey);
       return;
     }
 
     mapEl.classList.remove("empty");
-    labelEl.textContent = picking
-      ? "지도를 눌러 좌표를 선택하세요. 선택 후 경로 계산에 바로 사용할 수 있습니다."
-      : ([location.kind, location.detail].filter(Boolean).join(" · ") || location.name);
+    labelEl.textContent = [location.kind, location.detail].filter(Boolean).join(" · ") || location.name;
 
-    const lat = location?.y != null ? Number(location.y) : 37.5665;
-    const lng = location?.x != null ? Number(location.x) : 126.9780;
+    const lat = Number(location.y);
+    const lng = Number(location.x);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       clearLocationPreview(selectionKey);
       return;
@@ -1434,67 +1532,31 @@
         const map = L.map(mapId, {
           zoomControl: false,
           attributionControl: false,
-          dragging: picking,
+          dragging: false,
           scrollWheelZoom: false,
           doubleClickZoom: false,
-          touchZoom: picking,
+          touchZoom: false,
           keyboard: false
         });
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           maxZoom: 19
         }).addTo(map);
-        let marker = null;
-        if (location?.x != null && location?.y != null) {
-          marker = L.circleMarker([lat, lng], {
-            radius: 8,
-            color: "#165c47",
-            weight: 2,
-            fillColor: "#1e7a5f",
-            fillOpacity: 0.9
-          }).addTo(map);
-        }
-        map.on("click", (event) => {
-          if (!state.mapPickMode[selectionKey]) return;
-          handleMapPick(selectionKey, event.latlng.lat, event.latlng.lng);
-        });
+        const marker = L.circleMarker([lat, lng], {
+          radius: 8,
+          color: "#165c47",
+          weight: 2,
+          fillColor: "#1e7a5f",
+          fillOpacity: 0.9
+        }).addTo(map);
         preview = { map, marker };
         state.previewMaps[selectionKey] = preview;
       } else {
-        if (location?.x != null && location?.y != null) {
-          if (!preview.marker) {
-            preview.marker = L.circleMarker([lat, lng], {
-              radius: 8,
-              color: "#165c47",
-              weight: 2,
-              fillColor: "#1e7a5f",
-              fillOpacity: 0.9
-            }).addTo(preview.map);
-          } else {
-            preview.marker.setLatLng([lat, lng]);
-          }
-        }
+        preview.marker.setLatLng([lat, lng]);
       }
 
-      if (preview.map.dragging) {
-        if (picking) preview.map.dragging.enable();
-        else preview.map.dragging.disable();
-      }
-      if (preview.map.touchZoom) {
-        if (picking) preview.map.touchZoom.enable();
-        else preview.map.touchZoom.disable();
-      }
-      preview.map.getContainer().style.cursor = picking ? "crosshair" : "default";
-      preview.map.setView([lat, lng], location?.x != null && location?.y != null ? 15 : 13);
+      preview.map.getContainer().style.cursor = "default";
+      preview.map.setView([lat, lng], 15);
       preview.map.invalidateSize();
-
-      const oldHint = mapEl.querySelector(".map-pick-hint");
-      if (oldHint) oldHint.remove();
-      if (picking) {
-        const hint = document.createElement("div");
-        hint.className = "map-pick-hint";
-        hint.textContent = "지도를 눌러 이 위치를 선택하세요.";
-        mapEl.appendChild(hint);
-      }
     });
   }
 
@@ -1791,9 +1853,9 @@
     ["from", "to"].forEach((selectionKey) => {
       const button = document.getElementById(`route-${selectionKey}-map-pick-btn`);
       if (!button) return;
-      const active = state.mapPickMode[selectionKey];
+      const active = state.mapPickerTarget === selectionKey;
       button.classList.toggle("active", active);
-      button.textContent = active ? "지도 선택 중" : "지도에서 찍기";
+      button.textContent = active ? "지도 열림" : "지도에서 찍기";
     });
   }
 
@@ -1822,16 +1884,86 @@
     const input = document.getElementById(`route-${selectionKey}-input`);
     if (input) input.value = picked.name;
     cacheStation(picked.name, picked);
-    state.mapPickMode[selectionKey] = false;
+    closeMapPicker();
     updateMapPickButtons();
     updateLocationPreview(selectionKey, picked);
     showToast(`${selectionKey === "from" ? "출발지" : "도착지"}를 지도에서 선택했습니다`);
   }
 
-  function toggleMapPickMode(selectionKey) {
-    state.mapPickMode[selectionKey] = !state.mapPickMode[selectionKey];
+  function openMapPicker(selectionKey) {
+    state.mapPickerTarget = selectionKey;
     updateMapPickButtons();
-    updateLocationPreview(selectionKey, state.autocompleteSelection[selectionKey]);
+    document.getElementById("map-picker-title").textContent = selectionKey === "from" ? "출발지를 지도에서 선택" : "도착지를 지도에서 선택";
+    document.getElementById("map-picker-subtitle").textContent = "큰 지도에서 정확한 위치를 누르면 즉시 저장됩니다.";
+    document.getElementById("map-picker-status").textContent = "핀을 찍을 지점을 찾은 뒤 지도를 한 번 눌러 선택하세요.";
+    document.getElementById("map-picker-overlay").classList.add("active");
+    renderMapPicker();
+  }
+
+  function closeMapPicker() {
+    const existing = state.previewMaps.mapPicker;
+    if (existing?.map) {
+      existing.map.remove();
+    }
+    delete state.previewMaps.mapPicker;
+    state.mapPickerTarget = null;
+    document.getElementById("map-picker-overlay").classList.remove("active");
+    updateMapPickButtons();
+  }
+
+  function renderMapPicker() {
+    const selectionKey = state.mapPickerTarget;
+    const mapEl = document.getElementById("map-picker-map");
+    if (!selectionKey || !mapEl) return;
+
+    const location = state.autocompleteSelection[selectionKey];
+    const lat = location?.y != null ? Number(location.y) : 37.5665;
+    const lng = location?.x != null ? Number(location.x) : 126.9780;
+    const zoom = location?.y != null && location?.x != null ? 16 : 13;
+
+    requestAnimationFrame(() => {
+      let preview = state.previewMaps.mapPicker;
+      if (!preview) {
+        mapEl.innerHTML = "";
+        if (typeof L === "undefined") {
+          mapEl.textContent = "지도를 불러오지 못했습니다.";
+          return;
+        }
+        const map = L.map("map-picker-map", {
+          zoomControl: true,
+          attributionControl: false,
+          dragging: true,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          touchZoom: true,
+          keyboard: false
+        });
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19
+        }).addTo(map);
+        let marker = null;
+        if (location?.x != null && location?.y != null) {
+          marker = L.marker([lat, lng]).addTo(map);
+        }
+        map.on("click", (event) => {
+          if (!state.mapPickerTarget) return;
+          handleMapPick(state.mapPickerTarget, event.latlng.lat, event.latlng.lng);
+        });
+        preview = { map, marker };
+        state.previewMaps.mapPicker = preview;
+      } else {
+        if (location?.x != null && location?.y != null) {
+          if (!preview.marker) {
+            preview.marker = L.marker([lat, lng]).addTo(preview.map);
+          } else {
+            preview.marker.setLatLng([lat, lng]);
+          }
+        }
+      }
+
+      preview.map.setView([lat, lng], zoom);
+      preview.map.invalidateSize();
+    });
   }
 
   function configureBrowserKey() {
@@ -2145,8 +2277,7 @@
 
   function openModal(routeId = null) {
     state.modalRouteId = routeId;
-    state.mapPickMode.from = false;
-    state.mapPickMode.to = false;
+    state.mapPickerTarget = null;
     const route = state.routes.find((item) => item.id === routeId) || null;
 
     document.getElementById("modal-title").textContent = route ? "루트 편집" : "새 루트 추가";
@@ -2168,8 +2299,7 @@
 
   function closeModal() {
     state.modalRouteId = null;
-    state.mapPickMode.from = false;
-    state.mapPickMode.to = false;
+    closeMapPicker();
     state.autocompleteSelection.from = null;
     state.autocompleteSelection.to = null;
     updateMapPickButtons();
@@ -2251,11 +2381,16 @@
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
-    document.getElementById("route-from-map-pick-btn").addEventListener("click", () => toggleMapPickMode("from"));
-    document.getElementById("route-to-map-pick-btn").addEventListener("click", () => toggleMapPickMode("to"));
+    document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
+    document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
     document.getElementById("modal-save-btn").addEventListener("click", saveRoute);
+    document.getElementById("map-picker-close-btn").addEventListener("click", closeMapPicker);
+    document.getElementById("map-picker-cancel-btn").addEventListener("click", closeMapPicker);
+    document.getElementById("map-picker-overlay").addEventListener("click", (event) => {
+      if (event.target.id === "map-picker-overlay") closeMapPicker();
+    });
     document.getElementById("modal-overlay").addEventListener("click", (event) => {
       if (event.target.id === "modal-overlay") closeModal();
     });
@@ -2355,7 +2490,7 @@
     };
 
     const selectItem = (station) => {
-      state.mapPickMode[selectionKey] = false;
+      state.mapPickerTarget = null;
       updateMapPickButtons();
       state.autocompleteSelection[selectionKey] = station;
       input.value = station.name;
@@ -2383,8 +2518,8 @@
     }, 320);
 
     input.addEventListener("input", () => {
-      if (state.mapPickMode[selectionKey]) {
-        state.mapPickMode[selectionKey] = false;
+      if (state.mapPickerTarget === selectionKey) {
+        state.mapPickerTarget = null;
         updateMapPickButtons();
       }
       state.autocompleteSelection[selectionKey] = null;
