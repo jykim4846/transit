@@ -105,10 +105,12 @@ function normalizeRealtimeEntry(entry) {
   };
 }
 
-async function getRealtimeArrivals(stationID) {
+async function getRealtimeArrivals(stationID, forceRefresh = false) {
   const cacheKey = String(stationID);
-  const cached = getCached(GLOBAL_CACHE.realtimeArrival, cacheKey);
-  if (cached) return cached;
+  if (!forceRefresh) {
+    const cached = getCached(GLOBAL_CACHE.realtimeArrival, cacheKey);
+    if (cached) return cached;
+  }
 
   const payload = await fetchOdsay("realtimeStation", {
     stationID: cacheKey,
@@ -245,6 +247,7 @@ module.exports = async function handler(req, res) {
   const toY = toNumber(req.query.toY);
   const priority = String(req.query.priority || "fastest");
   const transportFilter = String(req.query.transportFilter || "all");
+  const forceRefresh = String(req.query.force || "") === "1";
 
   if ([fromX, fromY, toX, toY].some((value) => value == null)) {
     return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
@@ -254,7 +257,7 @@ module.exports = async function handler(req, res) {
   const cacheKey = [fromX, fromY, toX, toY, pathType].join(":");
 
   try {
-    let routePayload = getCached(GLOBAL_CACHE.routeSearch, cacheKey);
+    let routePayload = forceRefresh ? null : getCached(GLOBAL_CACHE.routeSearch, cacheKey);
     if (!routePayload) {
       routePayload = await fetchOdsay("searchPubTransPathR", {
         SX: String(fromX),
@@ -283,7 +286,7 @@ module.exports = async function handler(req, res) {
       if (priority === "best_eta" && firstTransit?.trafficType === 2 && firstTransit.startID) {
         const stationKey = String(firstTransit.startID);
         if (!realtimeCache.has(stationKey)) {
-          realtimeCache.set(stationKey, await getRealtimeArrivals(stationKey));
+          realtimeCache.set(stationKey, await getRealtimeArrivals(stationKey, forceRefresh));
         }
         realtimeWait = findBestBusArrival(firstTransit, realtimeCache.get(stationKey));
       }
@@ -300,9 +303,11 @@ module.exports = async function handler(req, res) {
       candidates: sorted.slice(0, 4)
     };
 
-    const cacheControl = priority === "best_eta"
-      ? "public, s-maxage=20, stale-while-revalidate=40"
-      : "public, s-maxage=600, stale-while-revalidate=120";
+    const cacheControl = forceRefresh
+      ? "no-store"
+      : (priority === "best_eta"
+        ? "public, s-maxage=20, stale-while-revalidate=40"
+        : "public, s-maxage=600, stale-while-revalidate=120");
 
     return sendJson(res, 200, result, cacheControl);
   } catch (error) {
