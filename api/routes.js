@@ -6,6 +6,13 @@ const FILTER_TO_PATH_TYPE = {
   bus: "2"
 };
 
+const WALK_METERS_PER_MINUTE = 67;
+const START_STATION_RADIUS = 350;
+const END_STATION_RADIUS = 600;
+const MAX_START_STATIONS = 4;
+const MAX_END_STATIONS = 6;
+const MAX_DIRECT_BUS_PAIRS = 12;
+
 function toNumber(value) {
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
@@ -18,6 +25,26 @@ function formatMinutes(value) {
 
 function formatTransferCount(value) {
   return `${Number(value || 0)}회`;
+}
+
+function toRadians(value) {
+  return (Number(value) * Math.PI) / 180;
+}
+
+function getDistanceMeters(fromX, fromY, toX, toY) {
+  const earthRadiusMeters = 6371000;
+  const dLat = toRadians(Number(toY) - Number(fromY));
+  const dLon = toRadians(Number(toX) - Number(fromX));
+  const lat1 = toRadians(fromY);
+  const lat2 = toRadians(toY);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function estimateWalkMinutesByCoords(fromX, fromY, toX, toY) {
+  const meters = getDistanceMeters(fromX, fromY, toX, toY);
+  return Math.max(1, Math.round(meters / WALK_METERS_PER_MINUTE));
 }
 
 function normalizeLanes(subPath) {
@@ -106,6 +133,20 @@ function normalizeRealtimeEntry(entry) {
   };
 }
 
+function normalizePointBusStation(entry) {
+  return {
+    stationID: entry.stationID || null,
+    stationName: entry.stationName || entry.stationNameKor || "",
+    x: toNumber(entry.x),
+    y: toNumber(entry.y),
+    busList: (entry.busList || []).map((bus) => ({
+      busID: bus.busID || null,
+      busNo: bus.busNo || bus.busNoKor || "",
+      type: bus.type || null
+    })).filter((bus) => bus.busID && bus.busNo)
+  };
+}
+
 async function getRealtimeArrivals(stationID) {
   const cacheKey = String(stationID);
   const payload = await fetchOdsay("realtimeStation", {
@@ -119,8 +160,40 @@ async function getRealtimeArrivals(stationID) {
   return list;
 }
 
-function findBestBusArrival(firstTransit, arrivals) {
+async function getNearbyBusStations(x, y, radius) {
+  const payload = await fetchOdsay("pointBusStation", {
+    x: String(x),
+    y: String(y),
+    radius: String(radius)
+  });
+
+  return (payload.result?.lane || [])
+    .map(normalizePointBusStation)
+    .filter((station) => station.stationID && station.x != null && station.y != null && station.busList.length);
+}
+
+async function getBusLaneDetail(busID) {
+  const payload = await fetchOdsay("busLaneDetail", {
+    busID: String(busID)
+  });
+  return payload.result || null;
+}
+
+async function searchBusPathBetweenStations(startStation, endStation) {
+  const payload = await fetchOdsay("searchPubTransPathR", {
+    SX: String(startStation.x),
+    SY: String(startStation.y),
+    EX: String(endStation.x),
+    EY: String(endStation.y),
+    SearchPathType: "2",
+    OPT: "0"
+  });
+  return payload.result?.path || [];
+}
+
+function findBestBusArrival(firstTransit, arrivals, earliestBoardingMinutes = 0) {
   const lanes = normalizeLanes(firstTransit);
+  const earliestBoardingSec = Math.max(0, Number(earliestBoardingMinutes || 0) * 60);
   const matches = arrivals.flatMap((arrival) => {
     return lanes.flatMap((lane) => {
       const busIdMatch = lane.busID && arrival.busID && String(lane.busID) === String(arrival.busID);
@@ -128,12 +201,235 @@ function findBestBusArrival(firstTransit, arrivals) {
       const routeNoMatch = lane.busNo && arrival.routeNo && String(lane.busNo) === String(arrival.routeNo);
 
       if (!busIdMatch && !routeIdMatch && !routeNoMatch) return [];
-      return [arrival.arrival1Sec, arrival.arrival2Sec].filter((value) => Number.isFinite(value));
+      return [arrival.arrival1Sec, arrival.arrival2Sec]
+        .filter((value) => Number.isFinite(value) && value >= earliestBoardingSec)
+        .map((value) => Math.max(0, value - earliestBoardingSec));
     });
   });
 
   if (!matches.length) return null;
   return Math.max(1, Math.ceil(Math.min(...matches) / 60));
+}
+
+function findStationOrder(detail, startStationID, endStationID) {
+  const stations = detail?.station || [];
+  let startIndex = -1;
+  let endIndex = -1;
+
+  for (let index = 0; index < stations.length; index += 1) {
+    const station = stations[index];
+    const stationID = String(station.stationID);
+    if (startIndex < 0 && stationID === String(startStationID)) {
+      startIndex = index;
+      continue;
+    }
+    if (startIndex >= 0 && stationID === String(endStationID)) {
+      endIndex = index;
+      break;
+    }
+  }
+
+  if (startIndex < 0 || endIndex < 0 || endIndex <= startIndex) {
+    return null;
+  }
+
+  return {
+    startIndex,
+    endIndex
+  };
+}
+
+function getDirectBusFirstTransit(bus) {
+  return {
+    trafficType: 2,
+    lane: [{
+      busID: bus.busID,
+      busNo: bus.busNo
+    }]
+  };
+}
+
+function getPathTotalTime(path) {
+  return getPathSectionTime(path.subPath || []);
+}
+
+function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
+  const rideTime = getPathTotalTime(ridePath);
+  const initialWalkTime = pair.startWalkMinutes;
+  const finalWalkTime = pair.endWalkMinutes;
+  const totalTime = initialWalkTime + realtimeWait + rideTime + finalWalkTime;
+  const firstTransitLabel = pair.bus.busNo;
+
+  return {
+    id: `direct-${pair.startStation.stationID}-${pair.endStation.stationID}-${pair.bus.busID}`,
+    scoreValue: totalTime,
+    scoreDisplay: `${totalTime}분`,
+    totalTime,
+    totalTimeText: formatMinutes(totalTime),
+    transferCount: 0,
+    transferCountText: "0회",
+    walkTime: initialWalkTime + finalWalkTime,
+    walkTimeText: formatMinutes(initialWalkTime + finalWalkTime),
+    firstWaitMin: realtimeWait,
+    firstWaitText: formatMinutes(realtimeWait),
+    firstWaitSource: "realtime",
+    unavailableBusRealtime: false,
+    firstTransitLabel,
+    boardingStopName: pair.startStation.stationName,
+    boardingApproachText: initialWalkTime > 0
+      ? `도보 후 ${pair.startStation.stationName} 탑승`
+      : `${pair.startStation.stationName} 탑승`,
+    alightingStopName: pair.endStation.stationName,
+    initialWalkTime,
+    summarySteps: [
+      {
+        type: "walk",
+        kind: "도보",
+        label: `도보 ${initialWalkTime}분`,
+        text: `출발지 → ${pair.startStation.stationName}`,
+        time: formatMinutes(initialWalkTime)
+      },
+      {
+        type: "bus",
+        kind: "버스",
+        label: pair.bus.busNo,
+        text: `${pair.bus.busNo} · ${pair.startStation.stationName} → ${pair.endStation.stationName}`,
+        time: formatMinutes(rideTime)
+      },
+      {
+        type: "walk",
+        kind: "도보",
+        label: `도보 ${finalWalkTime}분`,
+        text: `${pair.endStation.stationName} → 목적지`,
+        time: formatMinutes(finalWalkTime)
+      }
+    ],
+    note: `도보 ${initialWalkTime}분 + 첫 버스 대기 ${realtimeWait}분 + 버스 이동 ${rideTime}분 + 마지막 도보 ${finalWalkTime}분 기준입니다.`,
+    segments: [
+      {
+        kind: "도보",
+        text: `출발지 → ${pair.startStation.stationName}`,
+        time: formatMinutes(initialWalkTime)
+      },
+      {
+        kind: "버스",
+        text: `${pair.bus.busNo} · ${pair.startStation.stationName} → ${pair.endStation.stationName}`,
+        time: formatMinutes(rideTime)
+      },
+      {
+        kind: "도보",
+        text: `${pair.endStation.stationName} → 목적지`,
+        time: formatMinutes(finalWalkTime)
+      }
+    ]
+  };
+}
+
+async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
+  const [rawStartStations, rawEndStations] = await Promise.all([
+    getNearbyBusStations(fromX, fromY, START_STATION_RADIUS),
+    getNearbyBusStations(toX, toY, END_STATION_RADIUS)
+  ]);
+
+  const startStations = rawStartStations
+    .map((station) => ({
+      ...station,
+      startWalkMinutes: estimateWalkMinutesByCoords(fromX, fromY, station.x, station.y)
+    }))
+    .sort((a, b) => a.startWalkMinutes - b.startWalkMinutes)
+    .slice(0, MAX_START_STATIONS);
+
+  const endStations = rawEndStations
+    .map((station) => ({
+      ...station,
+      endWalkMinutes: estimateWalkMinutesByCoords(station.x, station.y, toX, toY)
+    }))
+    .sort((a, b) => a.endWalkMinutes - b.endWalkMinutes)
+    .slice(0, MAX_END_STATIONS);
+
+  const endRouteMap = new Map();
+  endStations.forEach((station) => {
+    station.busList.forEach((bus) => {
+      const list = endRouteMap.get(String(bus.busID)) || [];
+      list.push({ station, bus });
+      endRouteMap.set(String(bus.busID), list);
+    });
+  });
+
+  const rawPairs = [];
+  startStations.forEach((startStation) => {
+    startStation.busList.forEach((bus) => {
+      const endMatches = endRouteMap.get(String(bus.busID)) || [];
+      endMatches.forEach(({ station: endStation }) => {
+        rawPairs.push({
+          bus,
+          startStation,
+          endStation,
+          startWalkMinutes: startStation.startWalkMinutes,
+          endWalkMinutes: endStation.endWalkMinutes
+        });
+      });
+    });
+  });
+
+  const uniquePairs = [];
+  const seen = new Set();
+  rawPairs
+    .sort((a, b) => (a.startWalkMinutes + a.endWalkMinutes) - (b.startWalkMinutes + b.endWalkMinutes))
+    .forEach((pair) => {
+      const key = `${pair.bus.busID}:${pair.startStation.stationID}:${pair.endStation.stationID}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      uniquePairs.push(pair);
+    });
+
+  const busDetailCache = new Map();
+  const ridePathCache = new Map();
+  const realtimeCache = new Map();
+  const candidates = [];
+
+  for (const pair of uniquePairs.slice(0, MAX_DIRECT_BUS_PAIRS)) {
+    const busKey = String(pair.bus.busID);
+    if (!busDetailCache.has(busKey)) {
+      busDetailCache.set(busKey, await getBusLaneDetail(pair.bus.busID).catch(() => null));
+    }
+    const detail = busDetailCache.get(busKey);
+    const order = findStationOrder(detail, pair.startStation.stationID, pair.endStation.stationID);
+    if (!order) continue;
+
+    const stationKey = String(pair.startStation.stationID);
+    if (!realtimeCache.has(stationKey)) {
+      realtimeCache.set(stationKey, await getRealtimeArrivals(pair.startStation.stationID).catch(() => []));
+    }
+    const realtimeWait = findBestBusArrival(
+      getDirectBusFirstTransit(pair.bus),
+      realtimeCache.get(stationKey),
+      pair.startWalkMinutes
+    );
+    if (realtimeWait == null) continue;
+
+    const rideKey = `${pair.bus.busID}:${pair.startStation.stationID}:${pair.endStation.stationID}`;
+    if (!ridePathCache.has(rideKey)) {
+      ridePathCache.set(rideKey, await searchBusPathBetweenStations(pair.startStation, pair.endStation).catch(() => []));
+    }
+    const ridePaths = ridePathCache.get(rideKey);
+    const matchedRidePath = ridePaths.find((path) => {
+      const firstTransit = getFirstTransit(path.subPath || []);
+      if (!firstTransit || firstTransit.trafficType !== 2) return false;
+      return normalizeLanes(firstTransit).some((lane) => String(lane.busID) === busKey);
+    });
+    if (!matchedRidePath) continue;
+
+    candidates.push(buildDirectBusCandidate(pair, matchedRidePath, realtimeWait));
+  }
+
+  return candidates
+    .sort((a, b) => {
+      if (a.scoreValue !== b.scoreValue) return a.scoreValue - b.scoreValue;
+      if (a.firstWaitMin !== b.firstWaitMin) return a.firstWaitMin - b.firstWaitMin;
+      return a.walkTime - b.walkTime;
+    })
+    .slice(0, 4);
 }
 
 function getEstimatedWait(priority, firstTransit, realtimeWait) {
@@ -290,6 +586,19 @@ module.exports = async function handler(req, res) {
   const pathType = FILTER_TO_PATH_TYPE[transportFilter] || "0";
 
   try {
+    if (priority === "best_eta" && transportFilter === "bus") {
+      const directBusCandidates = await findBestDirectBusCandidates(fromX, fromY, toX, toY);
+      if (directBusCandidates.length) {
+        return sendJson(res, 200, {
+          fetchedAt: new Date().toISOString(),
+          recommendedId: directBusCandidates[0].id,
+          recommendation: directBusCandidates[0],
+          candidates: directBusCandidates,
+          mode: "direct_bus_eta"
+        });
+      }
+    }
+
     const routePayload = await fetchOdsay("searchPubTransPathR", {
       SX: String(fromX),
       SY: String(fromY),
