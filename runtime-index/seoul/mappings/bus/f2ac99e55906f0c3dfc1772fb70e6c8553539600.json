@@ -1,0 +1,17 @@
+{
+  "key": "f2ac99e55906f0c3dfc1772fb70e6c8553539600",
+  "mapping": {
+    "routeNo": "7613",
+    "routeId": "100100347",
+    "stationId": "112000102",
+    "stationSeq": 25,
+    "stationName": "북가좌삼호.DMC아이파크아파트",
+    "alightingStationId": "113000002",
+    "alightingStationSeq": 42,
+    "alightingStationName": "마포역",
+    "confidence": "high",
+    "score": 355,
+    "createdAt": "2026-04-06T04:35:19.738Z"
+  },
+  "source": "runtime_resolve"
+}
