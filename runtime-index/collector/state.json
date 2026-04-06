@@ -7,7 +7,13 @@
     "3412"
   ],
   "processedRouteNos": {},
-  "failedRouteNos": {},
-  "lastRunAt": null,
-  "lastSource": "manual_seed"
+  "failedRouteNos": {
+    "146": "fetch failed",
+    "147": "fetch failed",
+    "360": "fetch failed",
+    "740": "fetch failed",
+    "3412": "fetch failed"
+  },
+  "lastRunAt": "2026-04-06T02:35:32.293Z",
+  "lastSource": "collector"
 }
