@@ -1663,7 +1663,9 @@
     if (recommendation.firstWaitMin == null) {
       return "첫 탑승 대기 추정치와 총 이동시간을 함께 반영한 결과입니다.";
     }
-    const source = recommendation.firstWaitSource === "realtime" ? "실시간 버스 도착" : "배차간격 추정";
+    const source = recommendation.firstWaitSource === "seoul_arrival"
+      ? "서울시 버스 도착정보"
+      : "배차간격 추정";
     return "첫 탑승 대기 " + recommendation.firstWaitMin + "분(" + source + ")을 반영해 지금 출발 기준으로 정렬했습니다.";
   }
 
@@ -2123,33 +2125,6 @@
     return null;
   }
 
-  async function fetchRealtimeWaitDirect(firstTransit) {
-    if (!firstTransit || firstTransit.trafficType !== 2 || !firstTransit.startID) return null;
-    const payload = await fetchOdsayDirect("realtimeStation", {
-      stationID: String(firstTransit.startID),
-      stationBase: "0"
-    }).catch(() => null);
-    const list = payload?.result?.real || payload?.result?.realtime || payload?.result?.station || [];
-    const lanes = firstTransit.lane || [];
-    const candidates = [];
-
-    list.forEach((entry) => {
-      lanes.forEach((lane) => {
-        const busIdMatch = lane.busID && entry.busID && String(lane.busID) === String(entry.busID);
-        const routeIdMatch = lane.busLocalBlID && (entry.routeID || entry.routeId) && String(lane.busLocalBlID) === String(entry.routeID || entry.routeId);
-        const routeNoMatch = lane.busNo && (entry.routeNo || entry.busNo) && String(lane.busNo) === String(entry.routeNo || entry.busNo);
-        if (!busIdMatch && !routeIdMatch && !routeNoMatch) return;
-        const sec1 = Number(entry.arrival1?.arrivalSec);
-        const sec2 = Number(entry.arrival2?.arrivalSec);
-        if (Number.isFinite(sec1)) candidates.push(sec1);
-        if (Number.isFinite(sec2)) candidates.push(sec2);
-      });
-    });
-
-    if (!candidates.length) return null;
-    return Math.max(1, Math.ceil(Math.min(...candidates) / 60));
-  }
-
   async function fetchRouteRecommendationDirect(route, from, to) {
     const pathType = route.transportFilter === "subway" ? "1" : route.transportFilter === "bus" ? "2" : "0";
     const payload = await fetchOdsayDirect("searchPubTransPathR", {
@@ -2177,14 +2152,12 @@
         .slice(0, Math.max(0, subPaths.findIndex((segment) => segment.trafficType === 1 || segment.trafficType === 2)))
         .filter((segment) => segment.trafficType === 3)
         .reduce((sum, segment) => sum + Number(segment.sectionTime || 0), 0);
-      const realtimeWait = route.priority === "best_eta" ? await fetchRealtimeWaitDirect(firstTransit) : null;
       const interval = Number(firstTransit?.intervalTime || 0);
       let firstWaitMin = null;
       let firstWaitSource = "not_applicable";
       if (route.priority === "best_eta") {
         if (firstTransit?.trafficType === 2) {
-          firstWaitMin = realtimeWait;
-          firstWaitSource = realtimeWait != null ? "realtime" : "none";
+          firstWaitSource = "seoul_unavailable";
         } else if (interval > 0) {
           firstWaitMin = Math.max(1, Math.round(interval / 2));
           firstWaitSource = "interval";
@@ -2208,9 +2181,9 @@
         note = transferCount === 0 ? "환승 없이 가는 후보입니다." : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
       } else if (route.priority === "best_eta") {
         if (unavailableBusRealtime) {
-          scoreValue = totalTime + 9999;
-          scoreDisplay = "정보 없음";
-          note = "첫 버스의 실시간 도착 정보를 확인하지 못해 추천 우선순위를 크게 낮췄습니다.";
+          scoreValue = totalTime;
+          scoreDisplay = `${totalTime}분`;
+          note = "서울시 버스 실시간 도착정보가 없어 기본 이동시간 기준으로 정렬했습니다.";
         } else {
           scoreValue = totalTime + (firstWaitMin || 0);
           scoreDisplay = `${scoreValue}분`;
@@ -2233,7 +2206,7 @@
         firstWaitMin,
         firstWaitText: route.priority !== "best_eta"
           ? "기준 아님"
-          : (unavailableBusRealtime ? "정보 없음" : (firstWaitMin != null ? `${firstWaitMin}분` : "정보 없음")),
+          : (unavailableBusRealtime ? "실시간 미반영" : (firstWaitMin != null ? `${firstWaitMin}분` : "정보 없음")),
         firstWaitSource,
         unavailableBusRealtime,
         firstTransitLabel: firstTransit ? (firstTransit.trafficType === 2 ? (firstTransit.lane?.[0]?.busNo || "버스") : (firstTransit.lane?.[0]?.name || "지하철")) : "도보",

@@ -125,16 +125,6 @@ function inferTransferCount(info) {
   return Math.max(0, rides - 1);
 }
 
-function normalizeRealtimeEntry(entry) {
-  return {
-    busID: entry.busID || entry.busId || null,
-    routeID: entry.routeID || entry.routeId || null,
-    routeNo: entry.routeNo || entry.busNo || entry.routeName || "",
-    arrival1Sec: toNumber(entry.arrival1?.arrivalSec),
-    arrival2Sec: toNumber(entry.arrival2?.arrivalSec)
-  };
-}
-
 function normalizePointBusStation(entry) {
   return {
     stationID: entry.stationID || null,
@@ -147,19 +137,6 @@ function normalizePointBusStation(entry) {
       type: bus.type || null
     })).filter((bus) => bus.busID && bus.busNo)
   };
-}
-
-async function getRealtimeArrivals(stationID) {
-  const cacheKey = String(stationID);
-  const payload = await fetchOdsay("realtimeStation", {
-    stationID: cacheKey,
-    stationBase: "0"
-  });
-
-  const list = (payload.result?.real || payload.result?.realtime || payload.result?.station || [])
-    .map(normalizeRealtimeEntry);
-
-  return list;
 }
 
 async function getNearbyBusStations(x, y, radius) {
@@ -191,26 +168,6 @@ async function searchBusPathBetweenStations(startStation, endStation) {
     OPT: "0"
   });
   return payload.result?.path || [];
-}
-
-function findBestBusArrival(firstTransit, arrivals, earliestBoardingMinutes = 0) {
-  const lanes = normalizeLanes(firstTransit);
-  const earliestBoardingSec = Math.max(0, Number(earliestBoardingMinutes || 0) * 60);
-  const matches = arrivals.flatMap((arrival) => {
-    return lanes.flatMap((lane) => {
-      const busIdMatch = lane.busID && arrival.busID && String(lane.busID) === String(arrival.busID);
-      const routeIdMatch = lane.busLocalBlID && arrival.routeID && String(lane.busLocalBlID) === String(arrival.routeID);
-      const routeNoMatch = lane.busNo && arrival.routeNo && String(lane.busNo) === String(arrival.routeNo);
-
-      if (!busIdMatch && !routeIdMatch && !routeNoMatch) return [];
-      return [arrival.arrival1Sec, arrival.arrival2Sec]
-        .filter((value) => Number.isFinite(value) && value >= earliestBoardingSec)
-        .map((value) => Math.max(0, value - earliestBoardingSec));
-    });
-  });
-
-  if (!matches.length) return null;
-  return Math.max(1, Math.ceil(Math.min(...matches) / 60));
 }
 
 function findStationOrder(detail, startStationID, endStationID) {
@@ -389,7 +346,6 @@ async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
 
   const busDetailCache = new Map();
   const ridePathCache = new Map();
-  const realtimeCache = new Map();
   const candidates = [];
 
   for (const pair of uniquePairs.slice(0, MAX_DIRECT_BUS_PAIRS)) {
@@ -401,15 +357,16 @@ async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
     const order = findStationOrder(detail, pair.startStation.stationID, pair.endStation.stationID);
     if (!order) continue;
 
-    const stationKey = String(pair.startStation.stationID);
-    if (!realtimeCache.has(stationKey)) {
-      realtimeCache.set(stationKey, await getRealtimeArrivals(pair.startStation.stationID).catch(() => []));
-    }
-    const realtimeWait = findBestBusArrival(
-      getDirectBusFirstTransit(pair.bus),
-      realtimeCache.get(stationKey),
-      pair.startWalkMinutes
-    );
+    const candidateSeed = {
+      mode: "bus",
+      routeNo: pair.bus.busNo,
+      boardingStopName: pair.startStation.stationName,
+      alightingStopName: pair.endStation.stationName
+    };
+    const mapping = getSeoulBusApiKey()
+      ? await resolveBusMapping(candidateSeed, fromX, fromY, toX, toY).catch(() => null)
+      : null;
+    const realtimeWait = mapping ? await getSeoulBusArrival(mapping).catch(() => null) : null;
     if (realtimeWait == null) continue;
 
     const rideKey = `${pair.bus.busID}:${pair.startStation.stationID}:${pair.endStation.stationID}`;
@@ -436,7 +393,7 @@ async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
     .slice(0, 4);
 }
 
-function getEstimatedWait(priority, firstTransit, realtimeWait) {
+function getEstimatedWait(priority, firstTransit, liveWait) {
   if (priority !== "best_eta") {
     return { minutes: null, source: "not_applicable" };
   }
@@ -445,12 +402,11 @@ function getEstimatedWait(priority, firstTransit, realtimeWait) {
     return { minutes: 0, source: "none" };
   }
 
-  if (firstTransit.trafficType === 2 && realtimeWait != null) {
-    return { minutes: realtimeWait, source: "realtime" };
-  }
-
   if (firstTransit.trafficType === 2) {
-    return { minutes: null, source: "none" };
+    if (liveWait != null) {
+      return { minutes: liveWait, source: "seoul_arrival" };
+    }
+    return { minutes: null, source: "seoul_unavailable" };
   }
 
   const interval = toNumber(firstTransit.intervalTime) || 0;
@@ -462,7 +418,7 @@ function getEstimatedWait(priority, firstTransit, realtimeWait) {
 }
 
 function isUnavailableBusForBestEta(firstTransit, wait) {
-  return firstTransit?.trafficType === 2 && wait.source === "none";
+  return firstTransit?.trafficType === 2 && wait.source === "seoul_unavailable";
 }
 
 function getBoardingStopName(firstTransit) {
@@ -485,12 +441,12 @@ function getAlightingStopName(lastTransit) {
   return lastTransit.endName || lastTransit.endStationName || null;
 }
 
-function buildCandidate(path, index, priority, realtimeWait) {
+function buildCandidate(path, index, priority, liveWait) {
   const info = path.info || {};
   const subPaths = path.subPath || [];
   const firstTransitIndex = subPaths.findIndex((segment) => segment.trafficType === 1 || segment.trafficType === 2);
   const firstTransit = firstTransitIndex >= 0 ? subPaths[firstTransitIndex] : null;
-  const wait = getEstimatedWait(priority, firstTransit, realtimeWait);
+  const wait = getEstimatedWait(priority, firstTransit, liveWait);
   const initialWalkTime = getInitialWalkTime(subPaths, firstTransitIndex);
   const totalTime = getPathSectionTime(subPaths);
   const transferCount = inferTransferCount(info);
@@ -512,9 +468,9 @@ function buildCandidate(path, index, priority, realtimeWait) {
       : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
   } else if (priority === "best_eta") {
     if (unavailableBusRealtime) {
-      scoreValue = totalTime + 9999;
-      scoreDisplay = "정보 없음";
-      note = "첫 버스의 실시간 도착 정보를 확인하지 못해 추천 우선순위를 크게 낮췄습니다.";
+      scoreValue = totalTime;
+      scoreDisplay = `${totalTime}분`;
+      note = "서울시 버스 실시간 도착정보를 확인하지 못해 실시간 대기 없이 기본 이동시간 기준으로 정렬했습니다.";
     } else {
       scoreValue = totalTime + wait.minutes;
       scoreDisplay = `${scoreValue}분`;
@@ -547,7 +503,7 @@ function buildCandidate(path, index, priority, realtimeWait) {
     firstWaitMin: wait.minutes,
     firstWaitText: priority !== "best_eta"
       ? "기준 아님"
-      : (unavailableBusRealtime ? "정보 없음" : (wait.minutes != null ? formatMinutes(wait.minutes) : "정보 없음")),
+      : (unavailableBusRealtime ? "실시간 미반영" : (wait.minutes != null ? formatMinutes(wait.minutes) : "정보 없음")),
     firstWaitSource: wait.source,
     unavailableBusRealtime,
     mode,
@@ -667,23 +623,11 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 404, { error: "조건에 맞는 경로가 없습니다" });
     }
 
-    const realtimeCache = new Map();
     const candidates = [];
 
     for (let index = 0; index < rawPaths.length; index += 1) {
       const path = rawPaths[index];
-      const firstTransit = getFirstTransit(path.subPath || []);
-      let realtimeWait = null;
-
-      if (priority === "best_eta" && firstTransit?.trafficType === 2 && firstTransit.startID) {
-        const stationKey = String(firstTransit.startID);
-        if (!realtimeCache.has(stationKey)) {
-          realtimeCache.set(stationKey, await getRealtimeArrivals(stationKey));
-        }
-        realtimeWait = findBestBusArrival(firstTransit, realtimeCache.get(stationKey));
-      }
-
-      const candidate = buildCandidate(path, index, priority, realtimeWait);
+      const candidate = buildCandidate(path, index, priority, null);
       candidates.push(candidate);
     }
 
