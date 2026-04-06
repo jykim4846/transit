@@ -1,0 +1,17 @@
+{
+  "key": "f66d8d36127859ac33f2848eb022220ce3079b6a",
+  "mapping": {
+    "routeNo": "7016",
+    "routeId": "100100447",
+    "stationId": "113000042",
+    "stationSeq": 31,
+    "stationName": "마포역",
+    "alightingStationId": "113000133",
+    "alightingStationSeq": 87,
+    "alightingStationName": "홍대입구역1번출구",
+    "confidence": "low",
+    "score": 5170,
+    "createdAt": "2026-04-06T09:03:32.451Z"
+  },
+  "source": "runtime_resolve"
+}
