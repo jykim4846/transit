@@ -17,6 +17,23 @@ function getSeoulBusApiKey() {
   }
 }
 
+function inspectSeoulBusApiKey() {
+  const raw = process.env.SEOUL_BUS_API_KEY || "";
+  const normalized = getSeoulBusApiKey() || "";
+  return {
+    configured: Boolean(raw),
+    rawLength: raw.length,
+    normalizedLength: normalized.length,
+    rawContainsPercent: raw.includes("%"),
+    rawContainsPlus: raw.includes("+"),
+    normalizedContainsPlus: normalized.includes("+"),
+    normalizedPreview: normalized
+      ? `${normalized.slice(0, 4)}...${normalized.slice(-4)}`
+      : null,
+    apiRoot: SEOUL_BUS_API_ROOT
+  };
+}
+
 function normalizeList(value) {
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
@@ -64,6 +81,44 @@ async function fetchSeoulBus(pathname, params) {
   }
 
   return payload?.msgBody || payload?.ServiceResult?.msgBody || {};
+}
+
+async function debugFetchSeoulBus(pathname, params) {
+  const key = getSeoulBusApiKey();
+  if (!key) {
+    throw new Error("SEOUL_BUS_API_KEY 환경변수가 설정되지 않았습니다");
+  }
+
+  const query = new URLSearchParams({
+    serviceKey: key,
+    resultType: "json",
+    ...params
+  });
+
+  const url = `${SEOUL_BUS_API_ROOT}${pathname}?${query.toString()}`;
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "transit-app-seoul-bus/1.0"
+    },
+    cache: "no-store"
+  });
+
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = JSON.parse(text);
+  } catch {
+    payload = null;
+  }
+
+  const header = payload?.msgHeader || payload?.ServiceResult?.msgHeader || null;
+  return {
+    urlMasked: url.replace(key, "<MASKED_KEY>"),
+    status: response.status,
+    ok: response.ok,
+    header,
+    bodySnippet: text.slice(0, 1200)
+  };
 }
 
 function normalizeRoute(entry) {
@@ -177,8 +232,10 @@ async function getArrivalByRoute(stationId, routeId, stationSeq) {
 
 module.exports = {
   getSeoulBusApiKey,
+  inspectSeoulBusApiKey,
   searchRoutesByNumber,
   getStopsByRoute,
   getArrivalByRoute,
-  downloadRouteWorkbookRows
+  downloadRouteWorkbookRows,
+  debugFetchSeoulBus
 };
