@@ -1,0 +1,13 @@
+{
+  "routeNo": "마포12",
+  "collectedAt": "2026-04-06T09:03:58.104Z",
+  "routes": [
+    {
+      "routeId": "113900003",
+      "routeNo": "마포12",
+      "routeType": null,
+      "startName": "",
+      "endName": ""
+    }
+  ]
+}
