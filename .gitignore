@@ -2,3 +2,4 @@
 .omx/
 .DS_Store
 .runtime-index/
+node_modules/

@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { readJson, updateJson, writeJson, getDriverName } = require("./_index-store");
-const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute } = require("./_seoul-bus");
+const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, downloadRouteWorkbookRows } = require("./_seoul-bus");
 
 const STATE_PATH = "collector/state.json";
 
@@ -52,7 +52,18 @@ function distanceMeters(fromX, fromY, toX, toY) {
 async function getOrFetchRoutes(routeNo) {
   const cached = await readJson(routeListPath(routeNo), null);
   if (cached?.routes?.length) return cached.routes;
-  const routes = await searchRoutesByNumber(routeNo);
+  const rows = await downloadRouteWorkbookRows();
+  const routes = [...new Map(
+    rows
+      .filter((row) => normalizeRouteNo(row.routeNo) === normalizeRouteNo(routeNo))
+      .map((row) => [String(row.routeId), {
+        routeId: String(row.routeId),
+        routeNo: row.routeNo,
+        routeType: null,
+        startName: "",
+        endName: ""
+      }])
+  ).values()];
   await writeJson(routeListPath(routeNo), {
     routeNo: normalizeRouteNo(routeNo),
     collectedAt: new Date().toISOString(),
@@ -64,7 +75,10 @@ async function getOrFetchRoutes(routeNo) {
 async function getOrFetchStops(routeId) {
   const cached = await readJson(routeStopsPath(routeId), null);
   if (cached?.stops?.length) return cached.stops;
-  const stops = await getStopsByRoute(routeId);
+  const rows = await downloadRouteWorkbookRows();
+  const stops = rows
+    .filter((row) => String(row.routeId) === String(routeId))
+    .sort((a, b) => a.seq - b.seq);
   await writeJson(routeStopsPath(routeId), {
     routeId: String(routeId),
     collectedAt: new Date().toISOString(),
@@ -193,16 +207,55 @@ async function collectRouteIndex(limit = 6) {
   const processed = [];
   const failed = [];
 
+  let workbookRows = null;
+  if (batch.length) {
+    try {
+      workbookRows = await downloadRouteWorkbookRows();
+    } catch (error) {
+      const nextState = {
+        pendingRouteNos: batch.concat(queue),
+        processedRouteNos: state.processedRouteNos || {},
+        failedRouteNos: {
+          ...(state.failedRouteNos || {}),
+          __collector__: error.message
+        },
+        lastRunAt: new Date().toISOString(),
+        lastSource: "collector_file"
+      };
+      await writeJson(STATE_PATH, nextState);
+      return {
+        driver: getDriverName(),
+        processed: [],
+        failed: batch.map((routeNo) => ({ routeNo, error: error.message })),
+        remaining: nextState.pendingRouteNos.length,
+        lastRunAt: nextState.lastRunAt
+      };
+    }
+  }
+
   for (const routeNo of batch) {
     try {
-      const routes = await searchRoutesByNumber(routeNo);
+      const routes = [...new Map(
+        workbookRows
+          .filter((row) => normalizeRouteNo(row.routeNo) === normalizeRouteNo(routeNo))
+          .map((row) => [String(row.routeId), {
+            routeId: String(row.routeId),
+            routeNo: row.routeNo,
+            routeType: null,
+            startName: "",
+            endName: ""
+          }])
+      ).values()];
+
       await writeJson(routeListPath(routeNo), {
         routeNo,
         collectedAt: new Date().toISOString(),
         routes
       });
       for (const route of routes) {
-        const stops = await getStopsByRoute(route.routeId);
+        const stops = workbookRows
+          .filter((row) => String(row.routeId) === String(route.routeId))
+          .sort((a, b) => a.seq - b.seq);
         await writeJson(routeStopsPath(route.routeId), {
           routeId: route.routeId,
           routeNo: route.routeNo,
@@ -222,10 +275,12 @@ async function collectRouteIndex(limit = 6) {
       ...(state.processedRouteNos || {}),
       ...Object.fromEntries(processed.map((routeNo) => [routeNo, new Date().toISOString()]))
     },
-    failedRouteNos: {
-      ...(state.failedRouteNos || {}),
-      ...Object.fromEntries(failed.map((item) => [item.routeNo, item.error]))
-    },
+    failedRouteNos: (() => {
+      const current = { ...(state.failedRouteNos || {}) };
+      processed.forEach((routeNo) => delete current[routeNo]);
+      failed.forEach((item) => { current[item.routeNo] = item.error; });
+      return current;
+    })(),
     lastRunAt: new Date().toISOString(),
     lastSource: "collector"
   };

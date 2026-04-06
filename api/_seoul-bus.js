@@ -1,4 +1,10 @@
+const xlsx = require("node-xlsx");
+
 const SEOUL_BUS_API_ROOT = process.env.SEOUL_BUS_API_ROOT || "http://ws.bus.go.kr/api/rest";
+const SEOUL_ROUTE_FILE_SEQ = process.env.SEOUL_ROUTE_FILE_SEQ || "48";
+const SEOUL_ROUTE_FILE_INF_ID = process.env.SEOUL_ROUTE_FILE_INF_ID || "OA-1095";
+const SEOUL_ROUTE_FILE_INF_SEQ = process.env.SEOUL_ROUTE_FILE_INF_SEQ || "2";
+const SEOUL_ROUTE_FILE_URL = process.env.SEOUL_ROUTE_FILE_URL || "https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?useCache=false";
 
 function getSeoulBusApiKey() {
   const key = process.env.SEOUL_BUS_API_KEY || null;
@@ -96,6 +102,56 @@ function normalizeArrival(entry) {
   };
 }
 
+function normalizeWorkbookStop(row) {
+  return {
+    routeId: row.ROUTE_ID ? String(row.ROUTE_ID) : null,
+    routeNo: row["노선명"] ? String(row["노선명"]).trim() : "",
+    seq: Number(row["순번"] || 0),
+    stationId: row.NODE_ID ? String(row.NODE_ID) : null,
+    arsId: row.ARS_ID ? String(row.ARS_ID).trim() : null,
+    name: row["정류소명"] ? String(row["정류소명"]).trim() : "",
+    lat: Number(row["Y좌표"]),
+    lng: Number(row["X좌표"])
+  };
+}
+
+async function downloadRouteWorkbookRows() {
+  const response = await fetch(SEOUL_ROUTE_FILE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": "transit-app-seoul-bus/1.0"
+    },
+    body: new URLSearchParams({
+      seq: SEOUL_ROUTE_FILE_SEQ,
+      seqNo: SEOUL_ROUTE_FILE_SEQ,
+      infId: SEOUL_ROUTE_FILE_INF_ID,
+      infSeq: SEOUL_ROUTE_FILE_INF_SEQ
+    }).toString(),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`서울시 공개 노선 파일 다운로드 실패 (${response.status})`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const sheets = xlsx.parse(buffer);
+  const firstSheet = sheets[0];
+  if (!firstSheet?.data?.length) {
+    throw new Error("서울시 공개 노선 파일 파싱 결과가 비어 있습니다");
+  }
+
+  const [headers, ...rows] = firstSheet.data;
+  return rows.map((row) => {
+    const item = {};
+    headers.forEach((header, index) => {
+      item[String(header)] = row[index];
+    });
+    return normalizeWorkbookStop(item);
+  }).filter((row) => row.routeId && row.routeNo && row.stationId && row.seq > 0);
+}
+
 async function searchRoutesByNumber(routeNo) {
   const body = await fetchSeoulBus("/busRouteInfo/getBusRouteList", {
     strSrch: routeNo
@@ -123,5 +179,6 @@ module.exports = {
   getSeoulBusApiKey,
   searchRoutesByNumber,
   getStopsByRoute,
-  getArrivalByRoute
+  getArrivalByRoute,
+  downloadRouteWorkbookRows
 };
