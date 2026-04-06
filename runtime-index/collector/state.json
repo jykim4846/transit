@@ -1,7 +1,5 @@
 {
   "pendingRouteNos": [
-    "146",
-    "740",
     "147",
     "3412",
     "360",
@@ -13,14 +11,15 @@
     "270",
     "721"
   ],
-  "processedRouteNos": {},
+  "processedRouteNos": {
+    "146": "2026-04-06T04:12:33.450Z",
+    "740": "2026-04-06T04:12:33.450Z"
+  },
   "failedRouteNos": {
-    "146": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]",
     "147": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]",
     "360": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]",
-    "740": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]",
     "3412": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]"
   },
-  "lastRunAt": "2026-04-06T02:41:12.624Z",
-  "lastSource": "manual_seed"
+  "lastRunAt": "2026-04-06T04:12:33.450Z",
+  "lastSource": "collector"
 }
