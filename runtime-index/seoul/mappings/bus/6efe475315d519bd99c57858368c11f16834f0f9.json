@@ -1,0 +1,17 @@
+{
+  "key": "6efe475315d519bd99c57858368c11f16834f0f9",
+  "mapping": {
+    "routeNo": "604",
+    "routeId": "100100089",
+    "stationId": "113000088",
+    "stationSeq": 58,
+    "stationName": "공덕역2번출구",
+    "alightingStationId": "113000414",
+    "alightingStationSeq": 67,
+    "alightingStationName": "홍대입구역",
+    "confidence": "medium",
+    "score": 655,
+    "createdAt": "2026-04-06T09:03:46.334Z"
+  },
+  "source": "runtime_resolve"
+}
