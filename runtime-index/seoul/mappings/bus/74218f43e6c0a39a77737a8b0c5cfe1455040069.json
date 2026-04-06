@@ -1,0 +1,17 @@
+{
+  "key": "74218f43e6c0a39a77737a8b0c5cfe1455040069",
+  "mapping": {
+    "routeNo": "7013A",
+    "routeId": "100100449",
+    "stationId": "113000042",
+    "stationSeq": 48,
+    "stationName": "마포역",
+    "alightingStationId": "113000442",
+    "alightingStationSeq": 69,
+    "alightingStationName": "가좌행복주택.건영월드컵아파트",
+    "confidence": "medium",
+    "score": 686,
+    "createdAt": "2026-04-06T16:34:16.947Z"
+  },
+  "source": "runtime_resolve"
+}
