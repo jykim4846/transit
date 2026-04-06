@@ -1,4 +1,6 @@
 const { fetchOdsay, sendJson } = require("./_odsay");
+const { enqueueRouteNos, resolveBusMapping, getSeoulBusArrival, getCollectorStatus } = require("./_mapping-index");
+const { getSeoulBusApiKey } = require("./_seoul-bus");
 
 const FILTER_TO_PATH_TYPE = {
   all: "0",
@@ -274,6 +276,8 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
     firstWaitText: formatMinutes(realtimeWait),
     firstWaitSource: "realtime",
     unavailableBusRealtime: false,
+    mode: "bus",
+    routeNo: pair.bus.busNo,
     firstTransitLabel,
     boardingStopName: pair.startStation.stationName,
     boardingApproachText: initialWalkTime > 0
@@ -527,6 +531,8 @@ function buildCandidate(path, index, priority, realtimeWait) {
   const firstTransitLabel = firstTransit
     ? normalizeSegment(firstTransit).label
     : "도보";
+  const routeNo = firstTransit?.trafficType === 2 ? (normalizeLanes(firstTransit)[0]?.busNo || null) : null;
+  const mode = firstTransit?.trafficType === 2 ? "bus" : (firstTransit?.trafficType === 1 ? "subway" : "walk");
 
   return {
     id: `path-${index}`,
@@ -544,6 +550,8 @@ function buildCandidate(path, index, priority, realtimeWait) {
       : (unavailableBusRealtime ? "정보 없음" : (wait.minutes != null ? formatMinutes(wait.minutes) : "정보 없음")),
     firstWaitSource: wait.source,
     unavailableBusRealtime,
+    mode,
+    routeNo,
     firstTransitLabel,
     boardingStopName,
     boardingApproachText: boardingStopName
@@ -555,6 +563,43 @@ function buildCandidate(path, index, priority, realtimeWait) {
     note,
     segments: subPaths.map(normalizeSegment)
   };
+}
+
+async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
+  if (!candidate || candidate.mode !== "bus" || !candidate.routeNo || !candidate.boardingStopName || !candidate.alightingStopName) {
+    return candidate;
+  }
+
+  if (!getSeoulBusApiKey()) {
+    return candidate;
+  }
+
+  try {
+    const mapping = await resolveBusMapping(candidate, fromX, fromY, toX, toY);
+    if (!mapping) return candidate;
+    const seoulWait = await getSeoulBusArrival(mapping);
+    if (seoulWait == null) return candidate;
+
+    const totalTime = candidate.totalTime;
+    const nextScore = totalTime + seoulWait;
+    return {
+      ...candidate,
+      firstWaitMin: seoulWait,
+      firstWaitText: formatMinutes(seoulWait),
+      firstWaitSource: "seoul_arrival",
+      unavailableBusRealtime: false,
+      scoreValue: nextScore,
+      scoreDisplay: `${nextScore}분`,
+      boardingStopName: mapping.stationName || candidate.boardingStopName,
+      boardingApproachText: candidate.initialWalkTime > 0
+        ? `도보 후 ${mapping.stationName || candidate.boardingStopName} 탑승`
+        : `${mapping.stationName || candidate.boardingStopName} 탑승`,
+      alightingStopName: mapping.alightingStationName || candidate.alightingStopName,
+      note: `서울시 도착정보 기준 첫 버스 대기 ${seoulWait}분을 반영했습니다.`
+    };
+  } catch {
+    return candidate;
+  }
 }
 
 function chooseRecommendation(candidates, priority) {
@@ -578,6 +623,7 @@ module.exports = async function handler(req, res) {
   const toY = toNumber(req.query.toY);
   const priority = String(req.query.priority || "fastest");
   const transportFilter = String(req.query.transportFilter || "all");
+  const includeIndexStatus = String(req.query.includeIndexStatus || "0") === "1";
 
   if ([fromX, fromY, toX, toY].some((value) => value == null)) {
     return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
@@ -589,12 +635,20 @@ module.exports = async function handler(req, res) {
     if (priority === "best_eta" && transportFilter === "bus") {
       const directBusCandidates = await findBestDirectBusCandidates(fromX, fromY, toX, toY);
       if (directBusCandidates.length) {
+        await enqueueRouteNos([...new Set(directBusCandidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
+        const enrichedDirect = [];
+        for (const candidate of directBusCandidates) {
+          enrichedDirect.push(await maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY));
+        }
+        const sortedDirect = chooseRecommendation(enrichedDirect, priority).slice(0, 4);
+        const directRecommendation = sortedDirect[0];
         return sendJson(res, 200, {
           fetchedAt: new Date().toISOString(),
-          recommendedId: directBusCandidates[0].id,
-          recommendation: directBusCandidates[0],
-          candidates: directBusCandidates,
-          mode: "direct_bus_eta"
+          recommendedId: directRecommendation.id,
+          recommendation: directRecommendation,
+          candidates: sortedDirect,
+          mode: "direct_bus_eta",
+          indexStatus: includeIndexStatus ? await getCollectorStatus().catch(() => null) : undefined
         });
       }
     }
@@ -629,7 +683,13 @@ module.exports = async function handler(req, res) {
         realtimeWait = findBestBusArrival(firstTransit, realtimeCache.get(stationKey));
       }
 
-      candidates.push(buildCandidate(path, index, priority, realtimeWait));
+      const candidate = buildCandidate(path, index, priority, realtimeWait);
+      candidates.push(candidate);
+    }
+
+    await enqueueRouteNos([...new Set(candidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
+    for (let index = 0; index < candidates.length; index += 1) {
+      candidates[index] = await maybeEnrichBusCandidate(candidates[index], fromX, fromY, toX, toY);
     }
 
     const sorted = chooseRecommendation(candidates, priority);
@@ -638,7 +698,8 @@ module.exports = async function handler(req, res) {
       fetchedAt: new Date().toISOString(),
       recommendedId: recommendation.id,
       recommendation,
-      candidates: sorted.slice(0, 4)
+      candidates: sorted.slice(0, 4),
+      indexStatus: includeIndexStatus ? await getCollectorStatus().catch(() => null) : undefined
     };
 
     return sendJson(res, 200, result);
