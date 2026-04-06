@@ -1,7 +1,14 @@
 const SEOUL_BUS_API_ROOT = process.env.SEOUL_BUS_API_ROOT || "http://ws.bus.go.kr/api/rest";
 
 function getSeoulBusApiKey() {
-  return process.env.SEOUL_BUS_API_KEY || null;
+  const key = process.env.SEOUL_BUS_API_KEY || null;
+  if (!key) return null;
+  if (!key.includes("%")) return key;
+  try {
+    return decodeURIComponent(key);
+  } catch {
+    return key;
+  }
 }
 
 function normalizeList(value) {
