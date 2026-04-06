@@ -216,7 +216,8 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
   const rideTime = getPathTotalTime(ridePath);
   const initialWalkTime = pair.startWalkMinutes;
   const finalWalkTime = pair.endWalkMinutes;
-  const totalTime = initialWalkTime + realtimeWait + rideTime + finalWalkTime;
+  const effectiveWait = Math.max(0, realtimeWait - initialWalkTime);
+  const totalTime = initialWalkTime + effectiveWait + rideTime + finalWalkTime;
   const firstTransitLabel = pair.bus.busNo;
 
   return {
@@ -229,8 +230,8 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
     transferCountText: "0회",
     walkTime: initialWalkTime + finalWalkTime,
     walkTimeText: formatMinutes(initialWalkTime + finalWalkTime),
-    firstWaitMin: realtimeWait,
-    firstWaitText: formatMinutes(realtimeWait),
+    firstWaitMin: effectiveWait,
+    firstWaitText: formatMinutes(effectiveWait),
     firstWaitSource: "realtime",
     unavailableBusRealtime: false,
     mode: "bus",
@@ -265,7 +266,7 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
         time: formatMinutes(finalWalkTime)
       }
     ],
-    note: `도보 ${initialWalkTime}분 + 첫 버스 대기 ${realtimeWait}분 + 버스 이동 ${rideTime}분 + 마지막 도보 ${finalWalkTime}분 기준입니다.`,
+    note: `도보 ${initialWalkTime}분 이동 후 남는 첫 버스 대기 ${effectiveWait}분을 기준으로 계산했습니다.`,
     segments: [
       {
         kind: "도보",
@@ -536,12 +537,13 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const seoulWait = await getSeoulBusArrival(mapping);
     if (seoulWait == null) return candidate;
 
+    const effectiveWait = Math.max(0, seoulWait - candidate.initialWalkTime);
     const totalTime = candidate.totalTime;
-    const nextScore = totalTime + seoulWait;
+    const nextScore = totalTime + effectiveWait;
     return {
       ...candidate,
-      firstWaitMin: seoulWait,
-      firstWaitText: formatMinutes(seoulWait),
+      firstWaitMin: effectiveWait,
+      firstWaitText: formatMinutes(effectiveWait),
       firstWaitSource: "seoul_arrival",
       unavailableBusRealtime: false,
       scoreValue: nextScore,
@@ -551,7 +553,7 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
         ? `도보 후 ${mapping.stationName || candidate.boardingStopName} 탑승`
         : `${mapping.stationName || candidate.boardingStopName} 탑승`,
       alightingStopName: mapping.alightingStationName || candidate.alightingStopName,
-      note: `서울시 도착정보 기준 첫 버스 대기 ${seoulWait}분을 반영했습니다.`
+      note: `서울시 도착정보 ${seoulWait}분에서 첫 도보 ${candidate.initialWalkTime}분을 차감해 실제 대기 ${effectiveWait}분을 반영했습니다.`
     };
   } catch {
     return candidate;
