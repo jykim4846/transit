@@ -1,0 +1,17 @@
+{
+  "key": "d32e366421552c26c2ccc4d11314afcad3b29d29",
+  "mapping": {
+    "routeNo": "7016",
+    "routeId": "100100447",
+    "stationId": "113000067",
+    "stationSeq": 13,
+    "stationName": "성산2동주민센터",
+    "alightingStationId": "113000042",
+    "alightingStationSeq": 31,
+    "alightingStationName": "마포역",
+    "confidence": "medium",
+    "score": 747,
+    "createdAt": "2026-04-06T04:19:48.684Z"
+  },
+  "source": "runtime_resolve"
+}
