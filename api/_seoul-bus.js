@@ -1,4 +1,4 @@
-const SEOUL_BUS_API_ROOT = process.env.SEOUL_BUS_API_ROOT || "https://ws.bus.go.kr/api/rest";
+const SEOUL_BUS_API_ROOT = process.env.SEOUL_BUS_API_ROOT || "http://ws.bus.go.kr/api/rest";
 
 function getSeoulBusApiKey() {
   return process.env.SEOUL_BUS_API_KEY || null;
@@ -21,12 +21,24 @@ async function fetchSeoulBus(pathname, params) {
     ...params
   });
 
-  const response = await fetch(`${SEOUL_BUS_API_ROOT}${pathname}?${query.toString()}`, {
-    headers: {
-      "User-Agent": "transit-app-seoul-bus/1.0"
-    },
-    cache: "no-store"
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  let response;
+
+  try {
+    response = await fetch(`${SEOUL_BUS_API_ROOT}${pathname}?${query.toString()}`, {
+      headers: {
+        "User-Agent": "transit-app-seoul-bus/1.0"
+      },
+      cache: "no-store",
+      signal: controller.signal
+    });
+  } catch (error) {
+    const detail = error?.name === "AbortError" ? "요청 시간 초과" : (error?.message || "fetch failed");
+    throw new Error(`서울시 버스 API fetch 실패: ${detail}`);
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     throw new Error(`서울시 버스 API 요청 실패 (${response.status})`);
