@@ -4,7 +4,14 @@
     "740",
     "147",
     "3412",
-    "360"
+    "360",
+    "7613",
+    "7611",
+    "7013A",
+    "7016",
+    "7013B",
+    "270",
+    "721"
   ],
   "processedRouteNos": {},
   "failedRouteNos": {
@@ -15,5 +22,5 @@
     "3412": "Key인증실패: SERVICE KEY IS NOT REGISTERED ERROR.[인증모듈 에러코드(30)]"
   },
   "lastRunAt": "2026-04-06T02:41:12.624Z",
-  "lastSource": "collector"
+  "lastSource": "runtime_refresh"
 }
