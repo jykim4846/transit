@@ -826,70 +826,80 @@
 
   .bus-line-track {
     position: relative;
-    display: grid;
-    gap: 10px;
-    padding-left: 8px;
+    display: flex;
+    padding-top: 30px;
   }
 
   .bus-line-track::before {
     content: "";
     position: absolute;
-    left: 14px;
-    top: 10px;
-    bottom: 10px;
-    width: 2px;
-    background: linear-gradient(180deg, rgba(30, 122, 95, 0.15), rgba(28, 91, 183, 0.24));
+    left: 6px;
+    right: 6px;
+    top: calc(30px + 5px);
+    height: 2px;
+    background: linear-gradient(90deg, rgba(30, 122, 95, 0.15), rgba(28, 91, 183, 0.24));
   }
 
   .bus-line-stop {
     position: relative;
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    min-height: 28px;
+    flex: 1;
+    min-width: 0;
   }
 
   .bus-line-dot {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 999px;
     background: #fff;
     border: 2px solid rgba(71, 57, 29, 0.18);
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
   }
 
   .bus-line-stop.boarding .bus-line-dot {
+    width: 14px;
+    height: 14px;
     background: var(--accent);
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(30, 122, 95, 0.12);
+    box-shadow: 0 0 0 3px rgba(30, 122, 95, 0.12);
   }
 
   .bus-line-stop-name {
-    font-size: 13px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
+    margin-top: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .bus-line-stop.boarding .bus-line-stop-name {
     font-weight: 700;
+    color: var(--accent-strong);
   }
 
   .bus-line-bus {
     position: absolute;
-    left: 0;
-    transform: translateY(-50%);
+    top: 0;
+    transform: translateX(-50%);
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 7px 10px;
+    gap: 4px;
+    padding: 5px 8px;
     border-radius: 999px;
     background: rgba(32, 24, 16, 0.92);
     color: #fff;
     font-size: 11px;
     line-height: 1.2;
     z-index: 2;
-    box-shadow: 0 10px 24px rgba(32, 24, 16, 0.18);
+    box-shadow: 0 4px 12px rgba(32, 24, 16, 0.18);
+    white-space: nowrap;
   }
 
   .bus-line-bus.next {
@@ -2109,6 +2119,7 @@
           </div>
         </div>
         ${renderJourneyFlow(candidate.segments, { compact: true })}
+        ${candidate.busApproachPreview ? renderBusApproachPreview(candidate.busApproachPreview) : ""}
         ${candidate.transferRiskText ? `<div class="compare-risk">${escapeHtml(candidate.transferRiskText)}</div>` : ""}
       </div>
     `;
@@ -2164,7 +2175,7 @@
     if (!preview?.stops?.length) return "";
 
     const buses = (preview.vehicles || []).map((vehicle, index) => `
-      <div class="bus-line-bus ${index === 0 ? "next" : "after"}" style="top:${vehicle.progressPercent}%;">
+      <div class="bus-line-bus ${index === 0 ? "next" : "after"}" style="left:${vehicle.progressPercent}%;">
         <strong>${escapeHtml(vehicle.label)}</strong>
         <span>${escapeHtml(vehicle.remainingStops + "정거장 전")}</span>
       </div>
