@@ -676,11 +676,8 @@ function chooseRecommendation(candidates, priority) {
 function deduplicateCandidates(sorted) {
   const seen = new Set();
   return sorted.filter((candidate) => {
-    const key = [
-      candidate.firstTransitLabel || "",
-      candidate.boardingStopName || "",
-      candidate.alightingStopName || ""
-    ].join("|");
+    const key = candidate.routeNo || candidate.firstTransitLabel || "";
+    if (!key) return true;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
