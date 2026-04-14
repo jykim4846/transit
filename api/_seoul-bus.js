@@ -164,6 +164,28 @@ function normalizeArrival(entry) {
   };
 }
 
+function normalizeVehiclePosition(entry) {
+  const sectionDistance = Number(entry.sectDist);
+  const fullSectionDistance = Number(entry.fullSectDist);
+  return {
+    vehicleId: entry.vehId || null,
+    plateNo: entry.plainNo || "",
+    routeId: entry.busRouteId || null,
+    sectionOrder: Number(entry.sectOrd || 0),
+    lastStationId: entry.lastStnId || null,
+    nextStationId: entry.nextStId || null,
+    sectionDistance: Number.isFinite(sectionDistance) ? sectionDistance : null,
+    fullSectionDistance: Number.isFinite(fullSectionDistance) ? fullSectionDistance : null,
+    stopFlag: String(entry.stopFlag || "0") === "1",
+    gpsX: Number(entry.gpsX),
+    gpsY: Number(entry.gpsY),
+    congestion: entry.congetion || null,
+    dataTime: entry.dataTm || null,
+    isRunning: String(entry.isrunyn || "0") === "1",
+    isLast: String(entry.islastyn || "0") === "1"
+  };
+}
+
 function normalizeWorkbookStop(row) {
   return {
     routeId: row.ROUTE_ID ? String(row.ROUTE_ID) : null,
@@ -259,12 +281,20 @@ async function getArrivalByRoute(stationId, routeId, stationSeq) {
   return normalizeList(body.itemList).map(normalizeArrival).filter((item) => item.routeId);
 }
 
+async function getBusPositionsByRoute(routeId) {
+  const body = await fetchSeoulBus("/buspos/getBusPosByRtid", {
+    busRouteId: routeId
+  });
+  return normalizeList(body.itemList).map(normalizeVehiclePosition).filter((item) => item.vehicleId && item.isRunning);
+}
+
 module.exports = {
   getSeoulBusApiKey,
   inspectSeoulBusApiKey,
   searchRoutesByNumber,
   getStopsByRoute,
   getArrivalByRoute,
+  getBusPositionsByRoute,
   downloadRouteWorkbookRows,
   debugFetchSeoulBus
 };

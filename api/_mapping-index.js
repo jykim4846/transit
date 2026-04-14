@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { readJson, updateJson, writeJson, getDriverName } = require("./_index-store");
-const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, downloadRouteWorkbookRows } = require("./_seoul-bus");
+const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, getBusPositionsByRoute, downloadRouteWorkbookRows } = require("./_seoul-bus");
 
 const STATE_PATH = "collector/state.json";
 
@@ -314,13 +314,99 @@ async function getCollectorStatus() {
   };
 }
 
-async function getSeoulBusArrival(mapping) {
+async function getSeoulBusArrival(mapping, approachWalkMin = 0) {
   const items = await getArrivalByRoute(mapping.stationId, mapping.routeId, mapping.stationSeq);
   const exact = items.find((item) => String(item.routeId) === String(mapping.routeId));
   if (!exact) return null;
-  const seconds = [exact.expectedSeconds1, exact.expectedSeconds2].filter((value) => Number.isFinite(value) && value >= 0);
-  if (!seconds.length) return null;
-  return Math.max(1, Math.ceil(Math.min(...seconds) / 60));
+  const walkSeconds = Math.max(0, Math.round(Number(approachWalkMin || 0) * 60));
+  const arrivals = [exact.expectedSeconds1, exact.expectedSeconds2]
+    .filter((value) => Number.isFinite(value) && value >= 0)
+    .sort((a, b) => a - b);
+  if (!arrivals.length) return null;
+
+  const skippedCount = arrivals.filter((value) => value < walkSeconds).length;
+  const catchableSeconds = arrivals.find((value) => value >= walkSeconds);
+  if (catchableSeconds == null) return null;
+
+  return {
+    stationArrivalMin: Math.max(0, Math.ceil(catchableSeconds / 60)),
+    waitMin: Math.max(0, Math.ceil((catchableSeconds - walkSeconds) / 60)),
+    skippedCount
+  };
+}
+
+function maskPlateNo(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.length <= 4 ? raw : `${raw.slice(0, -4)}****`;
+}
+
+function getVehicleProgressSeq(vehicle, stopSeqByStationId) {
+  const lastSeq = stopSeqByStationId.get(String(vehicle.lastStationId));
+  const nextSeq = stopSeqByStationId.get(String(vehicle.nextStationId));
+  if (Number.isFinite(lastSeq) && Number.isFinite(nextSeq) && nextSeq > lastSeq) {
+    const full = Number(vehicle.fullSectionDistance);
+    const covered = Number(vehicle.sectionDistance);
+    const ratio = full > 0 && Number.isFinite(covered) ? Math.min(1, Math.max(0, covered / full)) : 0;
+    return lastSeq + ratio;
+  }
+  if (Number.isFinite(nextSeq)) return nextSeq - 0.15;
+  if (Number.isFinite(lastSeq)) return lastSeq;
+  return null;
+}
+
+async function getBusApproachPreview(mapping, stopWindow = 6) {
+  const stops = await getOrFetchStops(mapping.routeId);
+  const boardingIndex = stops.findIndex((stop) => String(stop.stationId) === String(mapping.stationId));
+  if (boardingIndex < 0) return null;
+
+  const stopSeqByStationId = new Map(stops.map((stop) => [String(stop.stationId), stop.seq]));
+  const vehicles = await getBusPositionsByRoute(mapping.routeId);
+  const approaching = vehicles
+    .map((vehicle) => {
+      const progressSeq = getVehicleProgressSeq(vehicle, stopSeqByStationId);
+      if (!Number.isFinite(progressSeq)) return null;
+      const remainingSeq = mapping.stationSeq - progressSeq;
+      if (remainingSeq < -0.25) return null;
+      return {
+        ...vehicle,
+        progressSeq,
+        remainingSeq
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.remainingSeq - b.remainingSeq)
+    .slice(0, 2);
+
+  const earliestVehicleSeq = approaching.length
+    ? Math.floor(Math.min(...approaching.map((vehicle) => vehicle.progressSeq)))
+    : mapping.stationSeq;
+  const startSeq = Math.max(1, Math.min(mapping.stationSeq - (stopWindow - 1), earliestVehicleSeq - 1));
+  const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= mapping.stationSeq);
+  if (!previewStops.length) return null;
+
+  const minSeq = previewStops[0].seq;
+  const maxSeq = previewStops[previewStops.length - 1].seq;
+  const span = Math.max(1, maxSeq - minSeq);
+
+  return {
+    routeNo: mapping.routeNo,
+    routeId: mapping.routeId,
+    boardingStopName: mapping.stationName,
+    stops: previewStops.map((stop) => ({
+      seq: stop.seq,
+      name: stop.name,
+      isBoarding: String(stop.stationId) === String(mapping.stationId)
+    })),
+    vehicles: approaching.map((vehicle, index) => ({
+      key: vehicle.vehicleId,
+      label: index === 0 ? "다음" : "다다음",
+      plateNoMasked: maskPlateNo(vehicle.plateNo),
+      remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
+      nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
+      progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq) / span) * 100))
+    }))
+  };
 }
 
 module.exports = {
@@ -329,5 +415,6 @@ module.exports = {
   getCollectorStatus,
   resolveBusMapping,
   getSeoulBusArrival,
+  getBusApproachPreview,
   normalizeRouteNo
 };

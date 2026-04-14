@@ -691,6 +691,113 @@
     color: var(--text-muted);
   }
 
+  .bus-line-board {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.76);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .bus-line-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .bus-line-head strong {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .bus-line-head span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .bus-line-track {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    padding-left: 8px;
+  }
+
+  .bus-line-track::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(30, 122, 95, 0.15), rgba(28, 91, 183, 0.24));
+  }
+
+  .bus-line-stop {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-height: 28px;
+  }
+
+  .bus-line-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: #fff;
+    border: 2px solid rgba(71, 57, 29, 0.18);
+    position: relative;
+    z-index: 1;
+  }
+
+  .bus-line-stop.boarding .bus-line-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(30, 122, 95, 0.12);
+  }
+
+  .bus-line-stop-name {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .bus-line-stop.boarding .bus-line-stop-name {
+    font-weight: 700;
+  }
+
+  .bus-line-bus {
+    position: absolute;
+    left: 0;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(32, 24, 16, 0.92);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.2;
+    z-index: 2;
+    box-shadow: 0 10px 24px rgba(32, 24, 16, 0.18);
+  }
+
+  .bus-line-bus.next {
+    background: var(--accent-strong);
+  }
+
+  .bus-line-bus.after {
+    background: var(--blue);
+  }
+
+  .bus-line-bus strong {
+    font-size: 11px;
+    letter-spacing: 0.03em;
+  }
+
   .detail-toggle {
     margin-top: 16px;
   }
@@ -1920,6 +2027,41 @@
     `).join("") + "</div>";
   }
 
+  function renderBusApproachPreview(preview) {
+    if (!preview?.stops?.length) return "";
+
+    const buses = (preview.vehicles || []).map((vehicle, index) => `
+      <div class="bus-line-bus ${index === 0 ? "next" : "after"}" style="top:${vehicle.progressPercent}%;">
+        <strong>${escapeHtml(vehicle.label)}</strong>
+        <span>${escapeHtml(vehicle.remainingStops + "정거장 전")}</span>
+      </div>
+    `).join("");
+
+    const stops = preview.stops.map((stop) => `
+      <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}">
+        <span class="bus-line-dot"></span>
+        <div class="bus-line-stop-name">${escapeHtml(stop.name)}</div>
+      </div>
+    `).join("");
+
+    const vehicleSummary = (preview.vehicles || []).map((vehicle) =>
+      `${vehicle.label} ${vehicle.remainingStops}정거장 전`
+    ).join(" · ");
+
+    return `
+      <div class="bus-line-board">
+        <div class="bus-line-head">
+          <strong>${escapeHtml(preview.routeNo)} 접근 노선</strong>
+          <span>${escapeHtml(vehicleSummary || "차량 위치 정보 없음")}</span>
+        </div>
+        <div class="bus-line-track">
+          ${buses}
+          ${stops}
+        </div>
+      </div>
+    `;
+  }
+
   function renderEmptyCard() {
     return `
       <div class="empty-state">
@@ -1979,6 +2121,7 @@
         </div>
 
         <div class="transport-strip">${renderTransportSteps(recommendation.summarySteps)}</div>
+        ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
         ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
         <div class="state-line">
           <span>${escapeHtml(recommendation.note)}</span>

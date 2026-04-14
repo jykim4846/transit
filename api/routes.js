@@ -1,5 +1,5 @@
 const { fetchOdsay, sendJson } = require("./_odsay");
-const { enqueueRouteNos, resolveBusMapping, getSeoulBusArrival, getCollectorStatus } = require("./_mapping-index");
+const { enqueueRouteNos, resolveBusMapping, getSeoulBusArrival, getBusApproachPreview, getCollectorStatus } = require("./_mapping-index");
 const { getSeoulBusApiKey } = require("./_seoul-bus");
 
 const FILTER_TO_PATH_TYPE = {
@@ -212,13 +212,16 @@ function getPathTotalTime(path) {
   return getPathSectionTime(path.subPath || []);
 }
 
-function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
+function buildDirectBusCandidate(pair, ridePath, arrivalInfo) {
   const rideTime = getPathTotalTime(ridePath);
   const initialWalkTime = pair.startWalkMinutes;
   const finalWalkTime = pair.endWalkMinutes;
-  const effectiveWait = Math.max(0, realtimeWait - initialWalkTime);
+  const effectiveWait = arrivalInfo.waitMin;
   const totalTime = initialWalkTime + effectiveWait + rideTime + finalWalkTime;
   const firstTransitLabel = pair.bus.busNo;
+  const note = arrivalInfo.skippedCount > 0
+    ? `정류장까지 도보 ${initialWalkTime}분이 걸려 먼저 오는 버스 ${arrivalInfo.skippedCount}대를 놓치는 것으로 보고, 다음 도착 버스 기준 대기 ${effectiveWait}분을 계산했습니다.`
+    : `도보 ${initialWalkTime}분 이동 후 남는 첫 버스 대기 ${effectiveWait}분을 기준으로 계산했습니다.`;
 
   return {
     id: `direct-${pair.startStation.stationID}-${pair.endStation.stationID}-${pair.bus.busID}`,
@@ -238,6 +241,7 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
     transferWaitText: formatMinutes(0),
     transferRiskLevel: "none",
     transferRiskText: null,
+    busApproachPreview: null,
     mode: "bus",
     routeNo: pair.bus.busNo,
     firstTransitLabel,
@@ -270,7 +274,7 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
         time: formatMinutes(finalWalkTime)
       }
     ],
-    note: `도보 ${initialWalkTime}분 이동 후 남는 첫 버스 대기 ${effectiveWait}분을 기준으로 계산했습니다.`,
+    note,
     segments: [
       {
         kind: "도보",
@@ -371,8 +375,13 @@ async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
     const mapping = getSeoulBusApiKey()
       ? await resolveBusMapping(candidateSeed, fromX, fromY, toX, toY).catch(() => null)
       : null;
-    const realtimeWait = mapping ? await getSeoulBusArrival(mapping).catch(() => null) : null;
-    if (realtimeWait == null) continue;
+    const arrivalInfo = mapping
+      ? await getSeoulBusArrival(mapping, pair.startWalkMinutes).catch(() => null)
+      : null;
+    if (arrivalInfo == null) continue;
+    const busApproachPreview = mapping
+      ? await getBusApproachPreview(mapping).catch(() => null)
+      : null;
 
     const rideKey = `${pair.bus.busID}:${pair.startStation.stationID}:${pair.endStation.stationID}`;
     if (!ridePathCache.has(rideKey)) {
@@ -386,7 +395,9 @@ async function findBestDirectBusCandidates(fromX, fromY, toX, toY) {
     });
     if (!matchedRidePath) continue;
 
-    candidates.push(buildDirectBusCandidate(pair, matchedRidePath, realtimeWait));
+    const built = buildDirectBusCandidate(pair, matchedRidePath, arrivalInfo);
+    built.busApproachPreview = busApproachPreview;
+    candidates.push(built);
   }
 
   return candidates
@@ -621,19 +632,23 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
   try {
     const mapping = await resolveBusMapping(candidate, fromX, fromY, toX, toY);
     if (!mapping) return candidate;
-    const seoulWait = await getSeoulBusArrival(mapping);
-    if (seoulWait == null) return candidate;
+    const arrivalInfo = await getSeoulBusArrival(mapping, candidate.initialWalkTime);
+    if (arrivalInfo == null) return candidate;
+    const busApproachPreview = await getBusApproachPreview(mapping).catch(() => null);
 
-    const effectiveWait = Math.max(0, seoulWait - candidate.initialWalkTime);
+    const effectiveWait = arrivalInfo.waitMin;
     const totalTime = candidate.totalTime;
     const nextScore = totalTime + effectiveWait + Number(candidate.transferWaitMin || 0);
-    const baseNote = `서울시 도착정보 ${seoulWait}분에서 첫 도보 ${candidate.initialWalkTime}분을 차감해 실제 대기 ${effectiveWait}분을 반영했습니다.`;
+    const baseNote = arrivalInfo.skippedCount > 0
+      ? `정류장까지 도보 ${candidate.initialWalkTime}분이 걸려 먼저 오는 버스 ${arrivalInfo.skippedCount}대를 놓치는 것으로 보고, 다음 도착 버스 기준 대기 ${effectiveWait}분을 반영했습니다.`
+      : `서울시 도착정보 기준 현재 버스를 탈 수 있는 실제 대기 ${effectiveWait}분을 반영했습니다.`;
     return {
       ...candidate,
       firstWaitMin: effectiveWait,
       firstWaitText: formatMinutes(effectiveWait),
       firstWaitSource: "seoul_arrival",
       unavailableBusRealtime: false,
+      busApproachPreview,
       scoreValue: nextScore,
       scoreDisplay: `${nextScore}분`,
       boardingStopName: mapping.stationName || candidate.boardingStopName,
