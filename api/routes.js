@@ -234,6 +234,10 @@ function buildDirectBusCandidate(pair, ridePath, realtimeWait) {
     firstWaitText: formatMinutes(effectiveWait),
     firstWaitSource: "realtime",
     unavailableBusRealtime: false,
+    transferWaitMin: 0,
+    transferWaitText: formatMinutes(0),
+    transferRiskLevel: "none",
+    transferRiskText: null,
     mode: "bus",
     routeNo: pair.bus.busNo,
     firstTransitLabel,
@@ -407,6 +411,10 @@ function getEstimatedWait(priority, firstTransit, liveWait) {
     if (liveWait != null) {
       return { minutes: liveWait, source: "seoul_arrival" };
     }
+    const busInterval = toNumber(firstTransit.intervalTime) || 0;
+    if (busInterval > 0) {
+      return { minutes: Math.max(1, Math.round(busInterval / 2)), source: "interval" };
+    }
     return { minutes: null, source: "seoul_unavailable" };
   }
 
@@ -442,6 +450,76 @@ function getAlightingStopName(lastTransit) {
   return lastTransit.endName || lastTransit.endStationName || null;
 }
 
+function getTransferTimingEstimate(subPaths, priority) {
+  if (priority !== "best_eta") {
+    return {
+      transferWaitMin: 0,
+      transferRiskLevel: "none",
+      transferRiskText: null,
+      tightestSlackMin: null
+    };
+  }
+
+  const transitIndices = subPaths
+    .map((segment, index) => ((segment.trafficType === 1 || segment.trafficType === 2) ? index : -1))
+    .filter((index) => index >= 0);
+
+  if (transitIndices.length <= 1) {
+    return {
+      transferWaitMin: 0,
+      transferRiskLevel: "none",
+      transferRiskText: null,
+      tightestSlackMin: null
+    };
+  }
+
+  let transferWaitMin = 0;
+  let tightestSlackMin = null;
+
+  transitIndices.slice(1).forEach((transitIndex) => {
+    const segment = subPaths[transitIndex];
+    const interval = toNumber(segment.intervalTime) || 0;
+    if (interval <= 0) return;
+
+    const elapsedTravelMin = subPaths
+      .slice(0, transitIndex)
+      .reduce((sum, item) => sum + Number(item.sectionTime || 0), 0);
+
+    const slackMin = interval - elapsedTravelMin;
+    transferWaitMin += Math.max(0, slackMin);
+    tightestSlackMin = tightestSlackMin == null ? slackMin : Math.min(tightestSlackMin, slackMin);
+  });
+
+  if (tightestSlackMin == null) {
+    return {
+      transferWaitMin,
+      transferRiskLevel: "none",
+      transferRiskText: null,
+      tightestSlackMin: null
+    };
+  }
+
+  let transferRiskLevel = "low";
+  let transferRiskText = null;
+
+  if (tightestSlackMin <= 1) {
+    transferRiskLevel = "high";
+    transferRiskText = tightestSlackMin < 0
+      ? "환승 여유가 부족해 실제로는 다음 차를 놓칠 가능성이 큽니다."
+      : `환승 여유가 ${tightestSlackMin}분 수준이라 지연 시 놓칠 가능성이 큽니다.`;
+  } else if (tightestSlackMin <= 4) {
+    transferRiskLevel = "medium";
+    transferRiskText = `환승 여유가 ${tightestSlackMin}분 정도라 조금만 지연돼도 놓칠 수 있습니다.`;
+  }
+
+  return {
+    transferWaitMin,
+    transferRiskLevel,
+    transferRiskText,
+    tightestSlackMin
+  };
+}
+
 function buildCandidate(path, index, priority, liveWait) {
   const info = path.info || {};
   const subPaths = path.subPath || [];
@@ -449,6 +527,8 @@ function buildCandidate(path, index, priority, liveWait) {
   const firstTransit = firstTransitIndex >= 0 ? subPaths[firstTransitIndex] : null;
   const wait = getEstimatedWait(priority, firstTransit, liveWait);
   const initialWalkTime = getInitialWalkTime(subPaths, firstTransitIndex);
+  const effectiveFirstWaitMin = wait.minutes != null ? Math.max(0, wait.minutes - initialWalkTime) : null;
+  const transferTiming = getTransferTimingEstimate(subPaths, priority);
   const totalTime = getPathSectionTime(subPaths);
   const transferCount = inferTransferCount(info);
   const walkTime = getWalkTime(subPaths);
@@ -469,15 +549,18 @@ function buildCandidate(path, index, priority, liveWait) {
       : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
   } else if (priority === "best_eta") {
     if (unavailableBusRealtime) {
-      scoreValue = totalTime;
-      scoreDisplay = `${totalTime}분`;
-      note = "서울시 버스 실시간 도착정보를 확인하지 못해 실시간 대기 없이 기본 이동시간 기준으로 정렬했습니다.";
-    } else {
-      scoreValue = totalTime + wait.minutes;
+      scoreValue = totalTime + transferTiming.transferWaitMin;
       scoreDisplay = `${scoreValue}분`;
-      note = wait.minutes > 0
-        ? `첫 탑승 대기 ${wait.minutes}분과 총 이동시간을 합쳐 비교했습니다.`
-        : "첫 탑승 대기 정보를 반영할 수 없어 총 이동시간 위주로 비교했습니다.";
+      note = transferTiming.transferWaitMin > 0
+        ? `첫 탑승 실시간은 없지만 환승 대기 추정 ${transferTiming.transferWaitMin}분을 반영했습니다.`
+        : "서울시 버스 실시간 도착정보를 확인하지 못해 첫 탑승 대기 없이 비교했습니다.";
+    } else {
+      const totalWaitMin = (effectiveFirstWaitMin || 0) + transferTiming.transferWaitMin;
+      scoreValue = totalTime + totalWaitMin;
+      scoreDisplay = `${scoreValue}분`;
+      note = totalWaitMin > 0
+        ? `첫 탑승 대기 ${effectiveFirstWaitMin || 0}분과 환승 대기 추정 ${transferTiming.transferWaitMin}분을 합쳐 비교했습니다.`
+        : "첫 탑승과 환승을 바로 연결할 수 있다고 보고 총 이동시간 기준으로 비교했습니다.";
     }
   } else {
     scoreValue = totalTime;
@@ -501,12 +584,16 @@ function buildCandidate(path, index, priority, liveWait) {
     transferCountText: formatTransferCount(transferCount),
     walkTime,
     walkTimeText: formatMinutes(walkTime),
-    firstWaitMin: wait.minutes,
+    firstWaitMin: effectiveFirstWaitMin,
     firstWaitText: priority !== "best_eta"
       ? "기준 아님"
-      : (unavailableBusRealtime ? "실시간 미반영" : (wait.minutes != null ? formatMinutes(wait.minutes) : "정보 없음")),
+      : (unavailableBusRealtime ? "실시간 미반영" : (effectiveFirstWaitMin != null ? formatMinutes(effectiveFirstWaitMin) : "정보 없음")),
     firstWaitSource: wait.source,
     unavailableBusRealtime,
+    transferWaitMin: transferTiming.transferWaitMin,
+    transferWaitText: priority === "best_eta" ? formatMinutes(transferTiming.transferWaitMin) : "기준 아님",
+    transferRiskLevel: transferTiming.transferRiskLevel,
+    transferRiskText: transferTiming.transferRiskText,
     mode,
     routeNo,
     firstTransitLabel,
@@ -539,7 +626,8 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
 
     const effectiveWait = Math.max(0, seoulWait - candidate.initialWalkTime);
     const totalTime = candidate.totalTime;
-    const nextScore = totalTime + effectiveWait;
+    const nextScore = totalTime + effectiveWait + Number(candidate.transferWaitMin || 0);
+    const baseNote = `서울시 도착정보 ${seoulWait}분에서 첫 도보 ${candidate.initialWalkTime}분을 차감해 실제 대기 ${effectiveWait}분을 반영했습니다.`;
     return {
       ...candidate,
       firstWaitMin: effectiveWait,
@@ -553,7 +641,7 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
         ? `도보 후 ${mapping.stationName || candidate.boardingStopName} 탑승`
         : `${mapping.stationName || candidate.boardingStopName} 탑승`,
       alightingStopName: mapping.alightingStationName || candidate.alightingStopName,
-      note: `서울시 도착정보 ${seoulWait}분에서 첫 도보 ${candidate.initialWalkTime}분을 차감해 실제 대기 ${effectiveWait}분을 반영했습니다.`
+      note: candidate.transferRiskText ? `${baseNote} ${candidate.transferRiskText}` : baseNote
     };
   } catch {
     return candidate;
@@ -568,6 +656,12 @@ function chooseRecommendation(candidates, priority) {
     if (priority === "best_eta" && a.initialWalkTime !== b.initialWalkTime) return a.initialWalkTime - b.initialWalkTime;
     return 0;
   });
+}
+
+async function enrichCandidates(candidates, fromX, fromY, toX, toY) {
+  return Promise.all(
+    candidates.map((candidate) => maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY))
+  );
 }
 
 module.exports = async function handler(req, res) {
@@ -594,10 +688,7 @@ module.exports = async function handler(req, res) {
       const directBusCandidates = await findBestDirectBusCandidates(fromX, fromY, toX, toY);
       if (directBusCandidates.length) {
         await enqueueRouteNos([...new Set(directBusCandidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
-        const enrichedDirect = [];
-        for (const candidate of directBusCandidates) {
-          enrichedDirect.push(await maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY));
-        }
+        const enrichedDirect = await enrichCandidates(directBusCandidates, fromX, fromY, toX, toY);
         const sortedDirect = chooseRecommendation(enrichedDirect, priority).slice(0, 4);
         const directRecommendation = sortedDirect[0];
         return sendJson(res, 200, {
@@ -634,11 +725,9 @@ module.exports = async function handler(req, res) {
     }
 
     await enqueueRouteNos([...new Set(candidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
-    for (let index = 0; index < candidates.length; index += 1) {
-      candidates[index] = await maybeEnrichBusCandidate(candidates[index], fromX, fromY, toX, toY);
-    }
+    const enrichedCandidates = await enrichCandidates(candidates, fromX, fromY, toX, toY);
 
-    const sorted = chooseRecommendation(candidates, priority);
+    const sorted = chooseRecommendation(enrichedCandidates, priority);
     const recommendation = sorted[0];
     const result = {
       fetchedAt: new Date().toISOString(),

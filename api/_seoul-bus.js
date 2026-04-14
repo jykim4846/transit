@@ -5,6 +5,13 @@ const SEOUL_ROUTE_FILE_SEQ = process.env.SEOUL_ROUTE_FILE_SEQ || "48";
 const SEOUL_ROUTE_FILE_INF_ID = process.env.SEOUL_ROUTE_FILE_INF_ID || "OA-1095";
 const SEOUL_ROUTE_FILE_INF_SEQ = process.env.SEOUL_ROUTE_FILE_INF_SEQ || "2";
 const SEOUL_ROUTE_FILE_URL = process.env.SEOUL_ROUTE_FILE_URL || "https://datafile.seoul.go.kr/bigfile/iot/inf/nio_download.do?useCache=false";
+const SEOUL_ROUTE_FILE_CACHE_TTL_MS = Math.max(0, Number(process.env.SEOUL_ROUTE_FILE_CACHE_TTL_MS || 10 * 60 * 1000) || 0);
+
+let routeWorkbookCache = {
+  rows: null,
+  expiresAt: 0,
+  promise: null
+};
 
 function getSeoulBusApiKey() {
   const key = process.env.SEOUL_BUS_API_KEY || null;
@@ -171,40 +178,62 @@ function normalizeWorkbookStop(row) {
 }
 
 async function downloadRouteWorkbookRows() {
-  const response = await fetch(SEOUL_ROUTE_FILE_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "User-Agent": "transit-app-seoul-bus/1.0"
-    },
-    body: new URLSearchParams({
-      seq: SEOUL_ROUTE_FILE_SEQ,
-      seqNo: SEOUL_ROUTE_FILE_SEQ,
-      infId: SEOUL_ROUTE_FILE_INF_ID,
-      infSeq: SEOUL_ROUTE_FILE_INF_SEQ
-    }).toString(),
-    cache: "no-store"
+  const now = Date.now();
+  if (routeWorkbookCache.rows && routeWorkbookCache.expiresAt > now) {
+    return routeWorkbookCache.rows;
+  }
+  if (routeWorkbookCache.promise) {
+    return routeWorkbookCache.promise;
+  }
+
+  routeWorkbookCache.promise = (async () => {
+    const response = await fetch(SEOUL_ROUTE_FILE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "transit-app-seoul-bus/1.0"
+      },
+      body: new URLSearchParams({
+        seq: SEOUL_ROUTE_FILE_SEQ,
+        seqNo: SEOUL_ROUTE_FILE_SEQ,
+        infId: SEOUL_ROUTE_FILE_INF_ID,
+        infSeq: SEOUL_ROUTE_FILE_INF_SEQ
+      }).toString(),
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(`서울시 공개 노선 파일 다운로드 실패 (${response.status})`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const sheets = xlsx.parse(buffer);
+    const firstSheet = sheets[0];
+    if (!firstSheet?.data?.length) {
+      throw new Error("서울시 공개 노선 파일 파싱 결과가 비어 있습니다");
+    }
+
+    const [headers, ...rows] = firstSheet.data;
+    const normalizedRows = rows.map((row) => {
+      const item = {};
+      headers.forEach((header, index) => {
+        item[String(header)] = row[index];
+      });
+      return normalizeWorkbookStop(item);
+    }).filter((row) => row.routeId && row.routeNo && row.stationId && row.seq > 0);
+
+    routeWorkbookCache = {
+      rows: normalizedRows,
+      expiresAt: Date.now() + SEOUL_ROUTE_FILE_CACHE_TTL_MS,
+      promise: null
+    };
+    return normalizedRows;
+  })().catch((error) => {
+    routeWorkbookCache.promise = null;
+    throw error;
   });
 
-  if (!response.ok) {
-    throw new Error(`서울시 공개 노선 파일 다운로드 실패 (${response.status})`);
-  }
-
-  const buffer = Buffer.from(await response.arrayBuffer());
-  const sheets = xlsx.parse(buffer);
-  const firstSheet = sheets[0];
-  if (!firstSheet?.data?.length) {
-    throw new Error("서울시 공개 노선 파일 파싱 결과가 비어 있습니다");
-  }
-
-  const [headers, ...rows] = firstSheet.data;
-  return rows.map((row) => {
-    const item = {};
-    headers.forEach((header, index) => {
-      item[String(header)] = row[index];
-    });
-    return normalizeWorkbookStop(item);
-  }).filter((row) => row.routeId && row.routeNo && row.stationId && row.seq > 0);
+  return routeWorkbookCache.promise;
 }
 
 async function searchRoutesByNumber(routeNo) {

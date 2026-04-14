@@ -1,5 +1,6 @@
 .omc/
 .omx/
 .DS_Store
+.env
 .runtime-index/
 node_modules/
