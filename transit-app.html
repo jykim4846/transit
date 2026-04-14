@@ -965,6 +965,11 @@
     top: 26px;
   }
 
+  .bus-line-bus.uncatchable {
+    background: rgba(120, 120, 120, 0.7);
+    opacity: 0.6;
+  }
+
   .bus-line-bus strong {
     font-size: 11px;
     letter-spacing: 0.03em;
@@ -988,6 +993,12 @@
   .bus-line-marker.after {
     background: var(--blue);
     box-shadow: 0 0 0 3px rgba(28, 91, 183, 0.2);
+  }
+
+  .bus-line-marker.uncatchable {
+    background: #999;
+    box-shadow: 0 0 0 3px rgba(120, 120, 120, 0.15);
+    opacity: 0.6;
   }
 
   .detail-toggle {
@@ -2248,16 +2259,23 @@
   function renderBusApproachPreview(preview) {
     if (!preview?.stops?.length) return "";
 
-    const buses = (preview.vehicles || []).map((vehicle, index) => `
-      <div class="bus-line-bus ${index === 0 ? "next" : "after"}" style="left:${vehicle.progressPercent}%;">
-        <strong>${escapeHtml(vehicle.label)}</strong>
-        <span>${escapeHtml(vehicle.remainingStops + "정거장 전")}</span>
-      </div>
-    `).join("");
+    const buses = (preview.vehicles || []).map((vehicle, index) => {
+      const posClass = index === 0 ? "next" : "after";
+      const catchClass = vehicle.catchable === false ? " uncatchable" : "";
+      const label = vehicle.catchable === false ? "지나감" : vehicle.label;
+      return `
+        <div class="bus-line-bus ${posClass}${catchClass}" style="left:${vehicle.progressPercent}%;">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(vehicle.remainingStops + "정거장 전")}</span>
+        </div>
+      `;
+    }).join("");
 
-    const busMarkers = (preview.vehicles || []).map((vehicle, index) => `
-      <div class="bus-line-marker ${index === 0 ? "next" : "after"}" style="left:${vehicle.progressPercent}%;"></div>
-    `).join("");
+    const busMarkers = (preview.vehicles || []).map((vehicle, index) => {
+      const posClass = index === 0 ? "next" : "after";
+      const catchClass = vehicle.catchable === false ? " uncatchable" : "";
+      return `<div class="bus-line-marker ${posClass}${catchClass}" style="left:${vehicle.progressPercent}%;"></div>`;
+    }).join("");
 
     const stops = preview.stops.map((stop) => `
       <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}">
@@ -2266,9 +2284,10 @@
       </div>
     `).join("");
 
-    const vehicleSummary = (preview.vehicles || []).map((vehicle) =>
-      `${vehicle.label} ${vehicle.remainingStops}정거장 전`
-    ).join(" · ");
+    const vehicleSummary = (preview.vehicles || []).map((vehicle) => {
+      const label = vehicle.catchable === false ? "지나감" : vehicle.label;
+      return `${label} ${vehicle.remainingStops}정거장 전`;
+    }).join(" · ");
 
     return `
       <div class="bus-line-board">

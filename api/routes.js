@@ -635,6 +635,11 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const arrivalInfo = await getSeoulBusArrival(mapping, candidate.initialWalkTime);
     if (arrivalInfo == null) return candidate;
     const busApproachPreview = await getBusApproachPreview(mapping).catch(() => null);
+    if (busApproachPreview?.vehicles) {
+      busApproachPreview.vehicles.forEach((vehicle, index) => {
+        vehicle.catchable = index >= arrivalInfo.skippedCount;
+      });
+    }
 
     const effectiveWait = arrivalInfo.waitMin;
     const totalTime = candidate.totalTime;
