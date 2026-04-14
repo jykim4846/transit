@@ -691,6 +691,63 @@
     color: var(--text-muted);
   }
 
+  .journey-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .journey-flow.compact {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 16px;
+  }
+
+  .journey-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    line-height: 1.2;
+    background: rgba(32, 24, 16, 0.05);
+    color: var(--text);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .journey-node.start,
+  .journey-node.end {
+    font-weight: 700;
+    background: rgba(32, 24, 16, 0.08);
+  }
+
+  .journey-node.walk {
+    color: var(--text-muted);
+  }
+
+  .journey-node.bus {
+    color: var(--orange);
+    background: rgba(197, 99, 31, 0.1);
+  }
+
+  .journey-node.subway {
+    color: var(--blue);
+    background: rgba(28, 91, 183, 0.1);
+  }
+
+  .journey-link {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
   .bus-line-board {
     margin-top: 14px;
     padding: 14px;
@@ -1955,7 +2012,7 @@
           </div>
           <div class="candidate-score">${escapeHtml(candidate.scoreDisplay)}</div>
         </div>
-        <div class="transport-strip" style="margin-top:12px;">${renderTransportSteps(candidate.summarySteps)}</div>
+        ${renderJourneyFlow(candidate.segments, { compact: true })}
       </div>
     `;
   }
@@ -2001,15 +2058,42 @@
             <span class="label">환승</span>
             <span class="value">${escapeHtml(candidate.transferCountText)}</span>
           </div>
-          <div class="compare-metric">
-            <span class="label">도보</span>
-            <span class="value">${escapeHtml(candidate.walkTimeText)}</span>
-          </div>
         </div>
-        <div class="transport-strip" style="margin-top:12px;">${renderTransportSteps(candidate.summarySteps)}</div>
+        ${renderJourneyFlow(candidate.segments, { compact: true })}
         ${candidate.transferRiskText ? `<div class="compare-risk">${escapeHtml(candidate.transferRiskText)}</div>` : ""}
       </div>
     `;
+  }
+
+  function getJourneyStepLabel(segment) {
+    if (!segment) return "";
+    if (segment.kind === "도보") return segment.time || "도보";
+    const head = String(segment.text || "").split(" · ")[0] || segment.kind || "";
+    return `${head} ${segment.time || ""}`.trim();
+  }
+
+  function renderJourneyFlow(segments, options = {}) {
+    const compact = Boolean(options.compact);
+    const journeySegments = (segments || []).filter((segment) => {
+      if (!segment) return false;
+      if (segment.kind === "도보") {
+        return Number.parseInt(segment.time, 10) > 0;
+      }
+      return true;
+    });
+
+    if (!journeySegments.length) return "";
+
+    const items = ['<span class="journey-node start">출발</span>'];
+    journeySegments.forEach((segment) => {
+      const typeClass = segment.kind === "버스" ? "bus" : segment.kind === "지하철" ? "subway" : "walk";
+      items.push('<span class="journey-link">→</span>');
+      items.push(`<span class="journey-node ${typeClass}">${escapeHtml(getJourneyStepLabel(segment))}</span>`);
+    });
+    items.push('<span class="journey-link">→</span>');
+    items.push('<span class="journey-node end">도착</span>');
+
+    return `<div class="journey-flow${compact ? " compact" : ""}">${items.join("")}</div>`;
   }
 
   function renderSegments(segments) {
@@ -2114,13 +2198,9 @@
             <span class="label">환승</span>
             <span class="value">${escapeHtml(recommendation.transferCountText)}</span>
           </div>
-          <div class="metric">
-            <span class="label">도보</span>
-            <span class="value">${escapeHtml(recommendation.walkTimeText)}</span>
-          </div>
         </div>
 
-        <div class="transport-strip">${renderTransportSteps(recommendation.summarySteps)}</div>
+        ${renderJourneyFlow(recommendation.segments)}
         ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
         ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
         <div class="state-line">
