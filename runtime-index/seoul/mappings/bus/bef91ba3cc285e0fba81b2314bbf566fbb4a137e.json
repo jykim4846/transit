@@ -1,0 +1,17 @@
+{
+  "key": "bef91ba3cc285e0fba81b2314bbf566fbb4a137e",
+  "mapping": {
+    "routeNo": "421",
+    "routeId": "100100409",
+    "stationId": "101000032",
+    "stationSeq": 87,
+    "stationName": "북창동.남대문시장",
+    "alightingStationId": "121000009",
+    "alightingStationSeq": 106,
+    "alightingStationName": "신분당선강남역",
+    "confidence": "medium",
+    "score": 835,
+    "createdAt": "2026-04-14T02:49:12.598Z"
+  },
+  "source": "runtime_resolve"
+}
