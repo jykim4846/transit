@@ -2337,14 +2337,23 @@
 
     const metricInlineText = (() => {
       if (!recommendation) return '';
-      const parts = ['총 ' + escapeHtml(recommendation.totalTimeText)];
-      if (recommendation.firstWaitSource !== 'not_applicable') {
-        parts.push('대기 ' + escapeHtml(recommendation.firstWaitText));
+      const parts = [];
+      const segs = recommendation.segments || [];
+      let waitInserted = false;
+      for (const seg of segs) {
+        if (!waitInserted && seg.type !== 'walk') {
+          if (recommendation.firstWaitMin != null && recommendation.firstWaitSource !== 'not_applicable') {
+            parts.push('대기 ' + recommendation.firstWaitText);
+          }
+          waitInserted = true;
+        }
+        if (seg.type === 'walk') {
+          parts.push('도보 ' + seg.time);
+        } else {
+          parts.push(seg.label + ' ' + seg.time);
+        }
       }
-      if (recommendation.transferCount > 0) {
-        parts.push('환승 ' + escapeHtml(recommendation.transferCountText));
-      }
-      return parts.join(' \u00b7 ');
+      return parts.join(' + ');
     })();
 
     const summaryHtml = collapsed ? "" : (recommendation ? `
