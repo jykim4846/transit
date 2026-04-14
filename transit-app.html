@@ -315,6 +315,34 @@
     line-height: 1.5;
   }
 
+  .route-footer {
+    margin-top: 24px;
+    padding: 18px;
+    border-radius: 18px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+
+  .route-footer h2 {
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+  }
+
+  .route-footer h2 span {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  .route-footer p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
   .route-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -397,6 +425,32 @@
     font-size: 13px;
     color: var(--text-muted);
     margin-bottom: 8px;
+  }
+
+  .summary-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .score-inline {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .score-inline .label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .score-inline .value {
+    font-family: var(--mono);
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    line-height: 1.1;
   }
 
   .summary-line .transit-label {
@@ -1580,19 +1634,18 @@
 <body>
 <div class="app-shell">
   <section class="section">
-    <div class="section-head route-overview">
-      <div class="route-overview-copy">
-        <h2>저장 루트</h2>
-        <span id="route-count">0개 루트</span>
-        <p>앱을 열면 저장된 결과를 먼저 보여주고, 추천 갱신을 눌렀을 때만 새로 호출합니다.</p>
-      </div>
+    <div class="section-head">
+      <div class="clock-badge" id="clock">--:--</div>
       <div class="route-toolbar">
-        <div class="clock-badge" id="clock">--:--</div>
         <button class="btn btn-secondary" id="key-settings-btn">ODsay 키</button>
         <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
       </div>
     </div>
     <div class="route-list" id="route-list"></div>
+    <div class="route-footer">
+      <h2>저장 루트 <span id="route-count">0개 루트</span></h2>
+      <p>앱을 열면 저장된 결과를 먼저 보여주고, 추천 갱신을 눌렀을 때만 새로 호출합니다.</p>
+    </div>
   </section>
 </div>
 
@@ -2250,12 +2303,14 @@
         <div class="summary-head">
           <div>
             <strong>지금 고를 한 가지</strong>
-            <div class="summary-line"><span class="transit-label ${escapeHtml(recommendation.mode || "bus")}">${escapeHtml(recommendation.firstTransitLabel || "도보")}</span></div>
+            <div class="summary-line">
+              <span class="transit-label ${escapeHtml(recommendation.mode || "bus")}">${escapeHtml(recommendation.firstTransitLabel || "도보")}</span>
+              <div class="score-inline">
+                <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
+                <div class="value">${escapeHtml(recommendation.scoreDisplay)}</div>
+              </div>
+            </div>
             ${stopFlowHtml}
-          </div>
-          <div class="score-badge">
-            <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
-            <span class="value">${escapeHtml(recommendation.scoreDisplay)}</span>
           </div>
         </div>
 
@@ -2493,7 +2548,13 @@
     );
     if (input === null) return;
     setBrowserOdsayKey(input);
+    updateOdsayKeyVisibility();
     showToast(input.trim() ? "브라우저 fallback용 ODsay 키를 저장했습니다" : "저장된 ODsay 키를 삭제했습니다");
+  }
+
+  function updateOdsayKeyVisibility() {
+    const btn = document.getElementById("key-settings-btn");
+    if (btn) btn.style.display = getBrowserOdsayKey() ? "none" : "";
   }
 
   async function fetchJson(url) {
@@ -3012,6 +3073,7 @@
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
+    updateOdsayKeyVisibility();
     document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
     document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
