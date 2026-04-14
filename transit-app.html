@@ -882,7 +882,7 @@
   .bus-line-track {
     position: relative;
     display: flex;
-    padding-top: 30px;
+    padding-top: 54px;
     overflow: visible;
   }
 
@@ -891,7 +891,7 @@
     position: absolute;
     left: 6px;
     right: 6px;
-    top: calc(30px + 5px);
+    top: calc(54px + 5px);
     height: 2px;
     background: linear-gradient(90deg, rgba(30, 122, 95, 0.15), rgba(28, 91, 183, 0.24));
   }
@@ -962,11 +962,32 @@
 
   .bus-line-bus.after {
     background: var(--blue);
+    top: 26px;
   }
 
   .bus-line-bus strong {
     font-size: 11px;
     letter-spacing: 0.03em;
+  }
+
+  .bus-line-marker {
+    position: absolute;
+    top: calc(54px + 1px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+
+  .bus-line-marker.next {
+    background: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(22, 92, 71, 0.2);
+  }
+
+  .bus-line-marker.after {
+    background: var(--blue);
+    box-shadow: 0 0 0 3px rgba(28, 91, 183, 0.2);
   }
 
   .detail-toggle {
@@ -2234,6 +2255,10 @@
       </div>
     `).join("");
 
+    const busMarkers = (preview.vehicles || []).map((vehicle, index) => `
+      <div class="bus-line-marker ${index === 0 ? "next" : "after"}" style="left:${vehicle.progressPercent}%;"></div>
+    `).join("");
+
     const stops = preview.stops.map((stop) => `
       <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}">
         <span class="bus-line-dot"></span>
@@ -2253,6 +2278,7 @@
         </div>
         <div class="bus-line-track">
           ${buses}
+          ${busMarkers}
           ${stops}
         </div>
       </div>

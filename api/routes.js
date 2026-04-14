@@ -673,6 +673,20 @@ function chooseRecommendation(candidates, priority) {
   });
 }
 
+function deduplicateCandidates(sorted) {
+  const seen = new Set();
+  return sorted.filter((candidate) => {
+    const key = [
+      candidate.firstTransitLabel || "",
+      candidate.boardingStopName || "",
+      candidate.alightingStopName || ""
+    ].join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 async function enrichCandidates(candidates, fromX, fromY, toX, toY) {
   return Promise.all(
     candidates.map((candidate) => maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY))
@@ -704,7 +718,7 @@ module.exports = async function handler(req, res) {
       if (directBusCandidates.length) {
         await enqueueRouteNos([...new Set(directBusCandidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
         const enrichedDirect = await enrichCandidates(directBusCandidates, fromX, fromY, toX, toY);
-        const sortedDirect = chooseRecommendation(enrichedDirect, priority).slice(0, 4);
+        const sortedDirect = deduplicateCandidates(chooseRecommendation(enrichedDirect, priority)).slice(0, 4);
         const directRecommendation = sortedDirect[0];
         return sendJson(res, 200, {
           fetchedAt: new Date().toISOString(),
@@ -742,7 +756,7 @@ module.exports = async function handler(req, res) {
     await enqueueRouteNos([...new Set(candidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
     const enrichedCandidates = await enrichCandidates(candidates, fromX, fromY, toX, toY);
 
-    const sorted = chooseRecommendation(enrichedCandidates, priority);
+    const sorted = deduplicateCandidates(chooseRecommendation(enrichedCandidates, priority));
     const recommendation = sorted[0];
     const result = {
       fetchedAt: new Date().toISOString(),
