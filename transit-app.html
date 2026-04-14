@@ -2321,7 +2321,7 @@
     const recommendation = result?.recommendation || null;
     const priorityMeta = PRIORITY_META[route.priority] || PRIORITY_META.fastest;
     const fetchedAt = result?.fetchedAt || null;
-    const compareCandidates = result?.candidates || [];
+    const compareCandidates = (result?.candidates || []).filter((c) => c.id !== result?.recommendedId);
 
     const stopFlowHtml = (() => {
       if (!recommendation || (!recommendation.boardingStopName && !recommendation.alightingStopName)) return '';
