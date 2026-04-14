@@ -2337,24 +2337,19 @@
 
     const metricInlineText = (() => {
       if (!recommendation) return '';
-      const parts = [];
       const segs = recommendation.segments || [];
-      let waitInserted = false;
-      for (const seg of segs) {
-        if (!waitInserted && seg.type !== 'walk') {
-          if (recommendation.firstWaitMin != null && recommendation.firstWaitSource !== 'not_applicable') {
-            parts.push('대기 ' + recommendation.firstWaitText);
-          }
-          waitInserted = true;
-        }
-        const segType = seg.type || (seg.kind === '도보' ? 'walk' : 'ride');
-        const segTime = seg.time || '0분';
-        if (segType === 'walk') {
-          parts.push('도보 ' + segTime);
-        } else {
-          parts.push((seg.label || seg.kind || '') + ' ' + segTime);
-        }
+      const rides = segs.filter(s => (s.type || s.kind) !== 'walk' && s.kind !== '도보');
+      const lastSeg = segs[segs.length - 1];
+      const finalWalkTime = lastSeg && (lastSeg.type === 'walk' || lastSeg.kind === '도보') ? lastSeg.time : null;
+      const parts = [];
+      if (recommendation.initialWalkTime > 0) parts.push('도보 ' + recommendation.initialWalkTime + '분');
+      if (recommendation.firstWaitMin != null && recommendation.firstWaitSource !== 'not_applicable') {
+        parts.push('대기 ' + recommendation.firstWaitText);
       }
+      rides.forEach(seg => {
+        parts.push((seg.label || seg.kind || '') + ' ' + (seg.time || '0분'));
+      });
+      if (finalWalkTime && parseInt(finalWalkTime) > 0) parts.push('도보 ' + finalWalkTime);
       return parts.join(' + ');
     })();
 
