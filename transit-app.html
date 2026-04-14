@@ -521,6 +521,25 @@
     padding: 0 6px;
   }
 
+  .metric-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .metric-inline .stamp {
+    font-family: var(--mono);
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+
   .transport-strip {
     display: flex;
     flex-wrap: wrap;
@@ -2207,6 +2226,16 @@
       return '<div class="summary-stop-flow">' + parts.join(' <span class="flow-arrow">\u2192</span> ') + '</div>';
     })();
 
+    const metricInlineText = (() => {
+      if (!recommendation) return '';
+      const parts = ['총 ' + escapeHtml(recommendation.totalTimeText)];
+      if (recommendation.firstWaitSource !== 'not_applicable') {
+        parts.push('대기 ' + escapeHtml(recommendation.firstWaitText));
+      }
+      parts.push('환승 ' + escapeHtml(recommendation.transferCountText));
+      return parts.join(' \u00b7 ');
+    })();
+
     const summaryHtml = collapsed ? "" : (recommendation ? `
       <div class="summary-board">
         <div class="summary-head">
@@ -2214,7 +2243,6 @@
             <strong>지금 고를 한 가지</strong>
             <div class="summary-line"><span class="transit-label ${escapeHtml(recommendation.mode || "bus")}">${escapeHtml(recommendation.firstTransitLabel || "도보")}</span></div>
             ${stopFlowHtml}
-            <div class="summary-note">${escapeHtml(describeRecommendation(route, recommendation))}</div>
           </div>
           <div class="score-badge">
             <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
@@ -2222,32 +2250,13 @@
           </div>
         </div>
 
-        <div class="metric-grid">
-          <div class="metric">
-            <span class="label">총 이동</span>
-            <span class="value">${escapeHtml(recommendation.totalTimeText)}</span>
-          </div>
-          <div class="metric">
-            <span class="label">첫 대기</span>
-            <span class="value">${escapeHtml(recommendation.firstWaitText)}</span>
-          </div>
-          <div class="metric">
-            <span class="label">환승 대기</span>
-            <span class="value">${escapeHtml(recommendation.transferWaitText || "기준 아님")}</span>
-          </div>
-          <div class="metric">
-            <span class="label">환승</span>
-            <span class="value">${escapeHtml(recommendation.transferCountText)}</span>
-          </div>
-        </div>
-
-        ${renderJourneyFlow(recommendation.segments)}
-        ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
-        ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
-        <div class="state-line">
-          <span>${escapeHtml(recommendation.note)}</span>
+        <div class="metric-inline">
+          <span>${metricInlineText}</span>
           <span class="stamp">${escapeHtml(relativeTime(fetchedAt))}</span>
         </div>
+
+        ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
+        ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
         ${compareCandidates.length ? `
           <div class="compare-board">
             <div class="compare-head">
