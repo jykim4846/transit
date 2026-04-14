@@ -1,0 +1,17 @@
+{
+  "key": "910562fc9eb5884e6e565e11a029c6793ce3f9d5",
+  "mapping": {
+    "routeNo": "N31",
+    "routeId": "104000011",
+    "stationId": "101000041",
+    "stationSeq": 94,
+    "stationName": "롯데백화점",
+    "alightingStationId": "122000184",
+    "alightingStationSeq": 108,
+    "alightingStationName": "강남역1번출구.역삼세무서",
+    "confidence": "medium",
+    "score": 572,
+    "createdAt": "2026-04-14T02:48:48.199Z"
+  },
+  "source": "runtime_resolve"
+}
