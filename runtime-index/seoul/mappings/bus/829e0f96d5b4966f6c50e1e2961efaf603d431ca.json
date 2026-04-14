@@ -1,0 +1,17 @@
+{
+  "key": "829e0f96d5b4966f6c50e1e2961efaf603d431ca",
+  "mapping": {
+    "routeNo": "401",
+    "routeId": "100100062",
+    "stationId": "101000290",
+    "stationSeq": 51,
+    "stationName": "시청앞.덕수궁",
+    "alightingStationId": "122000035",
+    "alightingStationSeq": 68,
+    "alightingStationName": "강남구청역2번출구",
+    "confidence": "low",
+    "score": 7474,
+    "createdAt": "2026-04-14T02:49:23.569Z"
+  },
+  "source": "runtime_resolve"
+}
