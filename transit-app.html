@@ -219,6 +219,10 @@
     opacity: 0.76;
   }
 
+  .route-card.collapsed .route-main {
+    padding-bottom: 22px;
+  }
+
   .route-main {
     padding: 22px 22px 18px;
   }
@@ -1363,7 +1367,6 @@
       </div>
       <div class="route-toolbar">
         <div class="clock-badge" id="clock">--:--</div>
-        <button class="btn btn-secondary" id="toggle-route-section-btn">접기</button>
         <button class="btn btn-secondary" id="key-settings-btn">ODsay 키</button>
         <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
       </div>
@@ -1502,7 +1505,7 @@
 <script>
   const STORAGE_KEY = "transit-routes-v2";
   const LEGACY_STORAGE_KEY = "transit-routes";
-  const ROUTE_SECTION_COLLAPSED_KEY = "transit-route-section-collapsed";
+  const ROUTE_CARD_COLLAPSED_KEY = "transit-route-card-collapsed";
   const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
   const AUTOCOMPLETE_MIN_LENGTH = 2;
   const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
@@ -1536,7 +1539,7 @@
 
   const state = {
     routes: [],
-    routeSectionCollapsed: localStorage.getItem(ROUTE_SECTION_COLLAPSED_KEY) === "1",
+    collapsedRouteIds: new Set(JSON.parse(localStorage.getItem(ROUTE_CARD_COLLAPSED_KEY) || "[]")),
     loadingRouteIds: new Set(),
     expandedRouteIds: new Set(),
     modalRouteId: null,
@@ -1929,13 +1932,14 @@
   function renderRouteCard(route) {
     const loading = state.loadingRouteIds.has(route.id);
     const expanded = state.expandedRouteIds.has(route.id);
+    const collapsed = state.collapsedRouteIds.has(route.id);
     const result = route.lastResult;
     const recommendation = result?.recommendation || null;
     const priorityMeta = PRIORITY_META[route.priority] || PRIORITY_META.fastest;
     const fetchedAt = result?.fetchedAt || null;
     const compareCandidates = result?.candidates || [];
 
-    const summaryHtml = recommendation ? `
+    const summaryHtml = collapsed ? "" : (recommendation ? `
       <div class="summary-board">
         <div class="summary-head">
           <div>
@@ -2008,9 +2012,9 @@
           </div>
         </div>
       </div>
-    `;
+    `);
 
-    const detailsHtml = result ? `
+    const detailsHtml = collapsed ? "" : (result ? `
       <div class="detail-block">
         <h3>추천 상세</h3>
         ${renderSegments(recommendation?.segments)}
@@ -2029,10 +2033,10 @@
           추천 갱신 버튼을 누르면 현재 기준으로 후보를 하나 골라 저장합니다.
         </div>
       </div>
-    `;
+    `);
 
     return `
-      <article class="route-card ${loading ? "loading" : ""} ${expanded ? "expanded" : ""}">
+      <article class="route-card ${loading ? "loading" : ""} ${expanded && !collapsed ? "expanded" : ""} ${collapsed ? "collapsed" : ""}">
         <div class="route-main">
           <div class="route-main-top">
             <div class="route-names">
@@ -2052,7 +2056,8 @@
             </div>
             <div class="route-actions">
               <button class="btn btn-primary" data-action="refresh" data-id="${escapeHtml(route.id)}">${loading ? "갱신 중..." : "추천 갱신"}</button>
-              <button class="btn btn-secondary" data-action="toggle" data-id="${escapeHtml(route.id)}">${expanded ? "접기" : "상세"}</button>
+              <button class="btn btn-secondary" data-action="collapse" data-id="${escapeHtml(route.id)}">${collapsed ? "펼치기" : "접기"}</button>
+              <button class="btn btn-secondary" data-action="toggle" data-id="${escapeHtml(route.id)}">${expanded ? "상세 닫기" : "상세"}</button>
               <button class="btn btn-ghost" data-action="edit" data-id="${escapeHtml(route.id)}">편집</button>
               <button class="btn btn-ghost btn-danger" data-action="delete" data-id="${escapeHtml(route.id)}">삭제</button>
             </div>
@@ -2066,16 +2071,7 @@
 
   function renderRoutes() {
     const list = document.getElementById("route-list");
-    const toggleButton = document.getElementById("toggle-route-section-btn");
     document.getElementById("route-count").textContent = state.routes.length + "개 루트";
-    if (toggleButton) {
-      toggleButton.textContent = state.routeSectionCollapsed ? "펼치기" : "접기";
-    }
-    list.style.display = state.routeSectionCollapsed ? "none" : "grid";
-    if (state.routeSectionCollapsed) {
-      list.innerHTML = "";
-      return;
-    }
     if (state.routes.length === 0) {
       list.innerHTML = renderEmptyCard();
       return;
@@ -2714,19 +2710,25 @@
       state.expandedRouteIds.delete(routeId);
     } else {
       state.expandedRouteIds.add(routeId);
+      state.collapsedRouteIds.delete(routeId);
+      localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
     }
     renderRoutes();
   }
 
-  function toggleRouteSection() {
-    state.routeSectionCollapsed = !state.routeSectionCollapsed;
-    localStorage.setItem(ROUTE_SECTION_COLLAPSED_KEY, state.routeSectionCollapsed ? "1" : "0");
+  function toggleRouteCollapse(routeId) {
+    if (state.collapsedRouteIds.has(routeId)) {
+      state.collapsedRouteIds.delete(routeId);
+    } else {
+      state.collapsedRouteIds.add(routeId);
+      state.expandedRouteIds.delete(routeId);
+    }
+    localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
     renderRoutes();
   }
 
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
-    document.getElementById("toggle-route-section-btn").addEventListener("click", toggleRouteSection);
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
     document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
     document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
@@ -2747,6 +2749,7 @@
       if (!target) return;
       const { action, id } = target.dataset;
       if (action === "refresh") refreshRoute(id);
+      if (action === "collapse") toggleRouteCollapse(id);
       if (action === "toggle") toggleDetails(id);
       if (action === "edit") openModal(id);
       if (action === "delete") deleteRoute(id);
