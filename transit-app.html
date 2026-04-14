@@ -1359,7 +1359,7 @@
       <div class="route-overview-copy">
         <h2>저장 루트</h2>
         <span id="route-count">0개 루트</span>
-        <p>앱을 열면 저장된 경로 추천을 바로 새로 가져옵니다.</p>
+        <p>앱을 열면 저장된 결과를 먼저 보여주고, 추천 갱신을 눌렀을 때만 새로 호출합니다.</p>
       </div>
       <div class="route-toolbar">
         <div class="clock-badge" id="clock">--:--</div>
@@ -1502,7 +1502,6 @@
   const STORAGE_KEY = "transit-routes-v2";
   const LEGACY_STORAGE_KEY = "transit-routes";
   const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
-  const WARMUP_SESSION_KEY = "transit-warmup-v1";
   const AUTOCOMPLETE_MIN_LENGTH = 2;
   const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
 
@@ -2595,23 +2594,6 @@
     }
   }
 
-  async function refreshSavedRoutesOnLaunch() {
-    const routeIds = state.routes.map((route) => route.id).filter(Boolean);
-    if (!routeIds.length) return;
-
-    const concurrency = 2;
-    let cursor = 0;
-    const workers = Array.from({ length: Math.min(concurrency, routeIds.length) }, async () => {
-      while (cursor < routeIds.length) {
-        const currentIndex = cursor;
-        cursor += 1;
-        await refreshRouteWithOptions(routeIds[currentIndex], { silent: true });
-      }
-    });
-
-    await Promise.all(workers);
-  }
-
   function deleteRoute(routeId) {
     state.routes = state.routes.filter((route) => route.id !== routeId);
     state.loadingRouteIds.delete(routeId);
@@ -2950,34 +2932,6 @@
     };
   }
 
-  function scheduleServerWarmup() {
-    if (typeof window === "undefined" || typeof fetch !== "function") return;
-
-    try {
-      if (sessionStorage.getItem(WARMUP_SESSION_KEY) === "1") {
-        return;
-      }
-      sessionStorage.setItem(WARMUP_SESSION_KEY, "1");
-    } catch {
-      // Ignore storage access failures and continue with a best-effort warmup.
-    }
-
-    const runWarmup = () => {
-      fetch("/api/warmup", {
-        method: "GET",
-        cache: "no-store",
-        keepalive: true
-      }).catch(() => {});
-    };
-
-    if (typeof window.requestIdleCallback === "function") {
-      window.requestIdleCallback(runWarmup, { timeout: 1200 });
-      return;
-    }
-
-    window.setTimeout(runWarmup, 300);
-  }
-
   if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
     document.body.classList.add("is-standalone");
   }
@@ -2992,9 +2946,7 @@
   setOptionGroupValue("transport", "all");
   updateClock();
   setInterval(updateClock, 10000);
-  scheduleServerWarmup();
   renderRoutes();
-  refreshSavedRoutesOnLaunch();
 </script>
 </body>
 </html>
