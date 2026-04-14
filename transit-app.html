@@ -858,6 +858,7 @@
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.76);
     border: 1px solid rgba(71, 57, 29, 0.08);
+    overflow: visible;
   }
 
   .bus-line-head {
@@ -882,6 +883,7 @@
     position: relative;
     display: flex;
     padding-top: 30px;
+    overflow: visible;
   }
 
   .bus-line-track::before {
@@ -2294,7 +2296,9 @@
       if (recommendation.firstWaitSource !== 'not_applicable') {
         parts.push('대기 ' + escapeHtml(recommendation.firstWaitText));
       }
-      parts.push('환승 ' + escapeHtml(recommendation.transferCountText));
+      if (recommendation.transferCount > 0) {
+        parts.push('환승 ' + escapeHtml(recommendation.transferCountText));
+      }
       return parts.join(' \u00b7 ');
     })();
 
