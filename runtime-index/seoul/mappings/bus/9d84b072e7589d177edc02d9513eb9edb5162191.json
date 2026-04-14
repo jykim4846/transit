@@ -1,0 +1,17 @@
+{
+  "key": "9d84b072e7589d177edc02d9513eb9edb5162191",
+  "mapping": {
+    "routeNo": "402",
+    "routeId": "100100063",
+    "stationId": "101000290",
+    "stationSeq": 57,
+    "stationName": "시청앞.덕수궁",
+    "alightingStationId": "121000009",
+    "alightingStationSeq": 74,
+    "alightingStationName": "신분당선강남역",
+    "confidence": "high",
+    "score": 354,
+    "createdAt": "2026-04-14T02:48:19.155Z"
+  },
+  "source": "runtime_resolve"
+}
