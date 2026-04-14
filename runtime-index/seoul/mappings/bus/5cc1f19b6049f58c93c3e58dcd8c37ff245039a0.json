@@ -1,0 +1,17 @@
+{
+  "key": "5cc1f19b6049f58c93c3e58dcd8c37ff245039a0",
+  "mapping": {
+    "routeNo": "472",
+    "routeId": "100100075",
+    "stationId": "101000301",
+    "stationSeq": 49,
+    "stationName": "서울광장",
+    "alightingStationId": "122000665",
+    "alightingStationSeq": 62,
+    "alightingStationName": "강남구보건소",
+    "confidence": "low",
+    "score": 7469,
+    "createdAt": "2026-04-14T02:49:00.235Z"
+  },
+  "source": "runtime_resolve"
+}
