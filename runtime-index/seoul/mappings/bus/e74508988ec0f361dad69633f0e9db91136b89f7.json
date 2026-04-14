@@ -1,0 +1,17 @@
+{
+  "key": "e74508988ec0f361dad69633f0e9db91136b89f7",
+  "mapping": {
+    "routeNo": "N75",
+    "routeId": "111000016",
+    "stationId": "101000290",
+    "stationSeq": 41,
+    "stationName": "시청앞.덕수궁",
+    "alightingStationId": "121000091",
+    "alightingStationSeq": 58,
+    "alightingStationName": "강남역9번출구",
+    "confidence": "high",
+    "score": 198,
+    "createdAt": "2026-04-14T02:48:31.133Z"
+  },
+  "source": "runtime_resolve"
+}
