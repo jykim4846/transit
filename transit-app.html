@@ -399,18 +399,35 @@
     margin-bottom: 8px;
   }
 
-  .summary-line {
-    font-size: clamp(24px, 5vw, 34px);
+  .summary-line .transit-label {
+    font-size: clamp(28px, 6vw, 38px);
     font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.04em;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
-  .summary-line small {
-    font-family: var(--mono);
+  .summary-line .transit-label.bus {
+    color: var(--blue);
+  }
+
+  .summary-line .transit-label.subway {
+    color: var(--accent);
+  }
+
+  .summary-stop-flow {
+    margin-top: 8px;
     font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+  }
+
+  .summary-stop-flow .flow-arrow {
     color: var(--text-muted);
-    margin-left: 8px;
+    margin: 0 2px;
   }
 
   .summary-note {
@@ -463,31 +480,45 @@
   }
 
   .metric-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
     margin-top: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    overflow: hidden;
   }
 
   .metric {
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(71, 57, 29, 0.08);
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .metric + .metric {
+    border-left: 1px solid rgba(71, 57, 29, 0.08);
   }
 
   .metric .label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
-    margin-bottom: 6px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 6px;
   }
 
   .metric .value {
     display: block;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 6px;
   }
 
   .transport-strip {
@@ -1478,7 +1509,6 @@
       flex: 1;
     }
 
-    .metric-grid,
     .compare-grid,
     .form-grid,
     .preview-grid {
@@ -2165,15 +2195,26 @@
     const fetchedAt = result?.fetchedAt || null;
     const compareCandidates = result?.candidates || [];
 
+    const stopFlowHtml = (() => {
+      if (!recommendation || (!recommendation.boardingStopName && !recommendation.alightingStopName)) return '';
+      const parts = [];
+      if (recommendation.initialWalkTime > 0) parts.push('도보 ' + recommendation.initialWalkTime + '분');
+      if (recommendation.boardingStopName) parts.push(escapeHtml(recommendation.boardingStopName) + ' 탑승');
+      if (recommendation.alightingStopName) parts.push(escapeHtml(recommendation.alightingStopName) + ' 하차');
+      const segs = recommendation.segments || [];
+      const lastSeg = segs[segs.length - 1];
+      if (lastSeg && lastSeg.kind === '도보' && parseInt(lastSeg.time) > 0) parts.push('도보 ' + escapeHtml(lastSeg.time));
+      return '<div class="summary-stop-flow">' + parts.join(' <span class="flow-arrow">\u2192</span> ') + '</div>';
+    })();
+
     const summaryHtml = collapsed ? "" : (recommendation ? `
       <div class="summary-board">
         <div class="summary-head">
           <div>
             <strong>지금 고를 한 가지</strong>
-            <div class="summary-line">${escapeHtml(recommendation.totalTimeText)}<small>${escapeHtml(recommendation.firstTransitLabel || "도보")}</small></div>
+            <div class="summary-line"><span class="transit-label ${escapeHtml(recommendation.mode || "bus")}">${escapeHtml(recommendation.firstTransitLabel || "도보")}</span></div>
+            ${stopFlowHtml}
             <div class="summary-note">${escapeHtml(describeRecommendation(route, recommendation))}</div>
-            ${recommendation.boardingApproachText ? `<div class="summary-subline"><strong>탑승 정류장</strong>${escapeHtml(recommendation.boardingApproachText)}</div>` : ""}
-            ${recommendation.alightingStopName ? `<div class="summary-subline"><strong>마지막 하차</strong>${escapeHtml(recommendation.alightingStopName)}</div>` : ""}
           </div>
           <div class="score-badge">
             <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
