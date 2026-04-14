@@ -2354,9 +2354,6 @@
           parts.push((seg.label || seg.kind || '') + ' ' + (seg.time || '0분'));
         }
       }
-      if (recommendation.transferWaitMin > 0) {
-        parts.push('환승대기 ' + recommendation.transferWaitText);
-      }
       return parts.join(' + ');
     })();
 
