@@ -277,17 +277,23 @@ function buildDirectBusCandidate(pair, ridePath, arrivalInfo) {
     note,
     segments: [
       {
+        type: "walk",
         kind: "도보",
+        label: `도보 ${initialWalkTime}분`,
         text: `출발지 → ${pair.startStation.stationName}`,
         time: formatMinutes(initialWalkTime)
       },
       {
+        type: "bus",
         kind: "버스",
+        label: pair.bus.busNo,
         text: `${pair.bus.busNo} · ${pair.startStation.stationName} → ${pair.endStation.stationName}`,
         time: formatMinutes(rideTime)
       },
       {
+        type: "walk",
         kind: "도보",
+        label: `도보 ${finalWalkTime}분`,
         text: `${pair.endStation.stationName} → 목적지`,
         time: formatMinutes(finalWalkTime)
       }

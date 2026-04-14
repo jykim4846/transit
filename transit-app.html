@@ -2347,10 +2347,12 @@
           }
           waitInserted = true;
         }
-        if (seg.type === 'walk') {
-          parts.push('도보 ' + seg.time);
+        const segType = seg.type || (seg.kind === '도보' ? 'walk' : 'ride');
+        const segTime = seg.time || '0분';
+        if (segType === 'walk') {
+          parts.push('도보 ' + segTime);
         } else {
-          parts.push(seg.label + ' ' + seg.time);
+          parts.push((seg.label || seg.kind || '') + ' ' + segTime);
         }
       }
       return parts.join(' + ');
