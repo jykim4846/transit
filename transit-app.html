@@ -1363,6 +1363,7 @@
       </div>
       <div class="route-toolbar">
         <div class="clock-badge" id="clock">--:--</div>
+        <button class="btn btn-secondary" id="toggle-route-section-btn">접기</button>
         <button class="btn btn-secondary" id="key-settings-btn">ODsay 키</button>
         <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
       </div>
@@ -1501,6 +1502,7 @@
 <script>
   const STORAGE_KEY = "transit-routes-v2";
   const LEGACY_STORAGE_KEY = "transit-routes";
+  const ROUTE_SECTION_COLLAPSED_KEY = "transit-route-section-collapsed";
   const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
   const AUTOCOMPLETE_MIN_LENGTH = 2;
   const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
@@ -1534,6 +1536,7 @@
 
   const state = {
     routes: [],
+    routeSectionCollapsed: localStorage.getItem(ROUTE_SECTION_COLLAPSED_KEY) === "1",
     loadingRouteIds: new Set(),
     expandedRouteIds: new Set(),
     modalRouteId: null,
@@ -2063,7 +2066,16 @@
 
   function renderRoutes() {
     const list = document.getElementById("route-list");
+    const toggleButton = document.getElementById("toggle-route-section-btn");
     document.getElementById("route-count").textContent = state.routes.length + "개 루트";
+    if (toggleButton) {
+      toggleButton.textContent = state.routeSectionCollapsed ? "펼치기" : "접기";
+    }
+    list.style.display = state.routeSectionCollapsed ? "none" : "grid";
+    if (state.routeSectionCollapsed) {
+      list.innerHTML = "";
+      return;
+    }
     if (state.routes.length === 0) {
       list.innerHTML = renderEmptyCard();
       return;
@@ -2706,8 +2718,15 @@
     renderRoutes();
   }
 
+  function toggleRouteSection() {
+    state.routeSectionCollapsed = !state.routeSectionCollapsed;
+    localStorage.setItem(ROUTE_SECTION_COLLAPSED_KEY, state.routeSectionCollapsed ? "1" : "0");
+    renderRoutes();
+  }
+
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
+    document.getElementById("toggle-route-section-btn").addEventListener("click", toggleRouteSection);
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
     document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
     document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
