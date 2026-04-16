@@ -102,6 +102,8 @@ function scoreStopCandidate(candidate, fromX, fromY, toX, toY) {
 function buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY) {
   const boardKey = normalizeNameKey(candidate.boardingStopName);
   const alightKey = normalizeNameKey(candidate.alightingStopName);
+  const totalSeq = stops.length > 0 ? stops[stops.length - 1].seq : 0;
+  const midSeq = Math.ceil(totalSeq / 2);
   const boardStops = stops.filter((stop) => {
     const key = normalizeNameKey(stop.name);
     return key === boardKey || key.includes(boardKey) || boardKey.includes(key);
@@ -115,6 +117,7 @@ function buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY) {
   boardStops.forEach((board) => {
     alightStops.forEach((alight) => {
       if (board.seq >= alight.seq) return;
+      if ((board.seq <= midSeq) !== (alight.seq <= midSeq)) return;
       const boardExact = normalizeNameKey(board.name) === boardKey;
       const alightExact = normalizeNameKey(alight.name) === alightKey;
       pairs.push({
@@ -134,7 +137,7 @@ function buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY) {
 async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
   const key = mappingKey(candidate);
   const cached = await readJson(busMappingPath(key), null);
-  if (cached?.mapping) {
+  if (cached?.mapping?.version >= 2) {
     return cached.mapping;
   }
 
@@ -160,6 +163,7 @@ async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
     alightingStationName: best.alight.name,
     confidence: best.score < 400 ? "high" : best.score < 1200 ? "medium" : "low",
     score: Math.round(best.score),
+    version: 2,
     createdAt: new Date().toISOString()
   };
 
