@@ -383,11 +383,8 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     .sort((a, b) => a.remainingSeq - b.remainingSeq)
     .slice(0, 2);
 
-  const approachCount = 2;
-  const startSeq = Math.max(1, mapping.stationSeq - approachCount);
-  const alightSeq = mapping.alightingStationSeq || (mapping.stationSeq + stopWindow);
-  const endSeq = Math.min(alightSeq, mapping.stationSeq + stopWindow - approachCount - 1);
-  const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= endSeq);
+  const startSeq = Math.max(1, mapping.stationSeq - (stopWindow - 1));
+  const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= mapping.stationSeq);
   if (!previewStops.length) return null;
 
   const minSeq = previewStops[0].seq;
