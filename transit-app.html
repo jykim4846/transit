@@ -938,6 +938,19 @@
     color: var(--accent-strong);
   }
 
+  .bus-line-stop.alighting .bus-line-dot {
+    width: 14px;
+    height: 14px;
+    background: var(--orange);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(197, 99, 31, 0.12);
+  }
+
+  .bus-line-stop.alighting .bus-line-stop-name {
+    font-weight: 700;
+    color: var(--orange);
+  }
+
   .bus-line-bus {
     position: absolute;
     top: 0;
@@ -2278,7 +2291,7 @@
     }).join("");
 
     const stops = preview.stops.map((stop) => `
-      <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}">
+      <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}${stop.isAlighting ? " alighting" : ""}">
         <span class="bus-line-dot"></span>
         <div class="bus-line-stop-name">${escapeHtml(stop.name)}</div>
       </div>
@@ -2292,7 +2305,7 @@
     return `
       <div class="bus-line-board">
         <div class="bus-line-head">
-          <strong>${escapeHtml(preview.routeNo)} 접근 노선</strong>
+          <strong>${escapeHtml(preview.routeNo)} 탑승 구간</strong>
           <span>${escapeHtml(vehicleSummary || "차량 위치 정보 없음")}</span>
         </div>
         <div class="bus-line-track">

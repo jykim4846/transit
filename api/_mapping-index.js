@@ -360,19 +360,15 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
   const boardingIndex = stops.findIndex((stop) => String(stop.stationId) === String(mapping.stationId));
   if (boardingIndex < 0) return null;
 
-  const totalStops = stops.length > 0 ? stops[stops.length - 1].seq : 0;
-  const halfRoute = Math.ceil(totalStops / 2);
-  const directionMinSeq = mapping.stationSeq > halfRoute ? halfRoute + 1 : 1;
-
   const stopSeqByStationId = new Map(stops.map((stop) => [String(stop.stationId), stop.seq]));
   const vehicles = await getBusPositionsByRoute(mapping.routeId);
+  const maxApproachGap = Math.ceil(stops.length / 3);
   const approaching = vehicles
     .map((vehicle) => {
       const progressSeq = getVehicleProgressSeq(vehicle, stopSeqByStationId);
       if (!Number.isFinite(progressSeq)) return null;
-      if (progressSeq < directionMinSeq) return null;
       const remainingSeq = mapping.stationSeq - progressSeq;
-      if (remainingSeq < -0.25) return null;
+      if (remainingSeq < -0.25 || remainingSeq > maxApproachGap) return null;
       return {
         ...vehicle,
         progressSeq,
@@ -383,12 +379,9 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     .sort((a, b) => a.remainingSeq - b.remainingSeq)
     .slice(0, 2);
 
-  const earliestVehicleSeq = approaching.length
-    ? Math.floor(Math.min(...approaching.map((vehicle) => vehicle.progressSeq)))
-    : mapping.stationSeq;
-  const windowFloor = Math.max(directionMinSeq, mapping.stationSeq - (stopWindow - 1));
-  const startSeq = Math.max(windowFloor, Math.min(mapping.stationSeq - (stopWindow - 1), earliestVehicleSeq - 1));
-  const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= mapping.stationSeq);
+  const alightSeq = mapping.alightingStationSeq || (mapping.stationSeq + stopWindow);
+  const endSeq = Math.min(alightSeq, mapping.stationSeq + stopWindow - 1);
+  const previewStops = stops.filter((stop) => stop.seq >= mapping.stationSeq && stop.seq <= endSeq);
   if (!previewStops.length) return null;
 
   const minSeq = previewStops[0].seq;
@@ -402,7 +395,8 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     stops: previewStops.map((stop) => ({
       seq: stop.seq,
       name: stop.name,
-      isBoarding: String(stop.stationId) === String(mapping.stationId)
+      isBoarding: String(stop.stationId) === String(mapping.stationId),
+      isAlighting: String(stop.stationId) === String(mapping.alightingStationId)
     })),
     vehicles: approaching.map((vehicle, index) => ({
       key: vehicle.vehicleId,
