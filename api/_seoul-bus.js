@@ -13,6 +13,30 @@ let routeWorkbookCache = {
   promise: null
 };
 
+const realtimeCache = new Map();
+const REALTIME_CACHE_TTL_MS = 30 * 1000;
+const REALTIME_CACHE_MAX = 100;
+
+function realtimeCacheGet(key) {
+  const entry = realtimeCache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    realtimeCache.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function realtimeCacheSet(key, value) {
+  if (realtimeCache.size >= REALTIME_CACHE_MAX) {
+    const now = Date.now();
+    for (const [k, v] of realtimeCache) {
+      if (now > v.expiresAt) realtimeCache.delete(k);
+    }
+  }
+  realtimeCache.set(key, { value, expiresAt: Date.now() + REALTIME_CACHE_TTL_MS });
+}
+
 function getSeoulBusApiKey() {
   const key = process.env.SEOUL_BUS_API_KEY || null;
   if (!key) return null;
@@ -258,6 +282,13 @@ async function downloadRouteWorkbookRows() {
   return routeWorkbookCache.promise;
 }
 
+function getWorkbookRowsIfCached() {
+  if (routeWorkbookCache.rows && routeWorkbookCache.expiresAt > Date.now()) {
+    return routeWorkbookCache.rows;
+  }
+  return null;
+}
+
 async function searchRoutesByNumber(routeNo) {
   const body = await fetchSeoulBus("/busRouteInfo/getBusRouteList", {
     strSrch: routeNo
@@ -273,19 +304,29 @@ async function getStopsByRoute(routeId) {
 }
 
 async function getArrivalByRoute(stationId, routeId, stationSeq) {
+  const cacheKey = `arrival:${stationId}:${routeId}:${stationSeq}`;
+  const cached = realtimeCacheGet(cacheKey);
+  if (cached !== undefined) return cached;
   const body = await fetchSeoulBus("/arrive/getArrInfoByRoute", {
     stId: stationId,
     busRouteId: routeId,
     ord: stationSeq
   });
-  return normalizeList(body.itemList).map(normalizeArrival).filter((item) => item.routeId);
+  const result = normalizeList(body.itemList).map(normalizeArrival).filter((item) => item.routeId);
+  realtimeCacheSet(cacheKey, result);
+  return result;
 }
 
 async function getBusPositionsByRoute(routeId) {
+  const cacheKey = `buspos:${routeId}`;
+  const cached = realtimeCacheGet(cacheKey);
+  if (cached !== undefined) return cached;
   const body = await fetchSeoulBus("/buspos/getBusPosByRtid", {
     busRouteId: routeId
   });
-  return normalizeList(body.itemList).map(normalizeVehiclePosition).filter((item) => item.vehicleId && item.isRunning);
+  const result = normalizeList(body.itemList).map(normalizeVehiclePosition).filter((item) => item.vehicleId && item.isRunning);
+  realtimeCacheSet(cacheKey, result);
+  return result;
 }
 
 module.exports = {
@@ -296,5 +337,6 @@ module.exports = {
   getArrivalByRoute,
   getBusPositionsByRoute,
   downloadRouteWorkbookRows,
+  getWorkbookRowsIfCached,
   debugFetchSeoulBus
 };

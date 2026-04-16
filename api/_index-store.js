@@ -3,6 +3,34 @@ const path = require("path");
 
 const LOCAL_ROOT = path.join(process.cwd(), ".runtime-index");
 
+const memCache = new Map();
+const MEM_CACHE_TTL_MS = 5 * 60 * 1000;
+const MEM_CACHE_MAX = 200;
+
+function memCacheGet(key) {
+  const entry = memCache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    memCache.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function memCacheSet(key, value) {
+  if (memCache.size >= MEM_CACHE_MAX) {
+    const now = Date.now();
+    for (const [k, v] of memCache) {
+      if (now > v.expiresAt) memCache.delete(k);
+    }
+    if (memCache.size >= MEM_CACHE_MAX) {
+      const first = memCache.keys().next().value;
+      memCache.delete(first);
+    }
+  }
+  memCache.set(key, { value, expiresAt: Date.now() + MEM_CACHE_TTL_MS });
+}
+
 function normalizeRepoPath(repoPath) {
   return repoPath.split("/").map(encodeURIComponent).join("/");
 }
@@ -117,15 +145,23 @@ async function writeJsonGithub(filePath, value) {
 }
 
 async function readJson(filePath, fallback = null) {
-  return getGithubConfig()
-    ? readJsonGithub(filePath, fallback)
-    : readJsonFs(filePath, fallback);
+  const mem = memCacheGet(filePath);
+  if (mem !== undefined) return mem;
+  const result = getGithubConfig()
+    ? await readJsonGithub(filePath, fallback)
+    : await readJsonFs(filePath, fallback);
+  if (result != null && result !== fallback) {
+    memCacheSet(filePath, result);
+  }
+  return result;
 }
 
 async function writeJson(filePath, value) {
-  return getGithubConfig()
-    ? writeJsonGithub(filePath, value)
-    : writeJsonFs(filePath, value);
+  const result = getGithubConfig()
+    ? await writeJsonGithub(filePath, value)
+    : await writeJsonFs(filePath, value);
+  memCacheSet(filePath, result);
+  return result;
 }
 
 async function updateJson(filePath, fallbackValue, updater) {

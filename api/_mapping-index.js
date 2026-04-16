@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { readJson, updateJson, writeJson, getDriverName } = require("./_index-store");
-const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, getBusPositionsByRoute, downloadRouteWorkbookRows } = require("./_seoul-bus");
+const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, getBusPositionsByRoute, downloadRouteWorkbookRows, getWorkbookRowsIfCached } = require("./_seoul-bus");
 
 const STATE_PATH = "collector/state.json";
 
@@ -52,7 +52,8 @@ function distanceMeters(fromX, fromY, toX, toY) {
 async function getOrFetchRoutes(routeNo) {
   const cached = await readJson(routeListPath(routeNo), null);
   if (cached?.routes?.length) return cached.routes;
-  const rows = await downloadRouteWorkbookRows();
+  const rows = getWorkbookRowsIfCached();
+  if (!rows) return [];
   const routes = [...new Map(
     rows
       .filter((row) => normalizeRouteNo(row.routeNo) === normalizeRouteNo(routeNo))
@@ -75,7 +76,8 @@ async function getOrFetchRoutes(routeNo) {
 async function getOrFetchStops(routeId) {
   const cached = await readJson(routeStopsPath(routeId), null);
   if (cached?.stops?.length) return cached.stops;
-  const rows = await downloadRouteWorkbookRows();
+  const rows = getWorkbookRowsIfCached();
+  if (!rows) return [];
   const stops = rows
     .filter((row) => String(row.routeId) === String(routeId))
     .sort((a, b) => a.seq - b.seq);
