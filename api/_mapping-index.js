@@ -137,7 +137,7 @@ function buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY) {
 async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
   const key = mappingKey(candidate);
   const cached = await readJson(busMappingPath(key), null);
-  if (cached?.mapping?.version >= 2) {
+  if (cached?.mapping) {
     return cached.mapping;
   }
 
