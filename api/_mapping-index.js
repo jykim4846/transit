@@ -325,19 +325,21 @@ async function getSeoulBusArrival(mapping, approachWalkMin = 0) {
   const exact = items.find((item) => String(item.routeId) === String(mapping.routeId));
   if (!exact) return null;
   const walkSeconds = Math.max(0, Math.round(Number(approachWalkMin || 0) * 60));
-  const arrivals = [exact.expectedSeconds1, exact.expectedSeconds2]
+  const arrivalSecondsSorted = [exact.expectedSeconds1, exact.expectedSeconds2]
     .filter((value) => Number.isFinite(value) && value >= 0)
     .sort((a, b) => a - b);
-  if (!arrivals.length) return null;
+  if (!arrivalSecondsSorted.length) return null;
 
-  const skippedCount = arrivals.filter((value) => value < walkSeconds).length;
-  const catchableSeconds = arrivals.find((value) => value >= walkSeconds);
+  const skippedCount = arrivalSecondsSorted.filter((value) => value < walkSeconds).length;
+  const catchableSeconds = arrivalSecondsSorted.find((value) => value >= walkSeconds);
   if (catchableSeconds == null) return null;
 
   return {
     stationArrivalMin: Math.max(0, Math.ceil(catchableSeconds / 60)),
     waitMin: Math.max(0, Math.ceil((catchableSeconds - walkSeconds) / 60)),
-    skippedCount
+    skippedCount,
+    arrivalSecondsSorted,
+    walkSeconds
   };
 }
 
@@ -390,8 +392,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
   if (!previewStops.length) return null;
 
   const minSeq = previewStops[0].seq;
-  const maxSeq = previewStops[previewStops.length - 1].seq;
-  const span = Math.max(1, maxSeq - minSeq);
+  const cellCount = previewStops.length;
 
   return {
     routeNo: mapping.routeNo,
@@ -409,7 +410,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
       plateNoMasked: maskPlateNo(vehicle.plateNo),
       remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
       nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
-      progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq) / span) * 100))
+      progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq + 0.5) / cellCount) * 100))
     }))
   };
 }

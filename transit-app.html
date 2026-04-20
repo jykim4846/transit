@@ -882,7 +882,7 @@
   .bus-line-track {
     position: relative;
     display: flex;
-    padding-top: 54px;
+    padding-top: 84px;
     overflow: visible;
   }
 
@@ -891,7 +891,7 @@
     position: absolute;
     left: 6px;
     right: 6px;
-    top: calc(54px + 5px);
+    top: calc(84px + 5px);
     height: 2px;
     background: linear-gradient(90deg, rgba(30, 122, 95, 0.15), rgba(28, 91, 183, 0.24));
   }
@@ -975,8 +975,10 @@
 
   .bus-line-bus.after {
     background: var(--blue);
-    top: 26px;
   }
+
+  .bus-line-bus[data-slot="0"] { top: 0; }
+  .bus-line-bus[data-slot="1"] { top: 38px; }
 
   .bus-line-bus.uncatchable {
     background: rgba(120, 120, 120, 0.7);
@@ -990,7 +992,7 @@
 
   .bus-line-marker {
     position: absolute;
-    top: calc(54px + 1px);
+    top: calc(84px + 1px);
     width: 10px;
     height: 10px;
     border-radius: 50%;
@@ -2272,22 +2274,42 @@
   function renderBusApproachPreview(preview) {
     if (!preview?.stops?.length) return "";
 
-    const buses = (preview.vehicles || []).map((vehicle, index) => {
-      const posClass = index === 0 ? "next" : "after";
-      const catchClass = vehicle.catchable === false ? " uncatchable" : "";
-      const label = vehicle.catchable === false ? "지나감" : vehicle.label;
+    const vehicles = preview.vehicles || [];
+    const firstCatchableIdx = vehicles.findIndex((vehicle) => vehicle.catchable !== false);
+    let laterCatchableCount = 0;
+
+    const classify = (vehicle, index) => {
+      if (vehicle.catchable === false) {
+        return { posClass: "uncatchable", label: "놓침" };
+      }
+      if (index === firstCatchableIdx) {
+        return { posClass: "next", label: "다음" };
+      }
+      laterCatchableCount += 1;
+      return { posClass: "after", label: laterCatchableCount === 1 ? "다다음" : `다음+${laterCatchableCount}` };
+    };
+
+    const buses = vehicles.map((vehicle, index) => {
+      const { posClass, label } = classify(vehicle, index);
+      const bits = [`<strong>${escapeHtml(label)}</strong>`];
+      if (vehicle.etaMinutes != null) {
+        const etaText = vehicle.catchable === false
+          ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과`
+          : `${vehicle.etaMinutes}분 후`;
+        bits.push(`<span>${escapeHtml(etaText)}</span>`);
+      }
+      bits.push(`<span>${escapeHtml(`${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`)}</span>`);
       return `
-        <div class="bus-line-bus ${posClass}${catchClass}" style="left:${vehicle.progressPercent}%;">
-          <strong>${escapeHtml(label)}</strong>
-          <span>${escapeHtml(vehicle.remainingStops + "정거장 전")}</span>
+        <div class="bus-line-bus ${posClass}" data-slot="${index}" style="left:${vehicle.progressPercent}%;">
+          ${bits.join("")}
         </div>
       `;
     }).join("");
 
-    const busMarkers = (preview.vehicles || []).map((vehicle, index) => {
-      const posClass = index === 0 ? "next" : "after";
-      const catchClass = vehicle.catchable === false ? " uncatchable" : "";
-      return `<div class="bus-line-marker ${posClass}${catchClass}" style="left:${vehicle.progressPercent}%;"></div>`;
+    laterCatchableCount = 0;
+    const busMarkers = vehicles.map((vehicle, index) => {
+      const { posClass } = classify(vehicle, index);
+      return `<div class="bus-line-marker ${posClass}" style="left:${vehicle.progressPercent}%;"></div>`;
     }).join("");
 
     const stops = preview.stops.map((stop) => `
@@ -2297,9 +2319,13 @@
       </div>
     `).join("");
 
-    const vehicleSummary = (preview.vehicles || []).map((vehicle) => {
-      const label = vehicle.catchable === false ? "지나감" : vehicle.label;
-      return `${label} ${vehicle.remainingStops}정거장 전`;
+    laterCatchableCount = 0;
+    const vehicleSummary = vehicles.map((vehicle, index) => {
+      const { label } = classify(vehicle, index);
+      const eta = vehicle.etaMinutes != null
+        ? (vehicle.catchable === false ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과` : `${vehicle.etaMinutes}분 후`)
+        : `${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`;
+      return `${label} ${eta}`;
     }).join(" · ");
 
     return `

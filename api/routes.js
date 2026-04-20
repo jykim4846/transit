@@ -642,8 +642,22 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     if (arrivalInfo == null) return candidate;
     const busApproachPreview = await getBusApproachPreview(mapping).catch(() => null);
     if (busApproachPreview?.vehicles) {
+      const arrivalSecondsSorted = arrivalInfo.arrivalSecondsSorted || [];
+      const walkSeconds = arrivalInfo.walkSeconds || 0;
       busApproachPreview.vehicles.forEach((vehicle, index) => {
-        vehicle.catchable = index >= arrivalInfo.skippedCount;
+        const eta = arrivalSecondsSorted[index];
+        if (eta != null) {
+          vehicle.etaSeconds = eta;
+          vehicle.etaMinutes = Math.max(0, Math.ceil(eta / 60));
+          vehicle.catchable = eta >= walkSeconds;
+          if (!vehicle.catchable) {
+            vehicle.passedAgoMinutes = Math.max(0, Math.ceil((walkSeconds - eta) / 60));
+          }
+        } else {
+          vehicle.etaSeconds = null;
+          vehicle.etaMinutes = null;
+          vehicle.catchable = true;
+        }
       });
     }
 
