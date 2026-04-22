@@ -594,6 +594,186 @@
     margin-left: 12px;
   }
 
+  .arrival-headline {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(30, 122, 95, 0.12), rgba(28, 91, 183, 0.10));
+    border: 1px solid rgba(30, 122, 95, 0.18);
+  }
+
+  .arrival-headline .row-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .arrival-headline .depart {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  .arrival-headline .arrow {
+    flex: 1;
+    position: relative;
+    min-width: 40px;
+    height: 2px;
+    margin: 0 10px;
+    background: linear-gradient(90deg, rgba(30, 122, 95, 0.35), rgba(28, 91, 183, 0.45));
+    border-radius: 1px;
+    align-self: center;
+  }
+
+  .arrival-headline .arrow::after {
+    content: "";
+    position: absolute;
+    right: -2px;
+    top: -3px;
+    width: 0;
+    height: 0;
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-left: 6px solid rgba(28, 91, 183, 0.55);
+  }
+
+  .arrival-headline .arrive {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-strong, #1f2937);
+    letter-spacing: 0.01em;
+  }
+
+  .arrival-headline .row-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .arrival-headline .countdown {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .arrival-headline .countdown.urgent {
+    color: var(--orange);
+    font-weight: 600;
+  }
+
+  .arrival-headline .countdown.missed {
+    color: #9b1c1c;
+    font-weight: 600;
+  }
+
+  .arrival-headline.promoted {
+    background: linear-gradient(135deg, rgba(197, 99, 31, 0.14), rgba(28, 91, 183, 0.10));
+    border-color: rgba(197, 99, 31, 0.35);
+  }
+
+  .arrival-headline .promoted-tag {
+    display: none;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--orange);
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(197, 99, 31, 0.14);
+    margin-right: 8px;
+  }
+
+  .arrival-headline.promoted .promoted-tag {
+    display: inline-block;
+  }
+
+  .alt-row.fallback.consumed {
+    display: none;
+  }
+
+  .alt-board {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(71, 57, 29, 0.12);
+  }
+
+  .alt-board .alt-head {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    margin-bottom: 8px;
+  }
+
+  .alt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .alt-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid rgba(71, 57, 29, 0.08);
+    font-size: 13px;
+  }
+
+  .alt-row .alt-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .alt-row .alt-title {
+    font-weight: 600;
+    color: var(--text-strong, #1f2937);
+  }
+
+  .alt-row .alt-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  .alt-row .alt-arrive {
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--text-strong, #1f2937);
+  }
+
+  .alt-row .alt-delta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(71, 57, 29, 0.06);
+  }
+
+  .alt-row.fallback {
+    border-color: rgba(197, 99, 31, 0.25);
+    background: linear-gradient(180deg, rgba(197, 99, 31, 0.05), rgba(255, 255, 255, 0.62));
+  }
+
+  .alt-row.fallback .alt-tag {
+    color: var(--orange);
+  }
+
   .transport-strip {
     display: flex;
     flex-wrap: wrap;
@@ -2271,32 +2451,133 @@
     `).join("") + "</div>";
   }
 
+  function formatClock(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
+  function formatCountdown(iso, nowMs = Date.now()) {
+    if (!iso) return { text: "", state: "neutral", diffSec: null };
+    const target = new Date(iso).getTime();
+    if (Number.isNaN(target)) return { text: "", state: "neutral", diffSec: null };
+    const diffSec = Math.round((target - nowMs) / 1000);
+    if (diffSec < -60) return { text: `${Math.abs(Math.round(diffSec / 60))}분 전 통과`, state: "missed", diffSec };
+    if (diffSec < 0) return { text: "방금 통과", state: "missed", diffSec };
+    if (diffSec < 60) return { text: `${diffSec}초 후`, state: "urgent", diffSec };
+    if (diffSec < 300) return { text: `${Math.floor(diffSec / 60)}분 ${diffSec % 60}초 후`, state: "urgent", diffSec };
+    return { text: `${Math.round(diffSec / 60)}분 후`, state: "neutral", diffSec };
+  }
+
+  function renderArrivalHeadline(candidate) {
+    if (!candidate?.arriveAt) return "";
+    const departLabel = candidate.departAt ? formatClock(candidate.departAt) : formatClock(new Date().toISOString());
+    const arriveLabel = formatClock(candidate.arriveAt);
+    const countdown = formatCountdown(candidate.arriveAt);
+    const journey = candidate.journeyMinutes != null ? `${candidate.journeyMinutes}분 소요` : "";
+    const fb = candidate.fallbackPlan;
+    const fbAttrs = fb?.catchDeadline && fb?.arriveAt
+      ? ` data-fallback-arrive-at="${escapeHtml(fb.arriveAt)}" data-fallback-deadline="${escapeHtml(fb.catchDeadline)}" data-fallback-vehicle-at="${escapeHtml(fb.nextVehicleArriveAt || "")}"`
+      : "";
+    return `
+      <div class="arrival-headline" data-arrive-at="${escapeHtml(candidate.arriveAt)}"${fbAttrs}>
+        <div class="row-main">
+          <span class="depart"><span class="promoted-tag">놓침 후 대안</span>지금 ${escapeHtml(departLabel)}</span>
+          <span class="arrow"></span>
+          <span class="arrive" data-arrive-label>${escapeHtml(arriveLabel)} 도착</span>
+        </div>
+        <div class="row-sub">
+          <span data-journey-note>${escapeHtml(journey)}</span>
+          <span class="countdown ${escapeHtml(countdown.state)}" data-countdown-arrive>${escapeHtml(countdown.text)}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAlternates(result) {
+    if (!result?.candidates?.length) return "";
+    const recommended = result.recommendation;
+    const recommendedArriveMs = recommended?.arriveAt ? new Date(recommended.arriveAt).getTime() : null;
+    const alts = (result.candidates || []).filter((c) => c.id !== result.recommendedId);
+    const rows = [];
+
+    if (recommended?.fallbackPlan?.arriveAt) {
+      const fb = recommended.fallbackPlan;
+      const fbMs = new Date(fb.arriveAt).getTime();
+      const delta = recommendedArriveMs ? Math.max(0, Math.round((fbMs - recommendedArriveMs) / 60000)) : fb.extraWaitMin;
+      rows.push(`
+        <div class="alt-row fallback" data-fallback-row data-fallback-deadline="${escapeHtml(fb.catchDeadline || "")}">
+          <span class="alt-tag">놓치면</span>
+          <div>
+            <div class="alt-title">같은 ${escapeHtml(recommended.firstTransitLabel || "노선")} 다음 차</div>
+            <span class="alt-sub">다음 차 정류장 도착 ${escapeHtml(formatClock(fb.nextVehicleArriveAt))}</span>
+          </div>
+          <span class="alt-arrive">${escapeHtml(formatClock(fb.arriveAt))} 도착</span>
+          <span class="alt-delta">+${delta}분</span>
+        </div>
+      `);
+    }
+
+    alts.slice(0, 3).forEach((c) => {
+      if (!c.arriveAt) return;
+      const deltaMin = recommendedArriveMs
+        ? Math.max(0, Math.round((new Date(c.arriveAt).getTime() - recommendedArriveMs) / 60000))
+        : null;
+      const deltaText = deltaMin != null ? (deltaMin === 0 ? "동일" : `+${deltaMin}분`) : "";
+      const transit = c.firstTransitLabel || "도보";
+      const sub = c.boardingApproachText || c.note || "";
+      rows.push(`
+        <div class="alt-row">
+          <span class="alt-tag">차선</span>
+          <div>
+            <div class="alt-title">${escapeHtml(transit)} · 환승 ${escapeHtml(c.transferCountText || "-")}</div>
+            <span class="alt-sub">${escapeHtml(sub)}</span>
+          </div>
+          <span class="alt-arrive">${escapeHtml(formatClock(c.arriveAt))} 도착</span>
+          <span class="alt-delta">${escapeHtml(deltaText)}</span>
+        </div>
+      `);
+    });
+
+    if (!rows.length) return "";
+    return `
+      <div class="alt-board">
+        <div class="alt-head">놓쳤을 때 · 다른 루트</div>
+        <div class="alt-list">${rows.join("")}</div>
+      </div>
+    `;
+  }
+
   function renderBusApproachPreview(preview) {
     if (!preview?.stops?.length) return "";
 
     const vehicles = preview.vehicles || [];
     const firstCatchableIdx = vehicles.findIndex((vehicle) => vehicle.catchable !== false);
-    let laterCatchableCount = 0;
 
-    const classify = (vehicle, index) => {
+    let laterCatchableCount = 0;
+    const classified = vehicles.map((vehicle, index) => {
       if (vehicle.catchable === false) {
-        return { posClass: "uncatchable", label: "놓침" };
+        return { vehicle, index, posClass: "uncatchable", label: "놓침" };
       }
       if (index === firstCatchableIdx) {
-        return { posClass: "next", label: "다음" };
+        return { vehicle, index, posClass: "next", label: "다음" };
       }
       laterCatchableCount += 1;
-      return { posClass: "after", label: laterCatchableCount === 1 ? "다다음" : `다음+${laterCatchableCount}` };
-    };
+      const label = laterCatchableCount === 1 ? "다다음" : `다음+${laterCatchableCount}`;
+      return { vehicle, index, posClass: "after", label };
+    });
 
-    const buses = vehicles.map((vehicle, index) => {
-      const { posClass, label } = classify(vehicle, index);
+    const buses = classified.map(({ vehicle, index, posClass, label }) => {
       const bits = [`<strong>${escapeHtml(label)}</strong>`];
       if (vehicle.etaMinutes != null) {
         const etaText = vehicle.catchable === false
           ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과`
           : `${vehicle.etaMinutes}분 후`;
-        bits.push(`<span>${escapeHtml(etaText)}</span>`);
+        const etaAttr = vehicle.etaAt ? ` data-countdown-eta="${escapeHtml(vehicle.etaAt)}"` : "";
+        bits.push(`<span${etaAttr}>${escapeHtml(etaText)}</span>`);
       }
       bits.push(`<span>${escapeHtml(`${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`)}</span>`);
       return `
@@ -2306,11 +2587,9 @@
       `;
     }).join("");
 
-    laterCatchableCount = 0;
-    const busMarkers = vehicles.map((vehicle, index) => {
-      const { posClass } = classify(vehicle, index);
-      return `<div class="bus-line-marker ${posClass}" style="left:${vehicle.progressPercent}%;"></div>`;
-    }).join("");
+    const busMarkers = classified.map(({ vehicle, posClass }) => (
+      `<div class="bus-line-marker ${posClass}" style="left:${vehicle.progressPercent}%;"></div>`
+    )).join("");
 
     const stops = preview.stops.map((stop) => `
       <div class="bus-line-stop ${stop.isBoarding ? "boarding" : ""}${stop.isAlighting ? " alighting" : ""}">
@@ -2319,9 +2598,7 @@
       </div>
     `).join("");
 
-    laterCatchableCount = 0;
-    const vehicleSummary = vehicles.map((vehicle, index) => {
-      const { label } = classify(vehicle, index);
+    const vehicleSummary = classified.map(({ vehicle, label }) => {
       const eta = vehicle.etaMinutes != null
         ? (vehicle.catchable === false ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과` : `${vehicle.etaMinutes}분 후`)
         : `${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`;
@@ -2412,6 +2689,8 @@
           </div>
         </div>
 
+        ${renderArrivalHeadline(recommendation)}
+
         <div class="metric-inline">
           <span>${metricInlineText}</span>
           <span class="stamp">${escapeHtml(relativeTime(fetchedAt))}</span>
@@ -2419,17 +2698,7 @@
 
         ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
         ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
-        ${compareCandidates.length ? `
-          <div class="compare-board">
-            <div class="compare-head">
-              <strong>한눈에 비교</strong>
-              <span>${escapeHtml(compareCandidates.length + "개 후보")}</span>
-            </div>
-            <div class="compare-grid">
-              ${compareCandidates.map((candidate) => renderCompareCard(candidate, candidate.id === result.recommendedId)).join("")}
-            </div>
-          </div>
-        ` : ""}
+        ${renderAlternates(result)}
       </div>
     ` : `
       <div class="summary-board">
@@ -2944,6 +3213,10 @@
         }
       }
 
+      const departAtMs = Date.now();
+      const journeyMinutes = totalTime + (firstWaitMin || 0) + (transferTiming.transferWaitMin || 0);
+      const arriveAtMs = departAtMs + journeyMinutes * 60 * 1000;
+
       candidates.push({
         id: `path-${index}`,
         scoreValue,
@@ -2972,6 +3245,9 @@
         alightingStopName,
         summarySteps: summarizeCandidateSteps(subPaths),
         note,
+        departAt: new Date(departAtMs).toISOString(),
+        arriveAt: new Date(arriveAtMs).toISOString(),
+        journeyMinutes,
         segments: normalizeSegments(subPaths)
       });
     }
@@ -3411,6 +3687,58 @@
   updateClock();
   setInterval(updateClock, 10000);
   renderRoutes();
+
+  function tickCountdowns() {
+    const nowMs = Date.now();
+
+    document.querySelectorAll("[data-arrive-at]").forEach((node) => {
+      if (!node.classList.contains("promoted")) {
+        const deadline = node.getAttribute("data-fallback-deadline");
+        const fbArrive = node.getAttribute("data-fallback-arrive-at");
+        if (deadline && fbArrive && new Date(deadline).getTime() <= nowMs) {
+          node.setAttribute("data-arrive-at", fbArrive);
+          node.classList.add("promoted");
+          const label = node.querySelector("[data-arrive-label]");
+          if (label) label.textContent = `${formatClock(fbArrive)} 도착`;
+          const note = node.querySelector("[data-journey-note]");
+          if (note) note.textContent = "첫 차 놓침 · 같은 노선 다음 차 기준";
+          document.querySelectorAll(`[data-fallback-row][data-fallback-deadline="${deadline}"]`).forEach((row) => {
+            row.classList.add("consumed");
+          });
+        }
+      }
+
+      const iso = node.getAttribute("data-arrive-at");
+      const cd = formatCountdown(iso, nowMs);
+      const badge = node.querySelector("[data-countdown-arrive]");
+      if (!badge) return;
+      badge.textContent = cd.text;
+      badge.classList.remove("urgent", "missed");
+      if (cd.state === "urgent") badge.classList.add("urgent");
+      if (cd.state === "missed") badge.classList.add("missed");
+    });
+
+    document.querySelectorAll("[data-countdown-eta]").forEach((node) => {
+      const iso = node.getAttribute("data-countdown-eta");
+      const target = new Date(iso).getTime();
+      if (Number.isNaN(target)) return;
+      const diffSec = Math.round((target - nowMs) / 1000);
+      const parent = node.closest(".bus-line-bus");
+      if (diffSec < 0) {
+        node.textContent = `${Math.max(1, Math.ceil(-diffSec / 60))}분 전 통과`;
+        if (parent) parent.classList.add("uncatchable");
+      } else if (diffSec < 60) {
+        node.textContent = `${diffSec}초 후`;
+      } else if (diffSec < 300) {
+        node.textContent = `${Math.floor(diffSec / 60)}분 ${diffSec % 60}초 후`;
+      } else {
+        node.textContent = `${Math.round(diffSec / 60)}분 후`;
+      }
+    });
+  }
+
+  tickCountdowns();
+  setInterval(tickCountdowns, 1000);
 </script>
 </body>
 </html>

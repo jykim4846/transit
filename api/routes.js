@@ -547,6 +547,9 @@ function buildCandidate(path, index, priority, liveWait) {
   const effectiveFirstWaitMin = wait.minutes != null ? Math.max(0, wait.minutes - initialWalkTime) : null;
   const transferTiming = getTransferTimingEstimate(subPaths, priority);
   const totalTime = getPathSectionTime(subPaths);
+  const departAtMs = Date.now();
+  const journeyMinutes = totalTime + (effectiveFirstWaitMin || 0) + (transferTiming.transferWaitMin || 0);
+  const arriveAtMs = departAtMs + journeyMinutes * 60 * 1000;
   const transferCount = inferTransferCount(info);
   const walkTime = getWalkTime(subPaths);
   const summarySteps = summarizeSteps(subPaths);
@@ -622,6 +625,9 @@ function buildCandidate(path, index, priority, liveWait) {
     initialWalkTime,
     summarySteps,
     note,
+    departAt: new Date(departAtMs).toISOString(),
+    arriveAt: new Date(arriveAtMs).toISOString(),
+    journeyMinutes,
     segments: subPaths.map(normalizeSegment)
   };
 }
@@ -641,14 +647,21 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const arrivalInfo = await getSeoulBusArrival(mapping, candidate.initialWalkTime);
     if (arrivalInfo == null) return candidate;
     const busApproachPreview = await getBusApproachPreview(mapping).catch(() => null);
+    const arrivalSecondsSorted = arrivalInfo.arrivalSecondsSorted || [];
+    const arrivalAtMsSorted = arrivalInfo.arrivalAtMsSorted || [];
+    const walkSeconds = arrivalInfo.walkSeconds || 0;
+    const fetchedAtMs = arrivalInfo.fetchedAtMs || Date.now();
+
     if (busApproachPreview?.vehicles) {
-      const arrivalSecondsSorted = arrivalInfo.arrivalSecondsSorted || [];
-      const walkSeconds = arrivalInfo.walkSeconds || 0;
+      busApproachPreview.fetchedAt = new Date(fetchedAtMs).toISOString();
+      busApproachPreview.walkSeconds = walkSeconds;
       busApproachPreview.vehicles.forEach((vehicle, index) => {
         const eta = arrivalSecondsSorted[index];
+        const etaAtMs = arrivalAtMsSorted[index];
         if (eta != null) {
           vehicle.etaSeconds = eta;
           vehicle.etaMinutes = Math.max(0, Math.ceil(eta / 60));
+          vehicle.etaAt = new Date(etaAtMs).toISOString();
           vehicle.catchable = eta >= walkSeconds;
           if (!vehicle.catchable) {
             vehicle.passedAgoMinutes = Math.max(0, Math.ceil((walkSeconds - eta) / 60));
@@ -656,6 +669,7 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
         } else {
           vehicle.etaSeconds = null;
           vehicle.etaMinutes = null;
+          vehicle.etaAt = null;
           vehicle.catchable = true;
         }
       });
@@ -664,6 +678,20 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const effectiveWait = arrivalInfo.waitMin;
     const totalTime = candidate.totalTime;
     const nextScore = totalTime + effectiveWait + Number(candidate.transferWaitMin || 0);
+
+    const departAtMs = fetchedAtMs;
+    const nextArriveAtMs = departAtMs + nextScore * 60 * 1000;
+
+    const catchableArrivalsMs = arrivalAtMsSorted.filter((ms) => ms - departAtMs >= walkSeconds * 1000);
+    const primaryArrivalAtMs = catchableArrivalsMs[0];
+    const fallbackArrivalAtMs = catchableArrivalsMs[1];
+    const fallbackPlan = (primaryArrivalAtMs != null && fallbackArrivalAtMs != null) ? {
+      nextVehicleArriveAt: new Date(fallbackArrivalAtMs).toISOString(),
+      extraWaitMin: Math.max(1, Math.ceil((fallbackArrivalAtMs - primaryArrivalAtMs) / 60000)),
+      arriveAt: new Date(nextArriveAtMs + (fallbackArrivalAtMs - primaryArrivalAtMs)).toISOString(),
+      catchDeadline: new Date(primaryArrivalAtMs - walkSeconds * 1000).toISOString()
+    } : null;
+
     const baseNote = arrivalInfo.skippedCount > 0
       ? `정류장까지 도보 ${candidate.initialWalkTime}분이 걸려 먼저 오는 버스 ${arrivalInfo.skippedCount}대를 놓치는 것으로 보고, 다음 도착 버스 기준 대기 ${effectiveWait}분을 반영했습니다.`
       : `서울시 도착정보 기준 현재 버스를 탈 수 있는 실제 대기 ${effectiveWait}분을 반영했습니다.`;
@@ -681,6 +709,10 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
         ? `도보 후 ${mapping.stationName || candidate.boardingStopName} 탑승`
         : `${mapping.stationName || candidate.boardingStopName} 탑승`,
       alightingStopName: mapping.alightingStationName || candidate.alightingStopName,
+      departAt: new Date(departAtMs).toISOString(),
+      arriveAt: new Date(nextArriveAtMs).toISOString(),
+      journeyMinutes: nextScore,
+      fallbackPlan,
       note: candidate.transferRiskText ? `${baseNote} ${candidate.transferRiskText}` : baseNote
     };
   } catch {

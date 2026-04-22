@@ -334,12 +334,17 @@ async function getSeoulBusArrival(mapping, approachWalkMin = 0) {
   const catchableSeconds = arrivalSecondsSorted.find((value) => value >= walkSeconds);
   if (catchableSeconds == null) return null;
 
+  const fetchedAtMs = Date.now();
+  const arrivalAtMsSorted = arrivalSecondsSorted.map((seconds) => fetchedAtMs + seconds * 1000);
+
   return {
     stationArrivalMin: Math.max(0, Math.ceil(catchableSeconds / 60)),
     waitMin: Math.max(0, Math.ceil((catchableSeconds - walkSeconds) / 60)),
     skippedCount,
     arrivalSecondsSorted,
-    walkSeconds
+    arrivalAtMsSorted,
+    walkSeconds,
+    fetchedAtMs
   };
 }
 
