@@ -734,6 +734,18 @@
     text-overflow: clip;
   }
 
+  .journey-line .seg.wait {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(71, 57, 29, 0.10),
+      rgba(71, 57, 29, 0.10) 4px,
+      rgba(71, 57, 29, 0.22) 4px,
+      rgba(71, 57, 29, 0.22) 8px
+    );
+    color: rgba(55, 55, 55, 0.88);
+    font-weight: 600;
+  }
+
   .journey-line .seg.walk {
     background: rgba(120, 120, 120, 0.5);
     color: rgba(55, 55, 55, 0.9);
@@ -2569,20 +2581,50 @@
     `;
   }
 
-  function renderJourneyLine(candidate) {
+  function renderJourneyLine(candidate, options = {}) {
     const segments = (candidate?.segments || []).filter((seg) => seg && (Number(seg.minutes) > 0 || seg.type !== "walk"));
     if (!segments.length) return "";
-    const total = segments.reduce((sum, seg) => sum + Math.max(0.5, Number(seg.minutes) || 0), 0);
+
+    const extraFirstWait = Math.max(0, Number(options.extraFirstWait) || 0);
+    const firstWait = Math.max(0, Number(candidate?.firstWaitMin) || 0) + extraFirstWait;
+    const transferWait = Math.max(0, Number(candidate?.transferWaitMin) || 0);
+    const transitCount = segments.filter((seg) => seg.type !== "walk").length;
+    const perTransfer = transitCount > 1 ? transferWait / (transitCount - 1) : 0;
+
+    const pieces = [];
+    if (firstWait > 0) {
+      pieces.push({ type: "wait", minutes: firstWait, label: "대기", text: `첫 탑승 대기 ${Math.round(firstWait)}분` });
+    }
+    let transitSeenIdx = 0;
+    segments.forEach((seg) => {
+      if (seg.type !== "walk") {
+        if (transitSeenIdx > 0 && perTransfer > 0) {
+          pieces.push({ type: "wait", minutes: perTransfer, label: "환승대기", text: `환승 대기 ${Math.round(perTransfer)}분 (추정)` });
+        }
+        transitSeenIdx += 1;
+      }
+      pieces.push(seg);
+    });
+
+    const total = pieces.reduce((sum, p) => sum + Math.max(0.5, Number(p.minutes) || 0), 0);
     if (total <= 0) return "";
 
-    const pieces = segments.map((seg) => {
-      const minutes = Math.max(0.5, Number(seg.minutes) || 0);
+    const html = pieces.map((p) => {
+      const minutes = Math.max(0.5, Number(p.minutes) || 0);
       const pct = (minutes / total) * 100;
-      const type = seg.type === "walk" ? "walk" : seg.type === "subway" ? "subway" : "bus";
-      const inlineLabel = pct >= 12 && seg.type !== "walk"
-        ? escapeHtml(`${seg.label || seg.kind} ${Math.round(minutes)}분`)
-        : (pct >= 16 ? escapeHtml(`${Math.round(minutes)}분`) : "");
-      return `<span class="seg ${type}" style="width:${pct}%;" title="${escapeHtml(seg.text || seg.label || "")}">${inlineLabel}</span>`;
+      const type = p.type === "walk" ? "walk"
+        : p.type === "subway" ? "subway"
+        : p.type === "wait" ? "wait"
+        : "bus";
+      let inlineLabel = "";
+      if (p.type === "wait") {
+        if (pct >= 10) inlineLabel = escapeHtml(`${p.label} ${Math.round(minutes)}분`);
+      } else if (p.type === "walk") {
+        if (pct >= 16) inlineLabel = escapeHtml(`도보 ${Math.round(minutes)}분`);
+      } else {
+        if (pct >= 12) inlineLabel = escapeHtml(`${p.label || p.kind} 탑승 ${Math.round(minutes)}분`);
+      }
+      return `<span class="seg ${type}" style="width:${pct}%;" title="${escapeHtml(p.text || p.label || "")}">${inlineLabel}</span>`;
     }).join("");
 
     const firstTransit = segments.find((seg) => seg.type !== "walk");
@@ -2598,7 +2640,7 @@
 
     return `
       <div class="alt-line">
-        <div class="journey-line">${pieces}</div>
+        <div class="journey-line">${html}</div>
         ${caption}
       </div>
     `;
@@ -2624,7 +2666,7 @@
           </div>
           <span class="alt-arrive">${escapeHtml(formatClock(fb.arriveAt))} 도착</span>
           <span class="alt-delta">+${delta}분</span>
-          ${renderJourneyLine(recommended)}
+          ${renderJourneyLine(recommended, { extraFirstWait: fb.extraWaitMin })}
         </div>
       `);
     }
