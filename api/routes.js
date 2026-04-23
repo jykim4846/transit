@@ -60,14 +60,21 @@ function normalizeLanes(subPath) {
 }
 
 function normalizeSegment(subPath) {
+  const minutes = Number(subPath.sectionTime || 0);
+  const start = subPath.startName || "";
+  const end = subPath.endName || "";
+
   if (subPath.trafficType === 3) {
     return {
       type: "walk",
       kind: "도보",
-      text: `${subPath.startName || "이동"} → ${subPath.endName || "연결"}`
-        + (subPath.sectionTime ? ` · 도보 ${subPath.sectionTime}분` : ""),
-      time: formatMinutes(subPath.sectionTime || 0),
-      label: `도보 ${subPath.sectionTime || 0}분`
+      text: `${start || "이동"} → ${end || "연결"}`
+        + (minutes ? ` · 도보 ${minutes}분` : ""),
+      time: formatMinutes(minutes),
+      minutes,
+      start,
+      end,
+      label: `도보 ${minutes}분`
     };
   }
 
@@ -76,8 +83,11 @@ function normalizeSegment(subPath) {
     return {
       type: "bus",
       kind: "버스",
-      text: `${lane.busNo || "버스"} · ${subPath.startName || ""} → ${subPath.endName || ""}`,
-      time: formatMinutes(subPath.sectionTime || 0),
+      text: `${lane.busNo || "버스"} · ${start} → ${end}`,
+      time: formatMinutes(minutes),
+      minutes,
+      start,
+      end,
       label: lane.busNo || "버스"
     };
   }
@@ -86,8 +96,11 @@ function normalizeSegment(subPath) {
   return {
     type: "subway",
     kind: "지하철",
-    text: `${lane.name || "지하철"} · ${subPath.startName || ""} → ${subPath.endName || ""}`,
-    time: formatMinutes(subPath.sectionTime || 0),
+    text: `${lane.name || "지하철"} · ${start} → ${end}`,
+    time: formatMinutes(minutes),
+    minutes,
+    start,
+    end,
     label: lane.name || "지하철"
   };
 }
