@@ -2581,15 +2581,52 @@
     `;
   }
 
+  function inferSegmentType(seg) {
+    if (!seg) return "bus";
+    if (seg.type === "walk" || seg.type === "bus" || seg.type === "subway" || seg.type === "wait") return seg.type;
+    if (seg.kind === "도보") return "walk";
+    if (seg.kind === "지하철") return "subway";
+    if (seg.kind === "버스") return "bus";
+    return "bus";
+  }
+
+  function segmentMinutes(seg) {
+    if (!seg) return 0;
+    const raw = seg.minutes != null ? seg.minutes : (typeof seg.time === "string" ? parseInt(seg.time, 10) : seg.time);
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }
+
   function renderJourneyLine(candidate, options = {}) {
-    const segments = (candidate?.segments || []).filter((seg) => seg && (Number(seg.minutes) > 0 || seg.type !== "walk"));
-    if (!segments.length) return "";
+    const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
+      ...seg,
+      type: inferSegmentType(seg),
+      minutes: segmentMinutes(seg)
+    }));
+    let segments = raw.filter((seg) => seg.minutes > 0 || seg.type !== "walk");
+    if (!segments.length) segments = raw;
 
     const extraFirstWait = Math.max(0, Number(options.extraFirstWait) || 0);
     const firstWait = Math.max(0, Number(candidate?.firstWaitMin) || 0) + extraFirstWait;
     const transferWait = Math.max(0, Number(candidate?.transferWaitMin) || 0);
     const transitCount = segments.filter((seg) => seg.type !== "walk").length;
     const perTransfer = transitCount > 1 ? transferWait / (transitCount - 1) : 0;
+
+    if (!segments.length) {
+      const totalMin = Number(candidate?.journeyMinutes || candidate?.totalTime || 0) + firstWait;
+      if (totalMin <= 0) return "";
+      const mode = candidate?.mode === "subway" ? "subway" : candidate?.mode === "walk" ? "walk" : "bus";
+      const label = candidate?.firstTransitLabel
+        ? `${candidate.firstTransitLabel} ${Math.round(totalMin)}분`
+        : `${Math.round(totalMin)}분`;
+      return `
+        <div class="alt-line">
+          <div class="journey-line">
+            <span class="seg ${mode}" style="width:100%;" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+          </div>
+        </div>
+      `;
+    }
 
     const pieces = [];
     if (firstWait > 0) {
@@ -2646,10 +2683,21 @@
     `;
   }
 
+  function estimateArriveMs(candidate, nowMs) {
+    if (candidate?.arriveAt) {
+      const ms = new Date(candidate.arriveAt).getTime();
+      if (Number.isFinite(ms)) return ms;
+    }
+    const journey = Number(candidate?.journeyMinutes || candidate?.totalTime || 0);
+    if (journey > 0) return nowMs + journey * 60 * 1000;
+    return null;
+  }
+
   function renderAlternates(result) {
     if (!result?.candidates?.length) return "";
     const recommended = result.recommendation;
-    const recommendedArriveMs = recommended?.arriveAt ? new Date(recommended.arriveAt).getTime() : null;
+    const nowMs = Date.now();
+    const recommendedArriveMs = estimateArriveMs(recommended, nowMs);
     const alts = (result.candidates || []).filter((c) => c.id !== result.recommendedId);
     const rows = [];
 
@@ -2672,13 +2720,15 @@
     }
 
     alts.slice(0, 3).forEach((c) => {
-      if (!c.arriveAt) return;
+      const arriveMs = estimateArriveMs(c, nowMs);
+      if (arriveMs == null) return;
       const deltaMin = recommendedArriveMs
-        ? Math.max(0, Math.round((new Date(c.arriveAt).getTime() - recommendedArriveMs) / 60000))
+        ? Math.max(0, Math.round((arriveMs - recommendedArriveMs) / 60000))
         : null;
       const deltaText = deltaMin != null ? (deltaMin === 0 ? "동일" : `+${deltaMin}분`) : "";
       const transit = c.firstTransitLabel || "도보";
       const sub = c.boardingApproachText || c.note || "";
+      const arriveLabel = c.arriveAt ? formatClock(c.arriveAt) : formatClock(new Date(arriveMs).toISOString());
       rows.push(`
         <div class="alt-row">
           <span class="alt-tag">차선</span>
@@ -2686,7 +2736,7 @@
             <div class="alt-title">${escapeHtml(transit)} · 환승 ${escapeHtml(c.transferCountText || "-")}</div>
             <span class="alt-sub">${escapeHtml(sub)}</span>
           </div>
-          <span class="alt-arrive">${escapeHtml(formatClock(c.arriveAt))} 도착</span>
+          <span class="alt-arrive">${escapeHtml(arriveLabel)} 도착</span>
           <span class="alt-delta">${escapeHtml(deltaText)}</span>
           ${renderJourneyLine(c)}
         </div>
