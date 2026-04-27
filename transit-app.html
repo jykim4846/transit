@@ -223,6 +223,25 @@
     padding-bottom: 22px;
   }
 
+  .route-card.commute-pinned {
+    border-color: rgba(59, 130, 246, 0.55);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18), var(--shadow);
+  }
+
+  .commute-pin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.12);
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+  }
+
   .route-main {
     padding: 22px 22px 18px;
   }
@@ -2387,6 +2406,10 @@
       hour: "2-digit",
       minute: "2-digit"
     });
+    const phase = getCommuteContext(now)?.phase || null;
+    if (state.routes.length > 0 && phase !== state.lastCommutePhase) {
+      renderRoutes();
+    }
   }
 
   function priorityLabel(value) {
@@ -2830,7 +2853,9 @@
     `;
   }
 
-  function renderRouteCard(route) {
+  function renderRouteCard(route, commuteCtx) {
+    const ctx = commuteCtx === undefined ? getCommuteContext() : commuteCtx;
+    const pinned = isCommutePinned(route, ctx);
     const loading = state.loadingRouteIds.has(route.id);
     const expanded = state.expandedRouteIds.has(route.id);
     const collapsed = state.collapsedRouteIds.has(route.id);
@@ -2941,12 +2966,12 @@
     `);
 
     return `
-      <article class="route-card ${loading ? "loading" : ""} ${expanded && !collapsed ? "expanded" : ""} ${collapsed ? "collapsed" : ""}">
+      <article class="route-card ${loading ? "loading" : ""} ${expanded && !collapsed ? "expanded" : ""} ${collapsed ? "collapsed" : ""} ${pinned ? "commute-pinned" : ""}">
         <div class="route-main">
           <div class="route-main-top">
             <div class="route-names">
               <div class="route-kicker">
-                <span class="pill label">${escapeHtml(route.label || "루트")}</span>
+                <span class="pill label">${escapeHtml(route.label || "루트")}</span>${pinned ? `<span class="commute-pin-badge">⏰ ${ctx.badge}</span>` : ""}
                 <span class="pill ${escapeHtml(priorityMeta.className)}">${escapeHtml(priorityLabel(route.priority))}</span>
                 <span class="pill transport">${escapeHtml(transportLabel(route.transportFilter))}</span>
               </div>
@@ -2974,14 +2999,41 @@
     `;
   }
 
+  function getCommuteContext(date = new Date()) {
+    const hour = date.getHours();
+    if (hour >= 5 && hour < 12) return { phase: "morning", keyword: "출근", badge: "출근 시간" };
+    if (hour >= 16 && hour < 23) return { phase: "evening", keyword: "퇴근", badge: "퇴근 시간" };
+    return null;
+  }
+
+  function isCommutePinned(route, ctx) {
+    if (!ctx) return false;
+    return (route.label || "").includes(ctx.keyword);
+  }
+
+  function getOrderedRoutes() {
+    const ctx = getCommuteContext();
+    if (!ctx) return state.routes;
+    const pinned = [];
+    const rest = [];
+    for (const r of state.routes) {
+      if (isCommutePinned(r, ctx)) pinned.push(r);
+      else rest.push(r);
+    }
+    return pinned.length ? [...pinned, ...rest] : state.routes;
+  }
+
   function renderRoutes() {
     const list = document.getElementById("route-list");
     document.getElementById("route-count").textContent = state.routes.length + "개 루트";
     if (state.routes.length === 0) {
       list.innerHTML = renderEmptyCard();
+      state.lastCommutePhase = getCommuteContext()?.phase || null;
       return;
     }
-    list.innerHTML = state.routes.map(renderRouteCard).join("");
+    const ctx = getCommuteContext();
+    list.innerHTML = getOrderedRoutes().map((r) => renderRouteCard(r, ctx)).join("");
+    state.lastCommutePhase = ctx?.phase || null;
   }
 
   function showToast(message) {
