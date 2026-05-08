@@ -1969,10 +1969,46 @@
       padding-right: 14px;
     }
   }
+
+  :root { --mint:#63d8bc; --sky:#9fdbff; --cream:#fff3c8; }
+  .app-shell{max-width:460px;padding-bottom:120px}
+  .cute-hero{position:relative;overflow:hidden;background:linear-gradient(165deg,var(--sky),#c8f2ff 45%,#d6ffef);border:none}
+  .hero-skyline{position:absolute;inset:auto 0 0;height:70px;background:linear-gradient(0deg,#79b8d8,#95cde8);clip-path:polygon(0 100%,0 42%,8% 48%,14% 32%,20% 55%,28% 35%,34% 60%,45% 30%,52% 58%,62% 36%,68% 62%,77% 40%,85% 58%,92% 45%,100% 66%,100% 100%)}
+  .hero-stars{position:absolute;right:16px;top:14px;font-size:15px;opacity:.9}
+  .mascot-bus{width:72px;height:72px;border-radius:22px;background:#b3f0bc;display:grid;place-items:center;font-size:36px;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+  .section-head{background:#fff;border-radius:18px;padding:12px 14px;box-shadow:0 10px 24px rgba(68,51,30,.09)}
+  .route-card{border:none;background:#fff;border-radius:24px;box-shadow:0 14px 30px rgba(30,90,80,.14)}
+  .summary-board{background:#f4fffb;border-radius:18px;padding:14px}
+  .arrival-chip{display:inline-flex;align-items:center;gap:6px;background:#e1fff4;color:#0f6d52;border-radius:999px;padding:5px 10px;font-weight:700;font-size:12px}
+  .cute-ticket{display:flex;gap:12px;align-items:center}
+  .timer-ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(#62d6bb 0 68%, #d8f7ee 68% 100%);display:grid;place-items:center;flex-shrink:0}
+  .timer-ring span{width:62px;height:62px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;color:#0e7d5c;text-align:center;line-height:1.15;padding:8px}
+  .route-title{font-size:20px}
+  .summary-stop-flow{background:#fff;border-radius:14px;padding:8px 10px;margin:10px 0}
+  .summary-subline{background:var(--cream)!important;border:none!important;border-radius:14px;padding:10px 12px}
+  .bus-line-board{background:#eaf8ff;border-radius:16px;border:none}
+  .segment-list{border-left:4px solid #bdebdc;padding-left:14px}
+  .segment-item{position:relative}
+  .segment-item::before{content:"";position:absolute;left:-22px;top:18px;width:10px;height:10px;border-radius:50%;background:#66cfb6;border:2px solid #fff}
+  .mobile-nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:8px;background:#fff;padding:10px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.16);z-index:20}
+  .mobile-nav button{border:none;background:transparent;padding:8px 12px;border-radius:999px;font-weight:700;color:#6d7f86}
+  .mobile-nav button.active{background:#d5fff0;color:#067351}
 </style>
 </head>
 <body>
 <div class="app-shell">
+  <section class="hero cute-hero">
+    <div class="hero-skyline"></div>
+    <div class="hero-stars">💖 ✨ ⭐</div>
+    <div class="hero-top">
+      <div>
+        <span class="eyebrow">Seoul Transit Buddy</span>
+        <h1>오늘도 귀엽게,<br>제일 잘 타는 길</h1>
+        <p>실시간 버스 위치와 환승 흐름을 한눈에 보고 바로 탑승할 수 있는 모빌리티 화면입니다.</p>
+      </div>
+      <div class="mascot-bus" aria-hidden="true">🚌</div>
+    </div>
+  </section>
   <section class="section">
     <div class="section-head">
       <div class="clock-badge" id="clock">--:--</div>
@@ -1987,6 +2023,12 @@
       <p>앱을 열면 저장된 결과를 먼저 보여주고, 추천 갱신을 눌렀을 때만 새로 호출합니다.</p>
     </div>
   </section>
+  <nav class="mobile-nav">
+    <button class="active">홈</button>
+    <button>타임라인</button>
+    <button>저장</button>
+    <button>설정</button>
+  </nav>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -2636,14 +2678,18 @@
       : "";
     return `
       <div class="arrival-headline" data-arrive-at="${escapeHtml(candidate.arriveAt)}"${fbAttrs}>
-        <div class="row-main">
-          <span class="depart"><span class="promoted-tag">놓침 후 대안</span>지금 ${escapeHtml(departLabel)}</span>
-          <span class="arrow"></span>
-          <span class="arrive" data-arrive-label>${escapeHtml(arriveLabel)} 도착</span>
+        <div class="row-main cute-ticket">
+          <div class="timer-ring" aria-hidden="true"><span data-countdown-arrive>${escapeHtml(countdown.text)}</span></div>
+          <div>
+            <span class="arrival-chip">● realtime</span>
+            <div class="depart"><span class="promoted-tag">놓침 후 대안</span>지금 ${escapeHtml(departLabel)}</div>
+            <span class="arrow"></span>
+            <span class="arrive" data-arrive-label>${escapeHtml(arriveLabel)} 도착</span>
+          </div>
         </div>
         <div class="row-sub">
           <span data-journey-note>${escapeHtml(journey)}</span>
-          <span class="countdown ${escapeHtml(countdown.state)}" data-countdown-arrive>${escapeHtml(countdown.text)}</span>
+          <span class="countdown ${escapeHtml(countdown.state)}">${escapeHtml(countdown.state === "soon" ? "곧 도착" : "탑승 준비")}</span>
         </div>
       </div>
     `;
