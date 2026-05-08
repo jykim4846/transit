@@ -613,6 +613,14 @@
     margin-left: 12px;
   }
 
+  .boarding-card { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(30,122,95,.08); border:1px solid rgba(30,122,95,.2);}
+  .boarding-title { font-size:12px; color:var(--text-muted); font-weight:600; }
+  .boarding-main { margin-top:4px; font-weight:700; font-size:14px; }
+  .boarding-pill { display:inline-block; margin-top:8px; padding:4px 10px; border-radius:999px; background:rgba(197,99,31,.14); color:var(--orange); font-weight:700; font-size:12px;}
+  .compact-details { margin-top: 12px; }
+  .compact-details summary { cursor:pointer; font-size:13px; font-weight:600; color:var(--blue);}
+  .compact-details .segment-list { margin-top:8px; }
+
   .arrival-headline {
     margin-top: 12px;
     padding: 14px 16px;
@@ -2579,6 +2587,43 @@
     return { text: `${Math.round(diffSec / 60)}분 후`, state: "neutral", diffSec };
   }
 
+
+  function buildMetricSummary(recommendation) {
+    if (!recommendation) return "";
+    const total = Number(recommendation.journeyMinutes || recommendation.totalTime || 0);
+    const wait = recommendation.firstWaitSource !== "not_applicable" ? recommendation.firstWaitText : null;
+    const walk = Number(recommendation.walkMinutes || recommendation.initialWalkTime || 0);
+    const transferCount = Number(recommendation.transferCount || 0);
+    const pieces = [`총 ${total}분`];
+    pieces.push(wait ? `대기 ${wait}` : "대기 정보 없음");
+    pieces.push(`도보 ${walk}분`);
+    pieces.push(transferCount > 0 ? `환승 ${transferCount}회` : "환승 없음");
+    return pieces.join(" · ");
+  }
+
+  function renderBoardingAction(recommendation) {
+    if (!recommendation) return "";
+    const approach = recommendation.boardingApproachText || (recommendation.boardingStopName ? `${recommendation.boardingStopName} 정류장으로 이동` : "탑승 정류장으로 이동");
+    const walk = recommendation.initialWalkTime > 0 ? `도보 ${recommendation.initialWalkTime}분` : "바로 탑승";
+    return `
+      <div class="boarding-card">
+        <div class="boarding-title">먼저 할 일</div>
+        <div class="boarding-main">${escapeHtml(walk)} → ${escapeHtml(approach)}</div>
+        <span class="boarding-pill">${escapeHtml(recommendation.firstTransitLabel || "이동")}</span>
+      </div>
+    `;
+  }
+
+  function renderCompactDetails(recommendation) {
+    if (!recommendation?.segments?.length) return "";
+    return `
+      <details class="compact-details">
+        <summary>상세 경로 보기</summary>
+        ${renderSegments(recommendation.segments)}
+      </details>
+    `;
+  }
+
   function renderArrivalHeadline(candidate) {
     if (!candidate?.arriveAt) return "";
     const departLabel = candidate.departAt ? formatClock(candidate.departAt) : formatClock(new Date().toISOString());
@@ -2877,27 +2922,6 @@
       return '<div class="summary-stop-flow">' + parts.join(' <span class="flow-arrow">\u2192</span> ') + '</div>';
     })();
 
-    const metricInlineText = (() => {
-      if (!recommendation) return '';
-      const segs = recommendation.segments || [];
-      const parts = [];
-      let firstRideSeen = false;
-      for (const seg of segs) {
-        const isWalk = seg.type === 'walk' || seg.kind === '도보';
-        if (!isWalk && !firstRideSeen) {
-          firstRideSeen = true;
-          if (recommendation.firstWaitMin != null && recommendation.firstWaitSource !== 'not_applicable') {
-            parts.push('대기 ' + recommendation.firstWaitText);
-          }
-        }
-        if (isWalk) {
-          if (parseInt(seg.time) > 0) parts.push('도보 ' + (seg.time || '0분'));
-        } else {
-          parts.push((seg.label || seg.kind || '') + ' ' + (seg.time || '0분'));
-        }
-      }
-      return parts.join(' + ');
-    })();
 
     const summaryHtml = collapsed ? "" : (recommendation ? `
       <div class="summary-board">
@@ -2918,13 +2942,15 @@
         ${renderArrivalHeadline(recommendation)}
 
         <div class="metric-inline">
-          <span>${metricInlineText}</span>
+          <span>${buildMetricSummary(recommendation)}</span>
           <span class="stamp">${escapeHtml(relativeTime(fetchedAt))}</span>
         </div>
 
+        ${renderBoardingAction(recommendation)}
         ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
         ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
         ${renderAlternates(result)}
+        ${renderCompactDetails(recommendation)}
       </div>
     ` : `
       <div class="summary-board">
