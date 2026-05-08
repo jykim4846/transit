@@ -613,10 +613,11 @@
     margin-left: 12px;
   }
 
-  .boarding-card { margin-top: 12px; padding: 12px; border-radius: 12px; background: rgba(30,122,95,.08); border:1px solid rgba(30,122,95,.2);}
+  .boarding-card { margin-top: 12px; padding: 14px 14px 12px; border-radius: 14px; background: linear-gradient(135deg, rgba(255,248,251,.92), rgba(245,251,255,.92)); border:1px dashed rgba(30,122,95,.35); position:relative; overflow:hidden;}
+  .boarding-card::before { content:"🎟️"; position:absolute; right:10px; top:8px; font-size:18px; opacity:.55;}
   .boarding-title { font-size:12px; color:var(--text-muted); font-weight:600; }
-  .boarding-main { margin-top:4px; font-weight:700; font-size:14px; }
-  .boarding-pill { display:inline-block; margin-top:8px; padding:4px 10px; border-radius:999px; background:rgba(197,99,31,.14); color:var(--orange); font-weight:700; font-size:12px;}
+  .boarding-main { margin-top:4px; font-weight:700; font-size:14px; color:var(--text-strong,#1f2937); }
+  .boarding-pill { display:inline-block; margin-top:8px; padding:4px 10px; border-radius:999px; background:rgba(197,99,31,.14); color:var(--orange); font-weight:700; font-size:12px; border:1px solid rgba(197,99,31,.2);}
   .compact-details { margin-top: 12px; }
   .compact-details summary { cursor:pointer; font-size:13px; font-weight:600; color:var(--blue);}
   .compact-details .segment-list { margin-top:8px; }
@@ -836,7 +837,7 @@
     align-items: center;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.62);
+    background: linear-gradient(135deg, rgba(255, 249, 252, 0.82), rgba(245, 250, 255, 0.82));
     border: 1px solid rgba(71, 57, 29, 0.08);
     font-size: 13px;
   }
@@ -878,7 +879,7 @@
 
   .alt-row.fallback {
     border-color: rgba(197, 99, 31, 0.25);
-    background: linear-gradient(180deg, rgba(197, 99, 31, 0.05), rgba(255, 255, 255, 0.62));
+    background: linear-gradient(180deg, rgba(197, 99, 31, 0.09), rgba(255, 255, 255, 0.7));
   }
 
   .alt-row.fallback .alt-tag {
@@ -1079,7 +1080,7 @@
     margin-top: 12px;
     padding: 10px 12px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.72);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(246, 250, 255, 0.78));
     border: 1px solid rgba(71, 57, 29, 0.08);
     font-size: 12px;
     line-height: 1.45;
@@ -1130,12 +1131,12 @@
 
   .journey-node.bus {
     color: var(--orange);
-    background: rgba(197, 99, 31, 0.1);
+    background: rgba(255, 181, 121, 0.24);
   }
 
   .journey-node.subway {
     color: var(--blue);
-    background: rgba(28, 91, 183, 0.1);
+    background: rgba(163, 196, 255, 0.26);
   }
 
   .journey-link {
@@ -1147,7 +1148,7 @@
     margin-top: 14px;
     padding: 14px;
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.76);
+    background: linear-gradient(135deg, rgba(249,255,252,.9), rgba(248,250,255,.9));
     border: 1px solid rgba(71, 57, 29, 0.08);
     overflow: visible;
   }
@@ -1337,7 +1338,7 @@
   }
 
   .candidate-card {
-    background: rgba(255, 255, 255, 0.74);
+    background: linear-gradient(140deg, rgba(255,249,252,.92), rgba(246,250,255,.9));
     border: 1px solid rgba(71, 57, 29, 0.08);
     border-radius: 18px;
     padding: 14px;
@@ -1345,7 +1346,7 @@
 
   .candidate-card.recommended {
     border-color: rgba(30, 122, 95, 0.25);
-    box-shadow: inset 0 0 0 1px rgba(30, 122, 95, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(30, 122, 95, 0.1), 0 8px 20px rgba(30,122,95,.08);
   }
 
   .candidate-card-top {
@@ -1973,6 +1974,20 @@
 </head>
 <body>
 <div class="app-shell">
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <span class="eyebrow">🚌 🚇 🚶 pastel transit</span>
+        <h1>오늘의 귀여운 이동 티켓</h1>
+        <p>버스, 지하철, 도보를 파스텔 톤으로 한눈에 보고 가장 편한 루트를 바로 탑승 준비해요.</p>
+      </div>
+    </div>
+    <div class="hero-note">
+      <div class="hero-note-card"><strong>추천 카드</strong><span>탑승 티켓 스타일로 핵심 정보만 간단히.</span></div>
+      <div class="hero-note-card"><strong>대안 루트</strong><span>놓치면 다음 차편까지 귀엽게 비교.</span></div>
+      <div class="hero-note-card"><strong>접근 미리보기</strong><span>버스 접근 위치를 직관적인 선로로 확인.</span></div>
+    </div>
+  </section>
   <section class="section">
     <div class="section-head">
       <div class="clock-badge" id="clock">--:--</div>
@@ -2592,7 +2607,7 @@
     if (!recommendation) return "";
     const total = Number(recommendation.journeyMinutes || recommendation.totalTime || 0);
     const wait = recommendation.firstWaitSource !== "not_applicable" ? recommendation.firstWaitText : null;
-    const walk = Number(recommendation.walkMinutes || recommendation.initialWalkTime || 0);
+    const walk = Number(recommendation.walkTime || recommendation.walkMinutes || recommendation.initialWalkTime || 0);
     const transferCount = Number(recommendation.transferCount || 0);
     const pieces = [`총 ${total}분`];
     pieces.push(wait ? `대기 ${wait}` : "대기 정보 없음");
@@ -2604,11 +2619,12 @@
   function renderBoardingAction(recommendation) {
     if (!recommendation) return "";
     const approach = recommendation.boardingApproachText || (recommendation.boardingStopName ? `${recommendation.boardingStopName} 정류장으로 이동` : "탑승 정류장으로 이동");
-    const walk = recommendation.initialWalkTime > 0 ? `도보 ${recommendation.initialWalkTime}분` : "바로 탑승";
+    const walk = recommendation.initialWalkTime > 0 ? `도보 ${recommendation.initialWalkTime}분` : "";
+    const mainCopy = walk && !/도보/.test(approach) ? `${walk} → ${approach}` : (walk ? approach : `바로 ${approach}`);
     return `
       <div class="boarding-card">
-        <div class="boarding-title">먼저 할 일</div>
-        <div class="boarding-main">${escapeHtml(walk)} → ${escapeHtml(approach)}</div>
+        <div class="boarding-title">먼저 할 일 · boarding ticket</div>
+        <div class="boarding-main">${escapeHtml(mainCopy)}</div>
         <span class="boarding-pill">${escapeHtml(recommendation.firstTransitLabel || "이동")}</span>
       </div>
     `;
