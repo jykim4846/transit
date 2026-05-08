@@ -2908,7 +2908,7 @@
     const recommendation = result?.recommendation || null;
     const priorityMeta = PRIORITY_META[route.priority] || PRIORITY_META.fastest;
     const fetchedAt = result?.fetchedAt || null;
-    const compareCandidates = (result?.candidates || []).filter((c) => c.id !== result?.recommendedId);
+    const compareCandidates = (result?.candidates || []);
 
     const stopFlowHtml = (() => {
       if (!recommendation || (!recommendation.boardingStopName && !recommendation.alightingStopName)) return '';
@@ -2978,7 +2978,7 @@
       <div class="detail-block">
         <h3>후보 메모</h3>
         <div class="candidate-list">
-          ${compareCandidates.map((candidate) => renderCandidate(candidate, candidate.id === result.recommendedId)).join("")}
+          ${compareCandidates.map((candidate) => renderCompareCard(candidate, candidate.id === result.recommendedId)).join("")}
         </div>
       </div>
     ` : `
