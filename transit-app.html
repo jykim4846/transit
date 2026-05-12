@@ -2178,16 +2178,74 @@
 
   .fast-flow {
     position: relative;
-    height: 20px;
+    margin-top: 18px;
     overflow: hidden;
-    border-radius: 999px;
-    background: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 14px;
+    backdrop-filter: blur(18px);
   }
 
-  .fast-flow::before {
+  .fast-flow-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .fast-flow-head .kicker {
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .fast-flow-head strong {
+    display: block;
+    margin-top: 3px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .fast-flow-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    padding: 7px 10px;
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .fast-flow-live::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.13);
+  }
+
+  .fast-flow-track {
+    position: relative;
+    height: 24px;
+    overflow: visible;
+    border-radius: 999px;
+    background: #f1f5f9;
+  }
+
+  .fast-flow-track::before {
     content: "";
     position: absolute;
     inset: 0;
+    border-radius: inherit;
     opacity: 0.46;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.96), transparent);
     background-size: 160px 100%;
@@ -2224,8 +2282,91 @@
   .fast-flow-seg.wait { background: #fbcfe8; color: #9d174d; }
   .fast-flow-seg.subway { background: #1d4ed8; }
 
-  .fast-trip-panel .fast-flow {
-    margin-top: 15px;
+  .fast-flow-vehicle,
+  .fast-flow-glow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .fast-flow-vehicle {
+    z-index: 4;
+    left: 8%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #3b82f6, #4f46e5);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0;
+    animation: fast-vehicle-sweep 7s ease-in-out infinite;
+  }
+
+  .fast-flow-glow {
+    z-index: 3;
+    left: 5%;
+    width: 58px;
+    height: 58px;
+    border-radius: 999px;
+    background: rgba(147, 197, 253, 0.24);
+    filter: blur(14px);
+    animation: fast-glow-sweep 7s ease-in-out infinite;
+  }
+
+  @keyframes fast-vehicle-sweep {
+    0%, 100% { left: 8%; }
+    50% { left: 72%; }
+  }
+
+  @keyframes fast-glow-sweep {
+    0%, 100% { left: 4%; }
+    50% { left: 68%; }
+  }
+
+  .fast-flow-stops {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .fast-flow-stops span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fast-flow.compact {
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .fast-flow.compact .fast-flow-head,
+  .fast-flow.compact .fast-flow-stops {
+    display: none;
+  }
+
+  .fast-flow.compact .fast-flow-track {
+    height: 20px;
+  }
+
+  .fast-flow.compact .fast-flow-vehicle,
+  .fast-flow.compact .fast-flow-glow {
+    display: none;
   }
 
   .fast-note {
@@ -3020,7 +3161,28 @@
     return candidate.firstTransitLabel ? `${candidate.firstTransitLabel} 탑승 준비` : "바로 이동";
   }
 
-  function renderFastFlow(candidate) {
+  function getFastFlowStops(candidate) {
+    const segments = candidate?.segments || [];
+    const names = [
+      candidate?.boardingStopName,
+      ...segments.map((segment) => segment.start),
+      ...segments.map((segment) => segment.end),
+      candidate?.alightingStopName
+    ].filter(Boolean);
+    const unique = [];
+    names.forEach((name) => {
+      const clean = String(name).trim();
+      if (clean && !unique.includes(clean)) unique.push(clean);
+    });
+    if (unique.length >= 4) {
+      return [unique[0], unique[Math.floor(unique.length / 3)], unique[Math.floor(unique.length * 2 / 3)], unique[unique.length - 1]];
+    }
+    if (unique.length >= 2) return [unique[0], "이동 중", unique[unique.length - 1]];
+    return ["출발", "이동 중", "도착"];
+  }
+
+  function renderFastFlow(candidate, options = {}) {
+    const compact = Boolean(options.compact);
     const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
       type: inferSegmentType(seg),
       label: seg.label || seg.kind || "",
@@ -3033,7 +3195,26 @@
       const label = pct > 18 ? escapeHtml(seg.label) : "";
       return `<span class="fast-flow-seg ${escapeHtml(seg.type)}" style="width:${pct}%;">${label}</span>`;
     }).join("");
-    return `<div class="fast-flow"><div class="fast-flow-inner">${html}</div></div>`;
+    const stops = getFastFlowStops(candidate);
+    return `
+      <div class="fast-flow ${compact ? "compact" : ""}">
+        <div class="fast-flow-head">
+          <div>
+            <div class="kicker">live route</div>
+            <strong>실시간 버스 위치</strong>
+          </div>
+          <div class="fast-flow-live">LIVE</div>
+        </div>
+        <div class="fast-flow-track">
+          <div class="fast-flow-inner">${html}</div>
+          <div class="fast-flow-glow"></div>
+          <div class="fast-flow-vehicle">BUS</div>
+        </div>
+        <div class="fast-flow-stops">
+          ${stops.map((stop) => `<span>${escapeHtml(stop)}</span>`).join("")}
+        </div>
+      </div>
+    `;
   }
 
   function renderFastCandidate(candidate, index, isRecommended) {
@@ -3052,7 +3233,7 @@
             <span>분</span>
           </div>
         </div>
-        ${renderFastFlow(candidate)}
+        ${renderFastFlow(candidate, { compact: true })}
       </button>
     `;
   }
