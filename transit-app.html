@@ -1899,10 +1899,504 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  body {
+    background: #f8fafc;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  .fast-shell {
+    width: min(430px, calc(100vw - 24px));
+    margin: 0 auto;
+    min-height: 100dvh;
+    padding: calc(18px + env(safe-area-inset-top, 0px)) 0 calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fast-phone {
+    position: relative;
+    min-height: calc(100dvh - 38px);
+    overflow: hidden;
+    border-radius: 34px;
+    background: #f8fafc;
+    padding: 20px;
+    box-shadow: 0 26px 70px rgba(100, 116, 139, 0.22);
+  }
+
+  .fast-phone::before,
+  .fast-phone::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .fast-phone::before {
+    width: 210px;
+    height: 210px;
+    right: -76px;
+    top: -56px;
+    background: rgba(191, 219, 254, 0.62);
+  }
+
+  .fast-phone::after {
+    width: 180px;
+    height: 180px;
+    left: -92px;
+    top: 360px;
+    background: rgba(251, 207, 232, 0.42);
+  }
+
+  .fast-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .fast-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 2px 0 18px;
+  }
+
+  .fast-brand strong {
+    display: block;
+    font-size: 25px;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .fast-brand span {
+    display: block;
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .live-badge::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #10b981;
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.13);
+  }
+
+  .fast-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .fast-actions .btn {
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .fast-actions .btn-primary {
+    background: #0f172a;
+    padding: 14px 16px;
+  }
+
+  .fast-actions .btn-secondary {
+    padding: 12px 13px;
+    background: rgba(255, 255, 255, 0.86);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  .route-list {
+    gap: 16px;
+  }
+
+  .route-card.fast-card {
+    overflow: visible;
+    border: 1px solid rgba(226, 232, 240, 0.92);
+    border-radius: 30px;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .fast-card .route-main {
+    padding: 0;
+  }
+
+  .fast-trip-panel {
+    border-radius: 30px;
+    background: #fff;
+    padding: 18px;
+    box-shadow: 0 18px 44px rgba(147, 197, 253, 0.28);
+  }
+
+  .fast-trip-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .fast-trip-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+  }
+
+  .fast-trip-title strong {
+    display: inline-block;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #475569;
+  }
+
+  .fast-trip-menu {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .fast-icon-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(226, 232, 240, 0.86);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+  }
+
+  .fast-metrics {
+    display: grid;
+    grid-template-columns: 1.25fr 0.8fr 0.8fr;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .fast-metric {
+    min-width: 0;
+    border-radius: 24px;
+    padding: 14px 13px;
+  }
+
+  .fast-metric.arrive { background: #eff6ff; }
+  .fast-metric.transfer { background: #fff1f2; }
+  .fast-metric.walk { background: #ecfdf5; }
+
+  .fast-metric strong {
+    display: block;
+    color: #020617;
+    font-size: 31px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  .fast-metric span {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .fast-next-action {
+    margin-top: 14px;
+    border-radius: 24px;
+    background: #020617;
+    color: #fff;
+    padding: 15px;
+  }
+
+  .fast-next-action .label {
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .fast-next-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-top: 4px;
+  }
+
+  .fast-next-row strong {
+    font-size: 17px;
+    line-height: 1.25;
+    font-weight: 900;
+  }
+
+  .fast-next-row span {
+    font-size: 28px;
+    font-weight: 900;
+  }
+
+  .fast-flow {
+    position: relative;
+    height: 20px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e2e8f0;
+  }
+
+  .fast-flow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.46;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.96), transparent);
+    background-size: 160px 100%;
+    animation: fast-shimmer 2.6s linear infinite;
+    z-index: 2;
+  }
+
+  @keyframes fast-shimmer {
+    from { transform: translateX(-55%); }
+    to { transform: translateX(115%); }
+  }
+
+  .fast-flow-inner {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .fast-flow-seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 9px;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .fast-flow-seg.walk { background: #cbd5e1; color: #475569; }
+  .fast-flow-seg.bus { background: #60a5fa; }
+  .fast-flow-seg.wait { background: #fbcfe8; color: #9d174d; }
+  .fast-flow-seg.subway { background: #1d4ed8; }
+
+  .fast-trip-panel .fast-flow {
+    margin-top: 15px;
+  }
+
+  .fast-note {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 11px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 800;
+  }
+
+  .fast-candidates {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .fast-candidate {
+    width: 100%;
+    text-align: left;
+    border: 1px solid #e2e8f0;
+    border-radius: 26px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  }
+
+  .fast-candidate.recommended {
+    border-color: #0f172a;
+    box-shadow: 0 16px 34px rgba(147, 197, 253, 0.3);
+  }
+
+  .fast-candidate-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .fast-candidate-tag {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .fast-candidate-title {
+    margin-top: 10px;
+    color: #020617;
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 900;
+  }
+
+  .fast-candidate-meta {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .fast-candidate-score {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .fast-candidate-score strong {
+    display: block;
+    font-size: 31px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  .fast-candidate-score span {
+    display: block;
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .fast-detail {
+    margin-top: 12px;
+    border-radius: 26px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  }
+
+  .fast-detail-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    color: #020617;
+    cursor: pointer;
+  }
+
+  .fast-detail-toggle strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .fast-detail-toggle span {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .fast-card .route-details {
+    display: none;
+    padding: 0;
+    border: 0;
+  }
+
+  .fast-card.expanded .route-details {
+    display: block;
+  }
+
+  .fast-card .detail-block {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .fast-card .segment-item,
+  .fast-card .candidate-card {
+    border-color: #f1f5f9;
+    background: #f8fafc;
+  }
+
+  .fast-refresh {
+    position: sticky;
+    bottom: 16px;
+    z-index: 3;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    padding: 15px 18px;
+    font-size: 14px;
+    font-weight: 900;
+    box-shadow: 0 16px 34px rgba(100, 116, 139, 0.28);
+    backdrop-filter: blur(16px);
+    cursor: pointer;
+  }
+
+  .fast-footer {
+    margin-top: 18px;
+    color: #94a3b8;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .advanced-options {
+    display: none;
+  }
+
   @media (max-width: 760px) {
-    .app-shell {
+    .app-shell,
+    .fast-shell {
       width: calc(100vw - 18px);
-      padding-top: 12px;
+      padding-top: 9px;
+    }
+
+    .fast-phone {
+      min-height: calc(100dvh - 18px);
+      border-radius: 30px;
+      padding: 17px;
     }
 
     .route-main,
@@ -1910,6 +2404,11 @@
     .modal {
       padding-left: 16px;
       padding-right: 16px;
+    }
+
+    .fast-card .route-main,
+    .fast-card .route-details {
+      padding: 0;
     }
 
     .route-main-top,
@@ -1972,21 +2471,26 @@
 </style>
 </head>
 <body>
-<div class="app-shell">
-  <section class="section">
-    <div class="section-head">
-      <div class="clock-badge" id="clock">--:--</div>
-      <div class="route-toolbar">
-        <button class="btn btn-secondary" id="key-settings-btn">ODsay 키</button>
-        <button class="btn btn-primary" id="add-route-btn">새 루트 추가</button>
+<div class="fast-shell">
+  <div class="fast-phone">
+    <div class="fast-content">
+      <header class="fast-header">
+        <div class="fast-brand">
+          <strong>transit</strong>
+          <span>LIVE ROUTE</span>
+        </div>
+        <div class="live-badge" id="clock">--:--</div>
+      </header>
+      <div class="fast-actions">
+        <button class="btn btn-primary" id="add-route-btn">출발지와 도착지 설정</button>
+        <button class="btn btn-secondary" id="key-settings-btn">키</button>
       </div>
-    </div>
+      <section>
     <div class="route-list" id="route-list"></div>
-    <div class="route-footer">
-      <h2>저장 루트 <span id="route-count">0개 루트</span></h2>
-      <p>앱을 열면 저장된 결과를 먼저 보여주고, 추천 갱신을 눌렀을 때만 새로 호출합니다.</p>
+        <div class="fast-footer">저장 루트 <span id="route-count">0개 루트</span></div>
+      </section>
     </div>
-  </section>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal-overlay">
@@ -1994,7 +2498,7 @@
     <div class="modal-head">
       <div>
         <h3 id="modal-title">새 루트 추가</h3>
-        <p>루트 목적, 추천 기준, 허용 교통수단을 먼저 정한 뒤 저장합니다.</p>
+        <p>출발지와 도착지를 고르면 후보를 빠르게 비교할 수 있게 저장합니다.</p>
       </div>
       <button class="icon-button" id="modal-close-btn" aria-label="닫기">✕</button>
     </div>
@@ -2047,7 +2551,7 @@
         </div>
       </div>
 
-      <div class="form-row full">
+      <div class="form-row full advanced-options">
         <label>추천 기준</label>
         <div class="option-grid" id="priority-options">
           <label class="option-card" data-priority="fastest">
@@ -2068,7 +2572,7 @@
         </div>
       </div>
 
-      <div class="form-row full">
+      <div class="form-row full advanced-options">
         <label>허용 교통수단</label>
         <div class="option-grid" id="transport-options">
           <label class="option-card" data-transport="all">
@@ -2451,6 +2955,109 @@
     return steps.map((step) => {
       return '<span class="transport-step ' + escapeHtml(step.type) + '">' + escapeHtml(step.label) + "</span>";
     }).join("");
+  }
+
+  function iconSvg(name, size = 16) {
+    const paths = {
+      map: '<path d="M20 10c0 4.5-6 10-6 10S8 14.5 8 10a6 6 0 1 1 12 0Z"></path><circle cx="14" cy="10" r="2"></circle>',
+      clock: '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+      refresh: '<path d="M21 12a9 9 0 0 1-15.3 6.4"></path><path d="M3 12A9 9 0 0 1 18.3 5.6"></path><path d="M18 2v4h-4"></path><path d="M6 22v-4h4"></path>',
+      edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>',
+      trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path>',
+      chevron: '<path d="m6 9 6 6 6-6"></path>'
+    };
+    return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ""}</svg>`;
+  }
+
+  function minuteNumber(value) {
+    const n = Number.parseInt(String(value ?? ""), 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function getCandidateTone(candidate, index, isRecommended) {
+    if (candidate.pickKind === "fastest_and_fewest") return { label: "추천", accent: "#2563eb", bg: "#eff6ff" };
+    if (candidate.pickKind === "fastest") return { label: "최소시간", accent: "#2563eb", bg: "#eff6ff" };
+    if (candidate.pickKind === "fewest") return { label: "최소환승", accent: "#16a34a", bg: "#ecfdf5" };
+    if (isRecommended) return { label: "추천", accent: "#2563eb", bg: "#eff6ff" };
+    if (candidate.transferCount === 0) return { label: "직행", accent: "#ea580c", bg: "#fff7ed" };
+    if (index === 1) return { label: "빠름", accent: "#16a34a", bg: "#ecfdf5" };
+    return { label: "대안", accent: "#7c3aed", bg: "#f5f3ff" };
+  }
+
+  function getCandidateTitle(candidate) {
+    const parts = (candidate?.segments || [])
+      .filter((segment) => segment.kind !== "도보")
+      .map((segment) => segment.label || segment.kind)
+      .filter(Boolean);
+    if (parts.length) return parts.slice(0, 3).join(" → ");
+    return candidate?.firstTransitLabel || "도보 중심";
+  }
+
+  function getFirstAction(candidate) {
+    if (!candidate) return "추천을 갱신해 경로 확인";
+    if (candidate.boardingApproachText) return candidate.boardingApproachText;
+    const first = (candidate.segments || []).find((segment) => segment.kind === "도보" && minuteNumber(segment.time) > 0);
+    if (first) return first.text || `도보 ${first.time}`;
+    return candidate.firstTransitLabel ? `${candidate.firstTransitLabel} 탑승 준비` : "바로 이동";
+  }
+
+  function renderFastFlow(candidate) {
+    const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
+      type: inferSegmentType(seg),
+      label: seg.label || seg.kind || "",
+      minutes: Math.max(0.5, segmentMinutes(seg))
+    }));
+    const segments = raw.length ? raw : [{ type: "walk", label: "대기", minutes: 1 }];
+    const total = segments.reduce((sum, seg) => sum + seg.minutes, 0) || 1;
+    const html = segments.map((seg) => {
+      const pct = Math.max(7, (seg.minutes / total) * 100);
+      const label = pct > 18 ? escapeHtml(seg.label) : "";
+      return `<span class="fast-flow-seg ${escapeHtml(seg.type)}" style="width:${pct}%;">${label}</span>`;
+    }).join("");
+    return `<div class="fast-flow"><div class="fast-flow-inner">${html}</div></div>`;
+  }
+
+  function renderFastCandidate(candidate, index, isRecommended) {
+    const tone = getCandidateTone(candidate, index, isRecommended);
+    const score = minuteNumber(candidate.journeyMinutes || candidate.scoreDisplay || candidate.totalTime);
+    return `
+      <button type="button" class="fast-candidate ${isRecommended ? "recommended" : ""}">
+        <div class="fast-candidate-top">
+          <div>
+            <span class="fast-candidate-tag" style="color:${tone.accent}; background:${tone.bg};">${escapeHtml(tone.label)}</span>
+            <div class="fast-candidate-title">${escapeHtml(getCandidateTitle(candidate))}</div>
+            <div class="fast-candidate-meta">환승 ${escapeHtml(candidate.transferCount ?? 0)}회 · 도보 ${escapeHtml(minuteNumber(candidate.walkTime || candidate.walkTimeText))}분</div>
+          </div>
+          <div class="fast-candidate-score">
+            <strong style="color:${tone.accent};">${escapeHtml(score || candidate.scoreDisplay || "--")}</strong>
+            <span>분</span>
+          </div>
+        </div>
+        ${renderFastFlow(candidate)}
+      </button>
+    `;
+  }
+
+  function tagRoutePicks(result) {
+    if (!result?.candidates?.length || !result.picks) return result;
+    const fastestId = result.picks.fastestId;
+    const fewestId = result.picks.fewestTransfersId;
+    return {
+      ...result,
+      candidates: result.candidates.map((candidate) => {
+        let pickKind = candidate.pickKind || null;
+        if (candidate.id === fastestId && candidate.id === fewestId) pickKind = "fastest_and_fewest";
+        else if (candidate.id === fastestId) pickKind = "fastest";
+        else if (candidate.id === fewestId) pickKind = "fewest";
+        return pickKind ? { ...candidate, pickKind } : candidate;
+      }),
+      recommendation: result.recommendation
+        ? {
+          ...result.recommendation,
+          pickKind: fastestId === fewestId ? "fastest_and_fewest" : "fastest"
+        }
+        : result.recommendation
+    };
   }
 
   function renderCandidate(candidate, isRecommended) {
@@ -2903,74 +3510,18 @@
     const pinned = isCommutePinned(route, ctx);
     const loading = state.loadingRouteIds.has(route.id);
     const expanded = state.expandedRouteIds.has(route.id);
-    const collapsed = state.collapsedRouteIds.has(route.id);
     const result = route.lastResult;
     const recommendation = result?.recommendation || null;
-    const priorityMeta = PRIORITY_META[route.priority] || PRIORITY_META.fastest;
     const fetchedAt = result?.fetchedAt || null;
-    const compareCandidates = (result?.candidates || []).filter((c) => c.id !== result?.recommendedId);
-
-    const stopFlowHtml = (() => {
-      if (!recommendation || (!recommendation.boardingStopName && !recommendation.alightingStopName)) return '';
-      const parts = [];
-      if (recommendation.initialWalkTime > 0) parts.push('도보 ' + recommendation.initialWalkTime + '분');
-      if (recommendation.boardingStopName) parts.push(escapeHtml(recommendation.boardingStopName) + ' 탑승');
-      if (recommendation.alightingStopName) parts.push(escapeHtml(recommendation.alightingStopName) + ' 하차');
-      const segs = recommendation.segments || [];
-      const lastSeg = segs[segs.length - 1];
-      if (lastSeg && lastSeg.kind === '도보' && parseInt(lastSeg.time) > 0) parts.push('도보 ' + escapeHtml(lastSeg.time));
-      return '<div class="summary-stop-flow">' + parts.join(' <span class="flow-arrow">\u2192</span> ') + '</div>';
-    })();
-
-
-    const summaryHtml = collapsed ? "" : (recommendation ? `
-      <div class="summary-board">
-        <div class="summary-head">
-          <div>
-            <strong>지금 고를 한 가지</strong>
-            <div class="summary-line">
-              <span class="transit-label ${escapeHtml(recommendation.mode || "bus")}">${escapeHtml(recommendation.firstTransitLabel || "도보")}</span>
-              <div class="score-inline">
-                <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
-                <div class="value">${escapeHtml(recommendation.scoreDisplay)}</div>
-              </div>
-            </div>
-            ${stopFlowHtml}
-          </div>
-        </div>
-
-        ${renderArrivalHeadline(recommendation)}
-
-        <div class="metric-inline">
-          <span>${buildMetricSummary(recommendation)}</span>
-          <span class="stamp">${escapeHtml(relativeTime(fetchedAt))}</span>
-        </div>
-
-        ${renderBoardingAction(recommendation)}
-        ${recommendation.busApproachPreview ? renderBusApproachPreview(recommendation.busApproachPreview) : ""}
-        ${recommendation.transferRiskText ? `<div class="summary-subline"><strong>주의</strong>${escapeHtml(recommendation.transferRiskText)}</div>` : ""}
-        ${renderAlternates(result)}
-        ${renderCompactDetails(recommendation)}
-      </div>
-    ` : `
-      <div class="summary-board">
-        <div class="summary-head">
-          <div>
-            <strong>저장된 추천 없음</strong>
-            <div class="summary-line">아직 미조회</div>
-            <div class="summary-note">
-              앱을 열 때는 자동 호출하지 않습니다. 필요할 때 추천 갱신을 눌러 결과를 가져옵니다.
-            </div>
-          </div>
-          <div class="score-badge">
-            <div class="label">${escapeHtml(priorityMeta.scoreLabel)}</div>
-            <span class="value">--</span>
-          </div>
-        </div>
-      </div>
-    `);
-
-    const detailsHtml = collapsed ? "" : (result ? `
+    const compareCandidates = result?.candidates || [];
+    const primary = recommendation || null;
+    const totalMin = primary ? minuteNumber(primary.journeyMinutes || primary.scoreDisplay || primary.totalTime) : "--";
+    const transfer = primary ? Number(primary.transferCount || 0) : "--";
+    const walk = primary ? minuteNumber(primary.walkTime || primary.walkTimeText) : "--";
+    const note = primary
+      ? (primary.note || describeRecommendation(route, primary))
+      : "출발지와 도착지를 저장한 뒤 실시간으로 다시 계산하세요.";
+    const detailsHtml = result ? `
       <div class="detail-block">
         <h3>추천 상세</h3>
         ${renderSegments(recommendation?.segments)}
@@ -2989,38 +3540,61 @@
           추천 갱신 버튼을 누르면 현재 기준으로 후보를 하나 골라 저장합니다.
         </div>
       </div>
-    `);
+    `;
 
     return `
-      <article class="route-card ${loading ? "loading" : ""} ${expanded && !collapsed ? "expanded" : ""} ${collapsed ? "collapsed" : ""} ${pinned ? "commute-pinned" : ""}">
+      <article class="route-card fast-card ${loading ? "loading" : ""} ${expanded ? "expanded" : ""} ${pinned ? "commute-pinned" : ""}">
         <div class="route-main">
-          <div class="route-main-top">
-            <div class="route-names">
-              <div class="route-kicker">
-                <span class="pill label">${escapeHtml(route.label || "루트")}</span>${pinned ? `<span class="commute-pin-badge">⏰ ${ctx.badge}</span>` : ""}
-                <span class="pill ${escapeHtml(priorityMeta.className)}">${escapeHtml(priorityLabel(route.priority))}</span>
-                <span class="pill transport">${escapeHtml(transportLabel(route.transportFilter))}</span>
+          <section class="fast-trip-panel">
+            <div class="fast-trip-head">
+              <div class="fast-trip-title">
+                ${iconSvg("map", 16)}
+                <strong>${escapeHtml(route.from?.name || "출발지")} → ${escapeHtml(route.to?.name || "도착지")}</strong>
               </div>
-              <div class="route-title">
-                ${escapeHtml(route.from?.name || "")}
-                <span class="arrow">→</span>
-                ${escapeHtml(route.to?.name || "")}
-              </div>
-              <div class="route-subtitle">
-                ${escapeHtml(priorityMeta.staleText)} · 마지막 확인 ${escapeHtml(formatTime(fetchedAt))}
+              <div class="fast-trip-menu">
+                <button class="fast-icon-btn" data-action="edit" data-id="${escapeHtml(route.id)}" aria-label="편집">${iconSvg("edit", 15)}</button>
+                <button class="fast-icon-btn" data-action="delete" data-id="${escapeHtml(route.id)}" aria-label="삭제">${iconSvg("trash", 15)}</button>
               </div>
             </div>
-            <div class="route-actions">
-              <button class="btn btn-primary" data-action="refresh" data-id="${escapeHtml(route.id)}">${loading ? "갱신 중..." : "추천 갱신"}</button>
-              <button class="btn btn-secondary" data-action="collapse" data-id="${escapeHtml(route.id)}">${collapsed ? "펼치기" : "접기"}</button>
-              <button class="btn btn-secondary" data-action="toggle" data-id="${escapeHtml(route.id)}">${expanded ? "상세 닫기" : "상세"}</button>
-              <button class="btn btn-ghost" data-action="edit" data-id="${escapeHtml(route.id)}">편집</button>
-              <button class="btn btn-ghost btn-danger" data-action="delete" data-id="${escapeHtml(route.id)}">삭제</button>
+            <div class="fast-metrics">
+              <div class="fast-metric arrive">
+                <strong>${escapeHtml(totalMin)}</strong>
+                <span>도착 · 분</span>
+              </div>
+              <div class="fast-metric transfer">
+                <strong>${escapeHtml(transfer)}</strong>
+                <span>환승 · 회</span>
+              </div>
+              <div class="fast-metric walk">
+                <strong>${escapeHtml(walk)}</strong>
+                <span>도보 · 분</span>
+              </div>
             </div>
-          </div>
-          ${summaryHtml}
+            <div class="fast-next-action">
+              <div class="label">먼저 할 일</div>
+              <div class="fast-next-row">
+                <strong>${escapeHtml(getFirstAction(primary))}</strong>
+                <span>→</span>
+              </div>
+            </div>
+            ${primary ? renderFastFlow(primary) : ""}
+            <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
+          </section>
+          <section class="fast-candidates">
+            ${compareCandidates.length ? compareCandidates.slice(0, 4).map((candidate, index) => renderFastCandidate(candidate, index, candidate.id === result?.recommendedId)).join("") : ""}
+          </section>
+          <section class="fast-detail">
+            <button class="fast-detail-toggle" data-action="toggle" data-id="${escapeHtml(route.id)}">
+              <div>
+                <strong>상세 경로</strong>
+                <span>필요할 때만 펼쳐서 확인</span>
+              </div>
+              ${iconSvg("chevron", 20)}
+            </button>
+            <div class="route-details">${detailsHtml}</div>
+          </section>
+          <button class="fast-refresh" data-action="refresh" data-id="${escapeHtml(route.id)}">${iconSvg("refresh", 16)} ${loading ? "계산 중..." : "실시간으로 다시 계산"}</button>
         </div>
-        <div class="route-details">${detailsHtml}</div>
       </article>
     `;
   }
@@ -3437,17 +4011,32 @@
   }
 
   async function fetchRouteRecommendationDirect(route, from, to) {
-    const pathType = route.transportFilter === "subway" ? "1" : route.transportFilter === "bus" ? "2" : "0";
-    const payload = await fetchOdsayDirect("searchPubTransPathR", {
+    const pathTypes = ["0", "2", "1"];
+    const responses = await Promise.allSettled(pathTypes.map((pathType) => fetchOdsayDirect("searchPubTransPathR", {
       SX: String(from.x),
       SY: String(from.y),
       EX: String(to.x),
       EY: String(to.y),
       SearchPathType: pathType,
       OPT: "0"
+    })));
+    const seen = new Set();
+    const rawPaths = [];
+    responses.forEach((response) => {
+      if (response.status !== "fulfilled") return;
+      (response.value.result?.path || []).forEach((path) => {
+        const key = (path.subPath || []).map((segment) => [
+          segment.trafficType,
+          segment.startName || "",
+          segment.endName || "",
+          segment.lane?.[0]?.busID || segment.lane?.[0]?.busNo || segment.lane?.[0]?.name || "",
+          segment.sectionTime || 0
+        ].join(":")).join("|");
+        if (seen.has(key)) return;
+        seen.add(key);
+        rawPaths.push(path);
+      });
     });
-
-    const rawPaths = payload.result?.path || [];
     if (!rawPaths.length) {
       throw new Error("조건에 맞는 경로가 없습니다");
     }
@@ -3492,24 +4081,10 @@
       let scoreDisplay = `${totalTime}분`;
       let note = "총 소요시간이 가장 짧은 후보를 우선합니다.";
 
-      if (route.priority === "fewest_transfers") {
-        scoreValue = transferCount * 1000 + totalTime;
-        scoreDisplay = `${transferCount}회`;
-        note = transferCount === 0 ? "환승 없이 가는 후보입니다." : `환승 ${transferCount}회 중 가장 단순한 후보입니다.`;
-      } else if (route.priority === "best_eta") {
-        if (unavailableBusRealtime) {
-          scoreValue = totalTime + transferTiming.transferWaitMin;
-          scoreDisplay = `${scoreValue}분`;
-          note = transferTiming.transferWaitMin > 0
-            ? `첫 탑승 실시간은 없지만 환승 대기 추정 ${transferTiming.transferWaitMin}분을 반영했습니다.`
-            : "서울시 버스 실시간 도착정보가 없어 첫 탑승 대기 없이 비교했습니다.";
-        } else {
-          scoreValue = totalTime + (firstWaitMin || 0) + transferTiming.transferWaitMin;
-          scoreDisplay = `${scoreValue}분`;
-          note = firstWaitMin != null
-            ? `첫 탑승 대기 ${firstWaitMin}분과 환승 대기 추정 ${transferTiming.transferWaitMin}분을 합쳐 비교했습니다.`
-            : "첫 탑승과 환승을 바로 연결할 수 있다고 보고 총 이동시간 기준으로 비교했습니다.";
-        }
+      if (route.priority === "best_eta") {
+        scoreValue = totalTime + (firstWaitMin || 0) + transferTiming.transferWaitMin;
+        scoreDisplay = `${scoreValue}분`;
+        note = "첫 탑승 대기와 총 이동시간을 함께 비교했습니다.";
       }
 
       const departAtMs = Date.now();
@@ -3551,18 +4126,40 @@
       });
     }
 
-    candidates.sort((a, b) => {
-      if (a.scoreValue !== b.scoreValue) return a.scoreValue - b.scoreValue;
-      if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
-      return a.transferCount - b.transferCount;
+    const byFastest = [...candidates].sort((a, b) => {
+      if (a.journeyMinutes !== b.journeyMinutes) return a.journeyMinutes - b.journeyMinutes;
+      if (a.transferCount !== b.transferCount) return a.transferCount - b.transferCount;
+      return a.walkTime - b.walkTime;
+    });
+    const byFewest = [...candidates].sort((a, b) => {
+      if (a.transferCount !== b.transferCount) return a.transferCount - b.transferCount;
+      if (a.journeyMinutes !== b.journeyMinutes) return a.journeyMinutes - b.journeyMinutes;
+      return a.walkTime - b.walkTime;
+    });
+    const fastest = byFastest[0];
+    const fewestTransfers = byFewest[0];
+    const featured = [];
+    const used = new Set();
+    [fastest, fewestTransfers, ...byFastest].forEach((candidate) => {
+      if (!candidate || used.has(candidate.id)) return;
+      used.add(candidate.id);
+      featured.push(candidate);
     });
 
-    return {
+    return tagRoutePicks({
       fetchedAt: new Date().toISOString(),
-      recommendedId: candidates[0].id,
-      recommendation: candidates[0],
-      candidates: candidates.slice(0, 4)
-    };
+      recommendedId: fastest.id,
+      recommendation: fastest,
+      picks: {
+        fastestId: fastest.id,
+        fewestTransfersId: fewestTransfers.id,
+        sameBest: fastest.id === fewestTransfers.id,
+        fastest,
+        fewestTransfers
+      },
+      candidates: featured.slice(0, 5),
+      mode: "overview_browser_fallback"
+    });
   }
 
   async function refreshRoute(routeId) {
@@ -3585,13 +4182,13 @@
         fromY: String(from.y),
         toX: String(to.x),
         toY: String(to.y),
-        priority: route.priority,
-        transportFilter: route.transportFilter
+        priority: "overview",
+        transportFilter: "all"
       });
 
       let payload;
       try {
-        payload = await fetchJson("/api/routes?" + params.toString());
+        payload = tagRoutePicks(await fetchJson("/api/routes?" + params.toString()));
       } catch (error) {
         payload = await fetchRouteRecommendationDirect(route, from, to);
         if (!silent) {

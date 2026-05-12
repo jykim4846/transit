@@ -14,6 +14,7 @@ const END_STATION_RADIUS = 600;
 const MAX_START_STATIONS = 4;
 const MAX_END_STATIONS = 6;
 const MAX_DIRECT_BUS_PAIRS = 12;
+const OVERVIEW_PATH_TYPES = ["0", "2", "1"];
 
 function toNumber(value) {
   const num = Number(value);
@@ -136,6 +137,57 @@ function getPathSectionTime(subPaths) {
 function inferTransferCount(info) {
   const rides = Number(info.busTransitCount || 0) + Number(info.subwayTransitCount || 0);
   return Math.max(0, rides - 1);
+}
+
+function getPathSignature(path) {
+  const subPaths = path.subPath || [];
+  return subPaths.map((segment) => {
+    const lane = normalizeLanes(segment)[0] || {};
+    return [
+      segment.trafficType,
+      segment.startName || "",
+      segment.endName || "",
+      lane.busID || lane.busNo || lane.name || "",
+      segment.sectionTime || 0
+    ].join(":");
+  }).join("|");
+}
+
+async function fetchTransitPaths(fromX, fromY, toX, toY, pathType) {
+  const payload = await fetchOdsay("searchPubTransPathR", {
+    SX: String(fromX),
+    SY: String(fromY),
+    EX: String(toX),
+    EY: String(toY),
+    SearchPathType: pathType,
+    OPT: "0"
+  });
+  return payload.result?.path || [];
+}
+
+async function collectTransitPaths(fromX, fromY, toX, toY, transportFilter) {
+  const pathTypes = transportFilter === "all"
+    ? OVERVIEW_PATH_TYPES
+    : [FILTER_TO_PATH_TYPE[transportFilter] || "0"];
+  const settled = await Promise.allSettled(
+    pathTypes.map((pathType) => fetchTransitPaths(fromX, fromY, toX, toY, pathType))
+  );
+  const paths = [];
+  const seen = new Set();
+
+  settled.forEach((result) => {
+    if (result.status !== "fulfilled") return;
+    result.value.forEach((path) => {
+      const key = getPathSignature(path);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      paths.push(path);
+    });
+  });
+
+  const firstError = settled.find((result) => result.status === "rejected")?.reason;
+  if (!paths.length && firstError) throw firstError;
+  return paths;
 }
 
 function normalizePointBusStation(entry) {
@@ -743,10 +795,48 @@ function chooseRecommendation(candidates, priority) {
   });
 }
 
+function getComparableMinutes(candidate) {
+  const journey = Number(candidate?.journeyMinutes);
+  if (Number.isFinite(journey) && journey > 0) return journey;
+  const score = Number(candidate?.scoreValue);
+  if (Number.isFinite(score) && score > 0) return score;
+  return Number(candidate?.totalTime || 0);
+}
+
+function chooseFastest(candidates) {
+  return [...candidates].sort((a, b) => {
+    const aMinutes = getComparableMinutes(a);
+    const bMinutes = getComparableMinutes(b);
+    if (aMinutes !== bMinutes) return aMinutes - bMinutes;
+    if (a.transferCount !== b.transferCount) return a.transferCount - b.transferCount;
+    return a.walkTime - b.walkTime;
+  });
+}
+
+function chooseFewestTransfers(candidates) {
+  return [...candidates].sort((a, b) => {
+    if (a.transferCount !== b.transferCount) return a.transferCount - b.transferCount;
+    const aMinutes = getComparableMinutes(a);
+    const bMinutes = getComparableMinutes(b);
+    if (aMinutes !== bMinutes) return aMinutes - bMinutes;
+    return a.walkTime - b.walkTime;
+  });
+}
+
+function candidateKey(candidate) {
+  return [
+    candidate.routeNo || candidate.firstTransitLabel || candidate.mode || "",
+    candidate.boardingStopName || "",
+    candidate.alightingStopName || "",
+    candidate.transferCount,
+    candidate.totalTime
+  ].join("|");
+}
+
 function deduplicateCandidates(sorted) {
   const seen = new Set();
   return sorted.filter((candidate) => {
-    const key = candidate.routeNo || candidate.firstTransitLabel || "";
+    const key = candidateKey(candidate);
     if (!key) return true;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -758,6 +848,47 @@ async function enrichCandidates(candidates, fromX, fromY, toX, toY) {
   return Promise.all(
     candidates.map((candidate) => maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY))
   );
+}
+
+function mergeFeaturedCandidates(featured, candidates, limit = 5) {
+  const merged = [];
+  const seen = new Set();
+  [...featured, ...candidates].forEach((candidate) => {
+    if (!candidate) return;
+    const key = candidate.id || candidateKey(candidate);
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(candidate);
+  });
+  return merged.slice(0, limit);
+}
+
+function buildOverviewResult(candidates, includeIndexStatusValue) {
+  const fastest = chooseFastest(candidates)[0];
+  const fewestTransfers = chooseFewestTransfers(candidates)[0];
+  const fastestId = fastest?.id || null;
+  const fewestTransfersId = fewestTransfers?.id || null;
+  const featured = mergeFeaturedCandidates(
+    [fastest, fewestTransfers],
+    chooseFastest(candidates),
+    5
+  );
+
+  return {
+    fetchedAt: new Date().toISOString(),
+    recommendedId: fastestId,
+    recommendation: fastest || null,
+    picks: {
+      fastestId,
+      fewestTransfersId,
+      sameBest: Boolean(fastestId && fewestTransfersId && fastestId === fewestTransfersId),
+      fastest,
+      fewestTransfers
+    },
+    candidates: featured,
+    mode: "overview",
+    indexStatus: includeIndexStatusValue
+  };
 }
 
 module.exports = async function handler(req, res) {
@@ -777,9 +908,32 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
   }
 
-  const pathType = FILTER_TO_PATH_TYPE[transportFilter] || "0";
-
   try {
+    if (priority === "overview") {
+      const rawPaths = await collectTransitPaths(fromX, fromY, toX, toY, transportFilter);
+      const candidates = rawPaths.map((path, index) => buildCandidate(path, index, "fastest", null));
+
+      if ((transportFilter === "all" || transportFilter === "bus") && getSeoulBusApiKey()) {
+        const directBusCandidates = await findBestDirectBusCandidates(fromX, fromY, toX, toY).catch(() => []);
+        candidates.push(...directBusCandidates.map((candidate, index) => ({
+          ...candidate,
+          id: `direct-overview-${index}-${candidate.id}`
+        })));
+      }
+
+      if (!candidates.length) {
+        return sendJson(res, 404, { error: "조건에 맞는 경로가 없습니다" });
+      }
+
+      await enqueueRouteNos([...new Set(candidates.map((candidate) => candidate.routeNo).filter(Boolean))], "runtime_refresh");
+      const enrichedCandidates = await enrichCandidates(candidates, fromX, fromY, toX, toY);
+      const sorted = deduplicateCandidates(chooseFastest(enrichedCandidates));
+      const indexStatus = includeIndexStatus ? await getCollectorStatus().catch(() => null) : undefined;
+      return sendJson(res, 200, buildOverviewResult(sorted, indexStatus));
+    }
+
+    const pathType = FILTER_TO_PATH_TYPE[transportFilter] || "0";
+
     if (priority === "best_eta" && transportFilter === "bus") {
       const directBusCandidates = await findBestDirectBusCandidates(fromX, fromY, toX, toY);
       if (directBusCandidates.length) {
@@ -798,16 +952,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const routePayload = await fetchOdsay("searchPubTransPathR", {
-      SX: String(fromX),
-      SY: String(fromY),
-      EX: String(toX),
-      EY: String(toY),
-      SearchPathType: pathType,
-      OPT: "0"
-    });
-
-    const rawPaths = routePayload.result?.path || [];
+    const rawPaths = await fetchTransitPaths(fromX, fromY, toX, toY, pathType);
     if (!rawPaths.length) {
       return sendJson(res, 404, { error: "조건에 맞는 경로가 없습니다" });
     }
