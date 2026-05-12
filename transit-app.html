@@ -2180,11 +2180,11 @@
     position: relative;
     margin-top: 18px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 28px;
-    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    background: #fff;
     padding: 14px;
-    backdrop-filter: blur(18px);
+    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
   }
 
   .fast-flow-head {
@@ -2192,14 +2192,14 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
   }
 
   .fast-flow-head .kicker {
     color: #94a3b8;
     font-size: 10px;
     font-weight: 900;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
   }
 
@@ -2233,19 +2233,88 @@
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.13);
   }
 
-  .fast-flow-track {
+  .fast-flow-timeline {
     position: relative;
-    height: 24px;
-    overflow: visible;
-    border-radius: 999px;
-    background: #f1f5f9;
+    margin-top: 18px;
   }
 
-  .fast-flow-track::before {
+  .fast-flow-timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 22px;
+    height: 6px;
+    border-radius: 999px;
+    background: #e2e8f0;
+  }
+
+  .fast-flow-nodes {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 80px;
+  }
+
+  .fast-flow-node {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .fast-flow-dot {
+    position: relative;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  }
+
+  .fast-flow-dot.walk { background: #cbd5e1; }
+  .fast-flow-dot.bus { background: #60a5fa; }
+  .fast-flow-dot.wait { background: #fbcfe8; }
+  .fast-flow-dot.subway { background: #1d4ed8; }
+
+  .fast-flow-label {
+    max-width: 72px;
+    margin-top: 11px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 5px 8px;
+    font-size: 10px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fast-flow-minutes {
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .fast-flow-mini-track {
+    position: relative;
+    height: 20px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e2e8f0;
+  }
+
+  .fast-flow-mini-track::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: inherit;
     opacity: 0.46;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.96), transparent);
     background-size: 160px 100%;
@@ -2267,8 +2336,8 @@
 
   .fast-flow-seg {
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     min-width: 0;
     color: rgba(255, 255, 255, 0.92);
     font-size: 9px;
@@ -2285,66 +2354,85 @@
   .fast-flow-vehicle,
   .fast-flow-glow {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     pointer-events: none;
   }
 
   .fast-flow-vehicle {
     z-index: 4;
     left: 8%;
-    width: 38px;
-    height: 38px;
+    top: 6px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 4px solid #fff;
     border-radius: 999px;
-    background: linear-gradient(135deg, #3b82f6, #4f46e5);
-    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
+    background: #3b82f6;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.36);
     color: #fff;
     font-size: 10px;
     font-weight: 900;
     letter-spacing: 0;
-    animation: fast-vehicle-sweep 7s ease-in-out infinite;
+    animation: fast-vehicle-sweep 6.5s ease-in-out infinite;
   }
 
   .fast-flow-glow {
     z-index: 3;
     left: 5%;
-    width: 58px;
-    height: 58px;
+    top: -6px;
+    width: 52px;
+    height: 52px;
     border-radius: 999px;
     background: rgba(147, 197, 253, 0.24);
     filter: blur(14px);
-    animation: fast-glow-sweep 7s ease-in-out infinite;
+    animation: fast-glow-sweep 6.5s ease-in-out infinite;
   }
 
   @keyframes fast-vehicle-sweep {
-    0%, 100% { left: 8%; }
-    50% { left: 72%; }
+    0%, 100% { left: 6%; }
+    50% { left: 78%; }
   }
 
   @keyframes fast-glow-sweep {
-    0%, 100% { left: 4%; }
-    50% { left: 68%; }
+    0%, 100% { left: 2%; }
+    50% { left: 74%; }
   }
 
-  .fast-flow-stops {
+  .fast-flow-status {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 12px;
+    margin-top: 16px;
+    border-radius: 18px;
+    background: #f8fafc;
+    padding: 12px 14px;
+  }
+
+  .fast-flow-status .label {
     color: #94a3b8;
     font-size: 11px;
     font-weight: 900;
   }
 
-  .fast-flow-stops span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .fast-flow-status strong {
+    display: block;
+    margin-top: 4px;
+    color: #1e293b;
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 900;
+  }
+
+  .fast-flow-eta {
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 900;
   }
 
   .fast-flow.compact {
@@ -2356,11 +2444,12 @@
   }
 
   .fast-flow.compact .fast-flow-head,
-  .fast-flow.compact .fast-flow-stops {
+  .fast-flow.compact .fast-flow-timeline,
+  .fast-flow.compact .fast-flow-status {
     display: none;
   }
 
-  .fast-flow.compact .fast-flow-track {
+  .fast-flow.compact .fast-flow-mini-track {
     height: 20px;
   }
 
@@ -3181,6 +3270,20 @@
     return ["출발", "이동 중", "도착"];
   }
 
+  function getFastFlowStatus(candidate, stops) {
+    const firstRide = (candidate?.segments || []).find((segment) => segment.type === "bus" || segment.kind === "버스")
+      || (candidate?.segments || []).find((segment) => segment.type === "subway" || segment.kind === "지하철");
+    const label = firstRide?.label || candidate?.firstTransitLabel || "이동";
+    const target = stops?.[1] || candidate?.boardingStopName || "다음 정류장";
+    const eta = candidate?.firstWaitMin != null
+      ? `${candidate.firstWaitMin}분 후 도착`
+      : `${Math.max(1, Math.min(9, Math.round(Number(firstRide?.minutes || candidate?.totalTime || 3) / 3)))}분 후 도착`;
+    return {
+      text: `${label}이 ${target} 접근 중`,
+      eta
+    };
+  }
+
   function renderFastFlow(candidate, options = {}) {
     const compact = Boolean(options.compact);
     const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
@@ -3196,22 +3299,37 @@
       return `<span class="fast-flow-seg ${escapeHtml(seg.type)}" style="width:${pct}%;">${label}</span>`;
     }).join("");
     const stops = getFastFlowStops(candidate);
+    const status = getFastFlowStatus(candidate, stops);
+    const nodes = segments.slice(0, 5).map((seg) => `
+      <div class="fast-flow-node">
+        <span class="fast-flow-dot ${escapeHtml(seg.type)}"></span>
+        <span class="fast-flow-label">${escapeHtml(seg.label || seg.type)}</span>
+        <span class="fast-flow-minutes">${escapeHtml(Math.round(seg.minutes))}분</span>
+      </div>
+    `).join("");
     return `
       <div class="fast-flow ${compact ? "compact" : ""}">
         <div class="fast-flow-head">
           <div>
-            <div class="kicker">live route</div>
-            <strong>실시간 버스 위치</strong>
+            <div class="kicker">realtime route</div>
+            <strong>실시간 이동 흐름</strong>
           </div>
           <div class="fast-flow-live">LIVE</div>
         </div>
-        <div class="fast-flow-track">
-          <div class="fast-flow-inner">${html}</div>
+        <div class="fast-flow-timeline">
+          <div class="fast-flow-nodes">${nodes}</div>
           <div class="fast-flow-glow"></div>
           <div class="fast-flow-vehicle">BUS</div>
         </div>
-        <div class="fast-flow-stops">
-          ${stops.map((stop) => `<span>${escapeHtml(stop)}</span>`).join("")}
+        <div class="fast-flow-mini-track">
+          <div class="fast-flow-inner">${html}</div>
+        </div>
+        <div class="fast-flow-status">
+          <div>
+            <div class="label">현재 상태</div>
+            <strong>${escapeHtml(status.text)}</strong>
+          </div>
+          <div class="fast-flow-eta">${escapeHtml(status.eta)}</div>
         </div>
       </div>
     `;
