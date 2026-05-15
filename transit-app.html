@@ -202,8 +202,53 @@
   }
 
   .route-list {
-    display: grid;
-    gap: 14px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-padding-inline: 8px;
+    padding: 6px 8px 18px;
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+
+  .route-list::-webkit-scrollbar { display: none; }
+
+  .route-list > .route-card {
+    flex: 0 0 calc(100% - 16px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .route-list:has(> .empty-state) {
+    overflow: visible;
+    display: block;
+  }
+
+  .route-pager {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .route-pager:empty { display: none; }
+
+  .route-pager .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.18);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .route-pager .dot.active {
+    background: #1e7a5f;
+    transform: scale(1.3);
   }
 
   .route-card {
@@ -2669,13 +2714,28 @@
   }
 
   .fast-candidates {
-    display: grid;
-    gap: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
     margin-top: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 4px 8px;
+    margin-left: -4px;
+    margin-right: -4px;
+    scroll-padding-inline: 4px;
   }
 
+  .fast-candidates::-webkit-scrollbar { display: none; }
+
+  .fast-candidates:empty { display: none; }
+
   .fast-candidate {
-    width: 100%;
+    flex: 0 0 calc(88% - 8px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
     text-align: left;
     border: 1px solid rgba(255, 255, 255, 0.8);
     border-radius: 32px;
@@ -2979,6 +3039,7 @@
       </div>
       <section>
     <div class="route-list" id="route-list"></div>
+    <div class="route-pager" id="route-pager"></div>
         <div class="fast-footer">저장 루트 <span id="route-count">0개 루트</span></div>
       </section>
     </div>
@@ -4767,18 +4828,79 @@
 
   function renderRoutes() {
     const list = document.getElementById("route-list");
+    const pager = document.getElementById("route-pager");
     document.getElementById("route-count").textContent = state.routes.length + "개 루트";
     if (state.routes.length === 0) {
       list.innerHTML = renderEmptyCard();
+      if (pager) pager.innerHTML = "";
       state.lastCommutePhase = getCommuteContext()?.phase || null;
       teardownLiveMaps();
       return;
     }
     const ctx = getCommuteContext();
     teardownLiveMaps();
-    list.innerHTML = getOrderedRoutes().map((r) => renderRouteCard(r, ctx)).join("");
+    const orderedRoutes = getOrderedRoutes();
+    list.innerHTML = orderedRoutes.map((r) => renderRouteCard(r, ctx)).join("");
+    renderRoutePager(orderedRoutes);
     requestAnimationFrame(initLiveTransitMaps);
     state.lastCommutePhase = ctx?.phase || null;
+  }
+
+  function renderRoutePager(routes) {
+    const pager = document.getElementById("route-pager");
+    if (!pager) return;
+    if (!routes || routes.length <= 1) {
+      pager.innerHTML = "";
+      return;
+    }
+    pager.innerHTML = routes
+      .map((_, index) => `<button type="button" class="dot${index === 0 ? " active" : ""}" data-route-page="${index}" aria-label="${index + 1}번째 루트"></button>`)
+      .join("");
+  }
+
+  function setActiveRoutePage(index) {
+    const pager = document.getElementById("route-pager");
+    if (!pager) return;
+    pager.querySelectorAll(".dot").forEach((dot) => {
+      const matches = Number(dot.dataset.routePage) === index;
+      dot.classList.toggle("active", matches);
+    });
+  }
+
+  function bindRouteCarousel() {
+    const list = document.getElementById("route-list");
+    const pager = document.getElementById("route-pager");
+    if (!list || !pager) return;
+    let scrollRaf = 0;
+    list.addEventListener("scroll", () => {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = 0;
+        const cards = Array.from(list.querySelectorAll(".route-card"));
+        if (!cards.length) return;
+        const center = list.scrollLeft + list.clientWidth / 2;
+        let bestIndex = 0;
+        let bestDistance = Infinity;
+        cards.forEach((card, index) => {
+          const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+          const distance = Math.abs(cardCenter - center);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            bestIndex = index;
+          }
+        });
+        setActiveRoutePage(bestIndex);
+      });
+    }, { passive: true });
+
+    pager.addEventListener("click", (event) => {
+      const target = event.target.closest("[data-route-page]");
+      if (!target) return;
+      const index = Number(target.dataset.routePage);
+      const cards = list.querySelectorAll(".route-card");
+      const card = cards[index];
+      if (card) card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    });
   }
 
   function showToast(message) {
@@ -5527,6 +5649,8 @@
     document.getElementById("modal-overlay").addEventListener("click", (event) => {
       if (event.target.id === "modal-overlay") closeModal();
     });
+
+    bindRouteCarousel();
 
     document.getElementById("route-list").addEventListener("click", (event) => {
       const target = event.target.closest("[data-action]");
