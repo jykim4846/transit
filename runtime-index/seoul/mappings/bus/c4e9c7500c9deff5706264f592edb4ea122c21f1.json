@@ -1,0 +1,19 @@
+{
+  "key": "c4e9c7500c9deff5706264f592edb4ea122c21f1",
+  "mapping": {
+    "routeNo": "110A",
+    "routeId": "100100016",
+    "stationId": "113000086",
+    "stationSeq": 49,
+    "stationName": "동도중학교.서울디자인고등학교",
+    "alightingStationId": "112000064",
+    "alightingStationSeq": 56,
+    "alightingStationName": "연희동대우아파트",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:46.396Z"
+  },
+  "source": "odsay_direct"
+}
