@@ -1,0 +1,14 @@
+{
+  "routeNo": "6628",
+  "collectedAt": "2026-05-15T05:26:23.402Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100305",
+      "routeNo": "6628",
+      "routeType": "4",
+      "startName": "외발산동",
+      "endName": "여의도"
+    }
+  ]
+}
