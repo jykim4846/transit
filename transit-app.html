@@ -2330,6 +2330,46 @@
     animation: stop-pulse 1.9s ease-out infinite;
   }
 
+  .kakao-stop-dot {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #94a3b8;
+    box-shadow: 0 4px 9px rgba(15, 23, 42, 0.18);
+  }
+
+  .kakao-stop-dot.boarding {
+    width: 22px;
+    height: 22px;
+    border-width: 4px;
+    background: #2563eb;
+  }
+
+  .kakao-stop-dot.alighting {
+    width: 18px;
+    height: 18px;
+    border-width: 3px;
+    background: #f97316;
+  }
+
+  .kakao-bus-overlay .kakao-bus-label {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+    animation: none;
+  }
+
   .fast-flow-head {
     position: absolute;
     z-index: 6;
@@ -3769,27 +3809,6 @@
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
-  function animateKakaoBuses(entry, points) {
-    const baseDuration = 18000;
-    const startMs = performance.now();
-    const step = (now) => {
-      if (!entry.container?.isConnected) return;
-      let active = false;
-      entry.busOverlays.forEach((bus) => {
-        const duration = baseDuration + bus.index * 5000;
-        const progress = Math.min(1, (now - startMs) / duration);
-        const eased = easeInOutCubic(progress);
-        const position = interpolatePoint(bus.start, points.boardingStop, eased);
-        bus.overlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
-        if (progress < 1) active = true;
-      });
-      if (active) {
-        entry.animationFrame = requestAnimationFrame(step);
-      }
-    };
-    entry.animationFrame = requestAnimationFrame(step);
-  }
-
   const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
 
   async function initLiveTransitMaps() {
@@ -3854,15 +3873,55 @@
         center: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
         level: 5
       });
-      const path = points.approachPolylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
-      const polyline = new maps.Polyline({
-        path,
+      const approachPath = points.approachPolylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
+      const approachPolyline = new maps.Polyline({
+        path: approachPath,
         strokeWeight: 7,
         strokeColor: "#2563eb",
         strokeOpacity: 0.74,
         strokeStyle: "solid"
       });
-      polyline.setMap(map);
+      approachPolyline.setMap(map);
+
+      const ridingStops = candidate?.busApproachPreview?.ridingStops || [];
+      const ridingPathPoints = ridingStops
+        .map((stop) => ({ lat: Number(stop.lat), lng: Number(stop.lng) }))
+        .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+      let ridingPolyline = null;
+      if (ridingPathPoints.length >= 2) {
+        ridingPolyline = new maps.Polyline({
+          path: ridingPathPoints.map((p) => new maps.LatLng(p.lat, p.lng)),
+          strokeWeight: 7,
+          strokeColor: "#16a34a",
+          strokeOpacity: 0.82,
+          strokeStyle: "solid"
+        });
+        ridingPolyline.setMap(map);
+      }
+
+      const previewStops = candidate?.busApproachPreview?.stops || [];
+      const stopsForMarkers = new Map();
+      [...previewStops, ...ridingStops].forEach((stop) => {
+        const lat = Number(stop.lat);
+        const lng = Number(stop.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        const key = String(stop.stationId || `${lat},${lng}`);
+        if (!stopsForMarkers.has(key)) stopsForMarkers.set(key, { ...stop, lat, lng });
+      });
+      const stopOverlays = Array.from(stopsForMarkers.values()).map((stop) => {
+        const cls = stop.isBoarding ? "kakao-stop-dot boarding"
+          : stop.isAlighting ? "kakao-stop-dot alighting"
+          : "kakao-stop-dot";
+        const overlay = new maps.CustomOverlay({
+          position: new maps.LatLng(stop.lat, stop.lng),
+          content: overlayContent("", cls),
+          xAnchor: 0.5,
+          yAnchor: 0.5,
+          zIndex: stop.isBoarding ? 3 : stop.isAlighting ? 3 : 2
+        });
+        overlay.setMap(map);
+        return overlay;
+      });
 
       const userOverlay = new maps.CustomOverlay({
         position: new maps.LatLng(points.user.lat, points.user.lng),
@@ -3870,41 +3929,142 @@
         xAnchor: 0.5,
         yAnchor: 0.5
       });
-      const stopOverlay = new maps.CustomOverlay({
-        position: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
-        content: overlayContent("", "kakao-stop-overlay"),
-        xAnchor: 0.5,
-        yAnchor: 0.5
-      });
-      const busOverlays = points.busPoints.map((bus, index) => ({
-        index,
-        start: bus.point,
-        overlay: new maps.CustomOverlay({
-          position: new maps.LatLng(bus.point.lat, bus.point.lng),
-          content: overlayContent("", `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
-          xAnchor: 0.5,
-          yAnchor: 0.5
-        })
-      }));
-
       userOverlay.setMap(map);
-      stopOverlay.setMap(map);
-      busOverlays.forEach((bus) => bus.overlay.setMap(map));
+
+      const initialVehicles = candidate?.busApproachPreview?.vehicles || [];
+      const busOverlays = initialVehicles.map((vehicle, index) => {
+        const pos = vehicleLatLng(vehicle, previewStops) || points.boardingStop;
+        const overlay = new maps.CustomOverlay({
+          position: new maps.LatLng(pos.lat, pos.lng),
+          content: overlayContent(busLabelHtml(vehicle), `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
+          xAnchor: 0.5,
+          yAnchor: 0.5,
+          zIndex: 10 - index
+        });
+        overlay.setMap(map);
+        return { key: vehicle.key, index, overlay, position: { ...pos } };
+      });
 
       const bounds = new maps.LatLngBounds();
       [
-        ...path,
+        ...approachPath,
+        ...ridingPathPoints.map((p) => new maps.LatLng(p.lat, p.lng)),
         new maps.LatLng(points.user.lat, points.user.lng),
-        new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
-        ...points.busPoints.map((bus) => new maps.LatLng(bus.point.lat, bus.point.lng))
+        ...busOverlays.map((b) => new maps.LatLng(b.position.lat, b.position.lng))
       ].forEach((point) => bounds.extend(point));
       map.setBounds(bounds, 24, 24, 24, 24);
       if (fallback) fallback.style.display = "none";
 
-      const entry = { maps, map, container, userOverlay, stopOverlay, busOverlays, polyline, animationFrame: null };
+      const entry = {
+        maps, map, container, userOverlay, stopOverlays, busOverlays,
+        approachPolyline, ridingPolyline,
+        previewStops, animationFrame: null, pollTimer: null
+      };
       state.liveMaps[routeId] = entry;
-      if (busOverlays.length) animateKakaoBuses(entry, points);
+      startBusPolling(routeId, candidate);
     });
+  }
+
+  function vehicleLatLng(vehicle, stops) {
+    if (vehicle?.gpsLat != null && vehicle?.gpsLng != null) {
+      const lat = Number(vehicle.gpsLat);
+      const lng = Number(vehicle.gpsLng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
+    }
+    return pointAtSeq(stops || [], vehicle?.progressSeq);
+  }
+
+  function busLabelHtml(vehicle) {
+    const parts = [escapeHtml(vehicle.label || "다음")];
+    if (vehicle.catchable === false) {
+      parts.push(`${escapeHtml(vehicle.remainingStops || 0)}정거장 뒤`);
+    } else {
+      parts.push(`${escapeHtml(vehicle.remainingStops || 0)}정거장 전`);
+    }
+    if (vehicle.etaMinutes != null) {
+      parts.push(vehicle.catchable === false
+        ? `${escapeHtml(vehicle.passedAgoMinutes ?? vehicle.etaMinutes)}분 전 통과`
+        : `${escapeHtml(vehicle.etaMinutes)}분 후`);
+    }
+    return `<span class="kakao-bus-label">${parts.join(" · ")}</span>`;
+  }
+
+  function startBusPolling(routeId, candidate) {
+    stopBusPolling(routeId);
+    if (!candidate?.busRouteId || !candidate?.boardingStationId) return;
+    const params = new URLSearchParams({
+      routeId: String(candidate.busRouteId),
+      boardingStationId: String(candidate.boardingStationId),
+      alightingStationId: candidate.alightingStationId ? String(candidate.alightingStationId) : "",
+      walkMinutes: String(candidate.initialWalkTime || 0)
+    });
+    const url = `/api/bus-positions?${params.toString()}`;
+    const poll = async () => {
+      const entry = state.liveMaps[routeId];
+      if (!entry?.map) return;
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        updateLiveVehicles(routeId, data?.preview);
+      } catch {}
+    };
+    state.liveMaps[routeId].pollTimer = setInterval(poll, 20000);
+  }
+
+  function stopBusPolling(routeId) {
+    const entry = state.liveMaps[routeId];
+    if (entry?.pollTimer) {
+      clearInterval(entry.pollTimer);
+      entry.pollTimer = null;
+    }
+  }
+
+  function tweenOverlayPosition(maps, overlay, fromPos, toPos, durationMs = 700) {
+    const startMs = performance.now();
+    const step = (now) => {
+      const ratio = Math.min(1, (now - startMs) / durationMs);
+      const eased = easeInOutCubic(ratio);
+      const lat = fromPos.lat + (toPos.lat - fromPos.lat) * eased;
+      const lng = fromPos.lng + (toPos.lng - fromPos.lng) * eased;
+      overlay.setPosition(new maps.LatLng(lat, lng));
+      if (ratio < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function updateLiveVehicles(routeId, preview) {
+    const entry = state.liveMaps[routeId];
+    if (!entry || !preview?.vehicles) return;
+    const vehicles = preview.vehicles;
+    const stops = preview.stops || entry.previewStops || [];
+    const nextOverlays = [];
+    vehicles.forEach((vehicle, index) => {
+      const targetPos = vehicleLatLng(vehicle, stops);
+      if (!targetPos) return;
+      const existing = entry.busOverlays.find((b) => b.key === vehicle.key);
+      if (existing) {
+        const labelEl = existing.overlay.getContent().querySelector(".kakao-bus-label");
+        if (labelEl) labelEl.outerHTML = busLabelHtml(vehicle);
+        tweenOverlayPosition(entry.maps, existing.overlay, existing.position, targetPos);
+        existing.position = targetPos;
+        nextOverlays.push(existing);
+      } else {
+        const overlay = new entry.maps.CustomOverlay({
+          position: new entry.maps.LatLng(targetPos.lat, targetPos.lng),
+          content: overlayContent(busLabelHtml(vehicle), `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
+          xAnchor: 0.5,
+          yAnchor: 0.5,
+          zIndex: 10 - index
+        });
+        overlay.setMap(entry.map);
+        nextOverlays.push({ key: vehicle.key, index, overlay, position: { ...targetPos } });
+      }
+    });
+    entry.busOverlays.forEach((bus) => {
+      if (!nextOverlays.find((next) => next.key === bus.key)) bus.overlay.setMap(null);
+    });
+    entry.busOverlays = nextOverlays;
   }
 
   function renderFastFlow(candidate, options = {}) {
@@ -4597,8 +4757,9 @@
   }
 
   function teardownLiveMaps() {
-    Object.values(state.liveMaps).forEach((entry) => {
+    Object.entries(state.liveMaps).forEach(([routeId, entry]) => {
       if (entry?.animationFrame) cancelAnimationFrame(entry.animationFrame);
+      if (entry?.pollTimer) clearInterval(entry.pollTimer);
     });
     state.liveMaps = {};
     Object.keys(state.liveMapTimers).forEach((routeId) => clearLiveMapTimer(routeId));

@@ -506,6 +506,22 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
   const previewStops = stops.filter((stop) => stop.seq >= approachStartSeq && stop.seq <= mapping.stationSeq);
   if (!previewStops.length) return null;
 
+  const boardingSeq = Number(mapping.stationSeq);
+  const alightingSeq = Number(mapping.alightingStationSeq);
+  const ridingStops = (Number.isFinite(alightingSeq) && alightingSeq > boardingSeq)
+    ? stops
+        .filter((stop) => stop.seq >= boardingSeq && stop.seq <= alightingSeq)
+        .map((stop) => ({
+          seq: stop.seq,
+          name: stop.name,
+          stationId: stop.stationId,
+          lat: stop.lat,
+          lng: stop.lng,
+          isBoarding: String(stop.stationId) === String(mapping.stationId),
+          isAlighting: String(stop.stationId) === String(mapping.alightingStationId)
+        }))
+    : [];
+
   const minSeq = previewStops[0].seq;
   const cellCount = previewStops.length;
 
@@ -515,6 +531,9 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
     boardingStopName: mapping.stationName,
     boardingStationId: mapping.stationId,
     boardingStationSeq: mapping.stationSeq,
+    alightingStopName: mapping.alightingStationName || null,
+    alightingStationId: mapping.alightingStationId || null,
+    alightingStationSeq: Number.isFinite(alightingSeq) ? alightingSeq : null,
     approachStartSeq,
     approachDirectionFrom: previewStops[0]?.name || "",
     stops: previewStops.map((stop) => ({
@@ -526,16 +545,80 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
       isBoarding: String(stop.stationId) === String(mapping.stationId),
       isAlighting: String(stop.stationId) === String(mapping.alightingStationId)
     })),
-    vehicles: approaching.map((vehicle, index) => ({
-      key: vehicle.vehicleId,
-      label: index === 0 ? "다음" : (index === 1 ? "다다음" : "세번째"),
-      plateNoMasked: maskPlateNo(vehicle.plateNo),
-      remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
-      nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
-      progressSeq: vehicle.progressSeq,
-      progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq + 0.5) / cellCount) * 100))
-    }))
+    ridingStops,
+    vehicles: approaching.map((vehicle, index) => {
+      const lat = Number(vehicle.gpsY);
+      const lng = Number(vehicle.gpsX);
+      return {
+        key: vehicle.vehicleId,
+        label: index === 0 ? "다음" : (index === 1 ? "다다음" : "세번째"),
+        plateNoMasked: maskPlateNo(vehicle.plateNo),
+        remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
+        nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
+        progressSeq: vehicle.progressSeq,
+        progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq + 0.5) / cellCount) * 100)),
+        gpsLat: Number.isFinite(lat) ? lat : null,
+        gpsLng: Number.isFinite(lng) ? lng : null,
+        dataTime: vehicle.dataTime || null
+      };
+    })
   };
+}
+
+function decorateVehiclesWithArrival(preview, arrivalInfo) {
+  if (!preview?.vehicles || !arrivalInfo) return preview;
+  const arrivalSecondsSorted = arrivalInfo.arrivalSecondsSorted || [];
+  const arrivalAtMsSorted = arrivalInfo.arrivalAtMsSorted || [];
+  const walkSeconds = arrivalInfo.walkSeconds || 0;
+  const fetchedAtMs = arrivalInfo.fetchedAtMs || Date.now();
+  preview.fetchedAt = new Date(fetchedAtMs).toISOString();
+  preview.walkSeconds = walkSeconds;
+  preview.vehicles.forEach((vehicle, index) => {
+    const eta = arrivalSecondsSorted[index];
+    const etaAtMs = arrivalAtMsSorted[index];
+    if (eta != null) {
+      vehicle.etaSeconds = eta;
+      vehicle.etaMinutes = Math.max(0, Math.ceil(eta / 60));
+      vehicle.etaAt = new Date(etaAtMs).toISOString();
+      vehicle.catchable = eta >= walkSeconds;
+      if (!vehicle.catchable) {
+        vehicle.passedAgoMinutes = Math.max(0, Math.ceil((walkSeconds - eta) / 60));
+      }
+    } else {
+      vehicle.etaSeconds = null;
+      vehicle.etaMinutes = null;
+      vehicle.etaAt = null;
+      vehicle.catchable = true;
+    }
+  });
+  return preview;
+}
+
+async function getLiveBusPreview({ routeId, boardingStationId, alightingStationId, walkMinutes }) {
+  if (!routeId || !boardingStationId) return null;
+  const stops = await getOrFetchStops(routeId);
+  if (!stops.length) return null;
+  const board = stops.find((stop) => String(stop.stationId) === String(boardingStationId));
+  if (!board) return null;
+  const alight = alightingStationId
+    ? stops.find((stop) => String(stop.stationId) === String(alightingStationId) && stop.seq > board.seq)
+    : null;
+  const mapping = {
+    routeId: String(routeId),
+    stationId: String(board.stationId),
+    stationSeq: Number(board.seq),
+    stationName: board.name,
+    alightingStationId: alight ? String(alight.stationId) : null,
+    alightingStationSeq: alight ? Number(alight.seq) : null,
+    alightingStationName: alight ? alight.name : null
+  };
+  const [preview, arrival] = await Promise.all([
+    getBusApproachPreview(mapping).catch(() => null),
+    getSeoulBusArrival(mapping, walkMinutes || 0).catch(() => null)
+  ]);
+  if (!preview) return null;
+  if (arrival) decorateVehiclesWithArrival(preview, arrival);
+  return { preview, arrival, mapping };
 }
 
 module.exports = {
@@ -545,5 +628,7 @@ module.exports = {
   resolveBusMapping,
   getSeoulBusArrival,
   getBusApproachPreview,
+  decorateVehiclesWithArrival,
+  getLiveBusPreview,
   normalizeRouteNo
 };

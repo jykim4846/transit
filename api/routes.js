@@ -1,5 +1,5 @@
 const { fetchOdsay, sendJson } = require("./_odsay");
-const { enqueueRouteNos, resolveBusMapping, getSeoulBusArrival, getBusApproachPreview, getCollectorStatus } = require("./_mapping-index");
+const { enqueueRouteNos, resolveBusMapping, getSeoulBusArrival, getBusApproachPreview, getCollectorStatus, decorateVehiclesWithArrival } = require("./_mapping-index");
 const { getSeoulBusApiKey } = require("./_seoul-bus");
 
 const FILTER_TO_PATH_TYPE = {
@@ -784,28 +784,7 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const walkSeconds = arrivalInfo.walkSeconds || 0;
     const fetchedAtMs = arrivalInfo.fetchedAtMs || Date.now();
 
-    if (busApproachPreview?.vehicles) {
-      busApproachPreview.fetchedAt = new Date(fetchedAtMs).toISOString();
-      busApproachPreview.walkSeconds = walkSeconds;
-      busApproachPreview.vehicles.forEach((vehicle, index) => {
-        const eta = arrivalSecondsSorted[index];
-        const etaAtMs = arrivalAtMsSorted[index];
-        if (eta != null) {
-          vehicle.etaSeconds = eta;
-          vehicle.etaMinutes = Math.max(0, Math.ceil(eta / 60));
-          vehicle.etaAt = new Date(etaAtMs).toISOString();
-          vehicle.catchable = eta >= walkSeconds;
-          if (!vehicle.catchable) {
-            vehicle.passedAgoMinutes = Math.max(0, Math.ceil((walkSeconds - eta) / 60));
-          }
-        } else {
-          vehicle.etaSeconds = null;
-          vehicle.etaMinutes = null;
-          vehicle.etaAt = null;
-          vehicle.catchable = true;
-        }
-      });
-    }
+    decorateVehiclesWithArrival(busApproachPreview, arrivalInfo);
 
     const effectiveWait = arrivalInfo.waitMin;
     const totalTime = candidate.totalTime;
