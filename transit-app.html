@@ -2650,6 +2650,50 @@
     box-shadow: 0 20px 50px rgba(96, 165, 250, 0.22);
   }
 
+  .fast-candidate {
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  }
+
+  .fast-candidate:hover {
+    transform: translateY(-1px);
+    border-color: rgba(15, 23, 42, 0.45);
+  }
+
+  .fast-candidate.active {
+    border-color: #2563eb;
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.85));
+    box-shadow: 0 22px 50px rgba(37, 99, 235, 0.22);
+    transform: translateY(-1px);
+  }
+
+  .fast-candidate:not(.active):not(.recommended) {
+    opacity: 0.86;
+  }
+
+  .fast-candidate:not(.active):not(.recommended):hover {
+    opacity: 1;
+  }
+
+  .fast-selection-hint {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .live-map-fallback {
+    text-align: left;
+  }
+
+  .live-map-fallback.no-bus strong {
+    color: #1d4ed8;
+  }
+
   .fast-candidate-top {
     display: flex;
     justify-content: space-between;
@@ -3069,9 +3113,11 @@
     collapsedRouteIds: new Set(JSON.parse(localStorage.getItem(ROUTE_CARD_COLLAPSED_KEY) || "[]")),
     loadingRouteIds: new Set(),
     expandedRouteIds: new Set(),
+    selectedCandidateIds: {},
     modalRouteId: null,
     previewMaps: {},
     liveMaps: {},
+    liveMapTimers: {},
     userLocation: null,
     locationWatchId: null,
     mapPickerTarget: null,
@@ -3080,6 +3126,29 @@
       to: null
     }
   };
+
+  function getSelectedCandidate(route) {
+    const result = route?.lastResult;
+    if (!result) return null;
+    const candidates = result.candidates || [];
+    const selectedId = state.selectedCandidateIds[route.id];
+    if (selectedId) {
+      const match = candidates.find((c) => c.id === selectedId);
+      if (match) return match;
+    }
+    return result.recommendation || candidates[0] || null;
+  }
+
+  function selectCandidate(routeId, candidateId) {
+    const route = state.routes.find((item) => item.id === routeId);
+    if (!route) return;
+    const candidates = route.lastResult?.candidates || [];
+    const exists = candidates.some((c) => c.id === candidateId);
+    if (!exists) return;
+    if (state.selectedCandidateIds[routeId] === candidateId) return;
+    state.selectedCandidateIds[routeId] = candidateId;
+    renderRoutes();
+  }
 
   function uid() {
     return typeof crypto !== "undefined" && crypto.randomUUID
@@ -3606,12 +3675,27 @@
     const origin = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
     const destination = toLatLngPoint(route?.to) || null;
     const user = state.userLocation || origin;
+    const hasBusLeg = (candidate?.segments || []).some((segment) => inferSegmentType(segment) === "bus");
     const boarding = getBoardingStopPoint(candidate, origin);
     const approachPoints = getApproachStopPoints(candidate);
     const approachingBuses = getRealtimeBusPoints(candidate);
+    if (!hasBusLeg) {
+      return {
+        canRenderMap: false,
+        fallbackReason: "no_bus",
+        fallbackMessage: "실시간 차량 추적 없음",
+        origin,
+        destination,
+        user,
+        boardingStop: boarding,
+        busPoints: [],
+        approachPolylinePoints: []
+      };
+    }
     if (approachPoints.length < 2) {
       return {
         canRenderMap: false,
+        fallbackReason: "no_approach",
         fallbackMessage: "실시간 차량 방향 정보를 확인 중이에요",
         origin,
         destination,
@@ -3630,6 +3714,55 @@
       busPoints: approachingBuses,
       approachPolylinePoints: approachPoints
     };
+  }
+
+  function renderLiveMapFallback(container, route, candidate, reason) {
+    const fallback = container.querySelector("[data-live-map-fallback]");
+    if (!fallback) return;
+    const canvas = container.querySelector(".live-map-canvas");
+    if (canvas) canvas.style.display = "none";
+    fallback.classList.toggle("no-bus", reason === "no_bus");
+    fallback.style.display = "grid";
+
+    const boardingName = candidate?.boardingStopName || "탑승 정류장 정보 없음";
+    const alightingName = candidate?.alightingStopName || "도착 정류장 정보 없음";
+    const transit = candidate?.firstTransitLabel || "이동";
+    const totalMin = minuteNumber(candidate?.journeyMinutes || candidate?.scoreDisplay || candidate?.totalTime);
+    const segmentLine = (candidate?.segments || [])
+      .filter((segment) => segment && (segment.kind === "버스" || segment.kind === "지하철" || (segment.kind === "도보" && minuteNumber(segment.time) > 0)))
+      .slice(0, 4)
+      .map((segment) => `${segment.label || segment.kind} ${segment.time || ""}`.trim())
+      .join(" · ");
+
+    if (reason === "no_bus") {
+      fallback.innerHTML = `
+        <strong>${escapeHtml(transit)} 중심 경로 · 실시간 차량 추적 없음</strong>
+        <span>${escapeHtml(route.from?.name || "출발지")} → ${escapeHtml(route.to?.name || "도착지")} · 총 ${escapeHtml(totalMin || "--")}분</span>
+        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
+        <span>지하철·도보 중심이라 지도 위에 실시간 버스를 표시하지 않습니다.</span>
+      `;
+    } else if (reason === "timeout" || reason === "error") {
+      fallback.innerHTML = `
+        <strong>실시간 차량 위치를 불러오지 못했어요</strong>
+        <span>경로 정보는 계속 볼 수 있어요 · ${escapeHtml(boardingName)} → ${escapeHtml(alightingName)}</span>
+        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
+        <span>잠시 후 "실시간으로 다시 계산"을 눌러 새로 가져와 보세요.</span>
+      `;
+    } else {
+      fallback.innerHTML = `
+        <strong>실시간 차량 방향 정보를 확인 중이에요</strong>
+        <span>${escapeHtml(boardingName)} 정류장 기준으로 접근 중인 버스를 찾고 있어요.</span>
+        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
+      `;
+    }
+  }
+
+  function clearLiveMapTimer(routeId) {
+    const timer = state.liveMapTimers[routeId];
+    if (timer) {
+      clearTimeout(timer);
+      delete state.liveMapTimers[routeId];
+    }
   }
 
   function startUserLocationWatch() {
@@ -3682,14 +3815,42 @@
     entry.animationFrame = requestAnimationFrame(step);
   }
 
+  const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
+
   async function initLiveTransitMaps() {
     const containers = Array.from(document.querySelectorAll("[data-live-map]"));
     if (!containers.length) return;
+
+    containers.forEach((container) => {
+      const routeId = container.dataset.routeId;
+      if (!routeId) return;
+      const route = state.routes.find((item) => item.id === routeId);
+      const candidate = route ? getSelectedCandidate(route) : null;
+      const points = candidate ? buildLiveTransitPoints(route, candidate) : null;
+
+      if (!points || !points.canRenderMap) {
+        renderLiveMapFallback(container, route, candidate, points?.fallbackReason || "no_approach");
+        return;
+      }
+
+      clearLiveMapTimer(routeId);
+      state.liveMapTimers[routeId] = setTimeout(() => {
+        if (state.liveMaps[routeId]) return;
+        renderLiveMapFallback(container, route, candidate, "timeout");
+      }, LIVE_MAP_LOAD_TIMEOUT_MS);
+    });
 
     let maps;
     try {
       maps = await loadKakaoMaps();
     } catch (_) {
+      containers.forEach((container) => {
+        const routeId = container.dataset.routeId;
+        clearLiveMapTimer(routeId);
+        const route = state.routes.find((item) => item.id === routeId);
+        const candidate = route ? getSelectedCandidate(route) : null;
+        renderLiveMapFallback(container, route, candidate, "error");
+      });
       return;
     }
     startUserLocationWatch();
@@ -3700,20 +3861,20 @@
       const canvas = container.querySelector(".live-map-canvas");
       const fallback = container.querySelector("[data-live-map-fallback]");
       const route = state.routes.find((item) => item.id === routeId);
-      if (!canvas || !route) return;
-
-      const candidate = route.lastResult?.recommendation || null;
-      const points = buildLiveTransitPoints(route, candidate);
-      if (!points.canRenderMap) {
-        if (fallback) {
-          fallback.innerHTML = `
-            <strong>${escapeHtml(points.fallbackMessage || "실시간 차량 방향 정보를 확인 중이에요")}</strong>
-            <span>정확한 노선 방향이 확인되면 실제 지도 위에 접근 중인 버스를 표시합니다.</span>
-          `;
-          fallback.style.display = "grid";
-        }
+      if (!canvas || !route) {
+        clearLiveMapTimer(routeId);
         return;
       }
+
+      const candidate = getSelectedCandidate(route);
+      const points = candidate ? buildLiveTransitPoints(route, candidate) : null;
+      if (!points || !points.canRenderMap) {
+        clearLiveMapTimer(routeId);
+        renderLiveMapFallback(container, route, candidate, points?.fallbackReason || "no_approach");
+        return;
+      }
+      clearLiveMapTimer(routeId);
+      canvas.style.display = "";
       const map = new maps.Map(canvas, {
         center: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
         level: 5
@@ -3832,14 +3993,24 @@
     `;
   }
 
-  function renderFastCandidate(candidate, index, isRecommended) {
+  function renderFastCandidate(candidate, index, isRecommended, options = {}) {
     const tone = getCandidateTone(candidate, index, isRecommended);
     const score = minuteNumber(candidate.journeyMinutes || candidate.scoreDisplay || candidate.totalTime);
+    const isSelected = Boolean(options.isSelected);
+    const routeId = options.routeId || "";
+    const classes = ["fast-candidate"];
+    if (isRecommended) classes.push("recommended");
+    if (isSelected) classes.push("active");
     return `
-      <button type="button" class="fast-candidate ${isRecommended ? "recommended" : ""}">
+      <button type="button"
+              class="${classes.join(" ")}"
+              data-action="select-candidate"
+              data-id="${escapeHtml(routeId)}"
+              data-candidate-id="${escapeHtml(candidate.id || "")}"
+              aria-pressed="${isSelected ? "true" : "false"}">
         <div class="fast-candidate-top">
           <div>
-            <span class="fast-candidate-tag" style="color:${tone.accent}; background:${tone.bg};">${escapeHtml(tone.label)}</span>
+            <span class="fast-candidate-tag" style="color:${tone.accent}; background:${tone.bg};">${escapeHtml(tone.label)}${isSelected ? " · 선택됨" : ""}</span>
             <div class="fast-candidate-title">${escapeHtml(getCandidateTitle(candidate))}</div>
             <div class="fast-candidate-meta">환승 ${escapeHtml(candidate.transferCount ?? 0)}회 · 도보 ${escapeHtml(minuteNumber(candidate.walkTime || candidate.walkTimeText))}분</div>
           </div>
@@ -4329,17 +4500,23 @@
     const recommendation = result?.recommendation || null;
     const fetchedAt = result?.fetchedAt || null;
     const compareCandidates = result?.candidates || [];
-    const primary = recommendation || null;
+    const primary = getSelectedCandidate(route);
+    const selectedId = primary?.id || null;
+    const recommendedId = result?.recommendedId || null;
+    const isAlternateActive = Boolean(primary && recommendedId && primary.id !== recommendedId);
     const totalMin = primary ? minuteNumber(primary.journeyMinutes || primary.scoreDisplay || primary.totalTime) : "--";
     const transfer = primary ? Number(primary.transferCount || 0) : "--";
     const walk = primary ? minuteNumber(primary.walkTime || primary.walkTimeText) : "--";
     const note = primary
       ? (primary.note || describeRecommendation(route, primary))
       : "출발지와 도착지를 저장한 뒤 실시간으로 다시 계산하세요.";
+    const selectionBadge = isAlternateActive
+      ? `<div class="fast-selection-hint">선택한 대안 후보로 표시 중이에요${recommendation ? ` · 추천(${escapeHtml(getCandidateTitle(recommendation))})로 돌아가려면 추천 카드를 누르세요` : ""}</div>`
+      : "";
     const detailsHtml = result ? `
       <div class="detail-block">
-        <h3>추천 상세</h3>
-        ${renderSegments(recommendation?.segments)}
+        <h3>${isAlternateActive ? "선택 후보 상세" : "추천 상세"}</h3>
+        ${renderSegments(primary?.segments)}
       </div>
       <div class="detail-block">
         <h3>후보 메모</h3>
@@ -4394,9 +4571,15 @@
               </div>
             </div>
             <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
+            ${selectionBadge}
           </section>
           <section class="fast-candidates">
-            ${compareCandidates.length ? compareCandidates.slice(0, 4).map((candidate, index) => renderFastCandidate(candidate, index, candidate.id === result?.recommendedId)).join("") : ""}
+            ${compareCandidates.length ? compareCandidates.slice(0, 4).map((candidate, index) => renderFastCandidate(
+              candidate,
+              index,
+              candidate.id === result?.recommendedId,
+              { routeId: route.id, isSelected: candidate.id === selectedId }
+            )).join("") : ""}
           </section>
           <section class="fast-detail">
             <button class="fast-detail-toggle" data-action="toggle" data-id="${escapeHtml(route.id)}">
@@ -4438,16 +4621,25 @@
     return pinned.length ? [...pinned, ...rest] : state.routes;
   }
 
+  function teardownLiveMaps() {
+    Object.values(state.liveMaps).forEach((entry) => {
+      if (entry?.animationFrame) cancelAnimationFrame(entry.animationFrame);
+    });
+    state.liveMaps = {};
+    Object.keys(state.liveMapTimers).forEach((routeId) => clearLiveMapTimer(routeId));
+  }
+
   function renderRoutes() {
     const list = document.getElementById("route-list");
     document.getElementById("route-count").textContent = state.routes.length + "개 루트";
     if (state.routes.length === 0) {
       list.innerHTML = renderEmptyCard();
       state.lastCommutePhase = getCommuteContext()?.phase || null;
+      teardownLiveMaps();
       return;
     }
     const ctx = getCommuteContext();
-    state.liveMaps = {};
+    teardownLiveMaps();
     list.innerHTML = getOrderedRoutes().map((r) => renderRouteCard(r, ctx)).join("");
     requestAnimationFrame(initLiveTransitMaps);
     state.lastCommutePhase = ctx?.phase || null;
@@ -5060,6 +5252,8 @@
     state.routes = state.routes.filter((route) => route.id !== routeId);
     state.loadingRouteIds.delete(routeId);
     state.expandedRouteIds.delete(routeId);
+    delete state.selectedCandidateIds[routeId];
+    clearLiveMapTimer(routeId);
     persistRoutes();
     renderRoutes();
     showToast("루트를 삭제했습니다");
@@ -5208,6 +5402,7 @@
       if (action === "toggle") toggleDetails(id);
       if (action === "edit") openModal(id);
       if (action === "delete") deleteRoute(id);
+      if (action === "select-candidate") selectCandidate(id, target.dataset.candidateId);
     });
 
     document.querySelectorAll("#priority-options .option-card").forEach((card) => {
