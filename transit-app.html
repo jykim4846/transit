@@ -3024,26 +3024,6 @@
         </div>
       </div>
 
-      <div class="form-row full advanced-options">
-        <label>허용 교통수단</label>
-        <div class="option-grid" id="transport-options">
-          <label class="option-card" data-transport="all">
-            <input type="radio" name="transport" value="all">
-            <strong>버스 + 지하철</strong>
-            <span>둘 다 허용합니다.</span>
-          </label>
-          <label class="option-card" data-transport="bus">
-            <input type="radio" name="transport" value="bus">
-            <strong>버스만</strong>
-            <span>버스만 포함된 경로만 비교합니다.</span>
-          </label>
-          <label class="option-card" data-transport="subway">
-            <input type="radio" name="transport" value="subway">
-            <strong>지하철만</strong>
-            <span>지하철만 포함된 경로만 비교합니다.</span>
-          </label>
-        </div>
-      </div>
     </div>
 
     <div class="modal-actions">
@@ -3103,9 +3083,7 @@
   };
 
   const TRANSPORT_META = {
-    all: { label: "버스+지하철" },
-    bus: { label: "버스만" },
-    subway: { label: "지하철만" }
+    bus: { label: "버스만" }
   };
 
   const state = {
@@ -3187,17 +3165,21 @@
       from: { name: route.from || "", x: null, y: null },
       to: { name: route.to || "", x: null, y: null },
       priority: route.tag === "퇴근" ? "fewest_transfers" : "fastest",
-      transportFilter: "all",
+      transportFilter: "bus",
       lastResult: null,
       createdAt: nowStamp()
     };
+  }
+
+  function forceBusOnly(route) {
+    return { ...route, transportFilter: "bus" };
   }
 
   function migrateAndLoadRoutes() {
     const current = localStorage.getItem(STORAGE_KEY);
     if (current) {
       try {
-        return JSON.parse(current) || [];
+        return (JSON.parse(current) || []).map(forceBusOnly);
       } catch {
         return [];
       }
@@ -3207,7 +3189,7 @@
     if (!legacy) return [];
 
     try {
-      const migrated = (JSON.parse(legacy) || []).map(normalizeLegacyRoute);
+      const migrated = (JSON.parse(legacy) || []).map(normalizeLegacyRoute).map(forceBusOnly);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
     } catch {
@@ -4487,7 +4469,7 @@
     return `
       <div class="empty-state">
         <strong>저장된 루트가 없습니다</strong>
-        자주 가는 경로를 저장해두고, 각 루트마다 추천 기준과 허용 교통수단을 따로 정해보세요.
+        자주 가는 버스 출퇴근 경로를 저장해두고, 루트마다 추천 기준을 정해보세요.
       </div>
     `;
   }
@@ -5217,7 +5199,7 @@
         toX: String(to.x),
         toY: String(to.y),
         priority: "overview",
-        transportFilter: "all"
+        transportFilter: "bus"
       });
 
       let payload;
@@ -5277,7 +5259,6 @@
     updateLocationPreview("to", state.autocompleteSelection.to);
 
     setOptionGroupValue("priority", route?.priority || "fastest");
-    setOptionGroupValue("transport", route?.transportFilter || "all");
 
     document.getElementById("modal-overlay").classList.add("active");
   }
@@ -5313,7 +5294,7 @@
     const fromName = document.getElementById("route-from-input").value.trim();
     const toName = document.getElementById("route-to-input").value.trim();
     const priority = getSelectedValue("priority") || "fastest";
-    const transportFilter = getSelectedValue("transport") || "all";
+    const transportFilter = "bus";
 
     if (!fromName || !toName) {
       showToast("출발지와 도착지를 입력해주세요");
@@ -5408,9 +5389,6 @@
 
     document.querySelectorAll("#priority-options .option-card").forEach((card) => {
       card.addEventListener("click", () => setOptionGroupValue("priority", card.dataset.priority));
-    });
-    document.querySelectorAll("#transport-options .option-card").forEach((card) => {
-      card.addEventListener("click", () => setOptionGroupValue("transport", card.dataset.transport));
     });
   }
 
@@ -5616,7 +5594,6 @@
   setupAutocomplete("route-from-input", "route-from-dropdown", "from");
   setupAutocomplete("route-to-input", "route-to-dropdown", "to");
   setOptionGroupValue("priority", "fastest");
-  setOptionGroupValue("transport", "all");
   updateClock();
   setInterval(updateClock, 10000);
   renderRoutes();
