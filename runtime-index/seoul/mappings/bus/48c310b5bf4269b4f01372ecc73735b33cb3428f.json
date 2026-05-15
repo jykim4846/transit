@@ -1,0 +1,19 @@
+{
+  "key": "48c310b5bf4269b4f01372ecc73735b33cb3428f",
+  "mapping": {
+    "routeNo": "452",
+    "routeId": "113000002",
+    "stationId": "121000012",
+    "stationSeq": 52,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "119000041",
+    "alightingStationSeq": 59,
+    "alightingStationName": "동작역.국립현충원",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:09.714Z"
+  },
+  "source": "odsay_direct"
+}
