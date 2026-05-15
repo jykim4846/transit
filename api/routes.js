@@ -60,10 +60,41 @@ function normalizeLanes(subPath) {
   }));
 }
 
+function normalizeCoordPoint(x, y) {
+  const lng = Number(x);
+  const lat = Number(y);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+function dedupePathPoints(points) {
+  const result = [];
+  points.filter(Boolean).forEach((point) => {
+    const prev = result[result.length - 1];
+    if (prev && Math.abs(prev.lat - point.lat) < 0.000001 && Math.abs(prev.lng - point.lng) < 0.000001) return;
+    result.push(point);
+  });
+  return result;
+}
+
+function normalizeStopListPoints(subPath) {
+  const rawStops = subPath.passStopList?.stations
+    || subPath.passStopList?.station
+    || subPath.passStopList
+    || [];
+  const stops = Array.isArray(rawStops) ? rawStops : [];
+  return dedupePathPoints([
+    normalizeCoordPoint(subPath.startX, subPath.startY),
+    ...stops.map((stop) => normalizeCoordPoint(stop.x ?? stop.lng, stop.y ?? stop.lat)),
+    normalizeCoordPoint(subPath.endX, subPath.endY)
+  ]);
+}
+
 function normalizeSegment(subPath) {
   const minutes = Number(subPath.sectionTime || 0);
   const start = subPath.startName || "";
   const end = subPath.endName || "";
+  const pathPoints = normalizeStopListPoints(subPath);
 
   if (subPath.trafficType === 3) {
     return {
@@ -75,6 +106,7 @@ function normalizeSegment(subPath) {
       minutes,
       start,
       end,
+      pathPoints,
       label: `도보 ${minutes}분`
     };
   }
@@ -89,6 +121,7 @@ function normalizeSegment(subPath) {
       minutes,
       start,
       end,
+      pathPoints,
       label: lane.busNo || "버스"
     };
   }
@@ -102,6 +135,7 @@ function normalizeSegment(subPath) {
     minutes,
     start,
     end,
+    pathPoints,
     label: lane.name || "지하철"
   };
 }
@@ -279,6 +313,14 @@ function getPathTotalTime(path) {
 
 function buildDirectBusCandidate(pair, ridePath, arrivalInfo) {
   const rideTime = getPathTotalTime(ridePath);
+  const rideSegments = (ridePath.subPath || []).map(normalizeSegment);
+  const busRideSegment = rideSegments.find((segment) => segment.type === "bus");
+  const busPathPoints = busRideSegment?.pathPoints?.length >= 2
+    ? busRideSegment.pathPoints
+    : dedupePathPoints([
+      normalizeCoordPoint(pair.startStation.x, pair.startStation.y),
+      normalizeCoordPoint(pair.endStation.x, pair.endStation.y)
+    ]);
   const initialWalkTime = pair.startWalkMinutes;
   const finalWalkTime = pair.endWalkMinutes;
   const effectiveWait = arrivalInfo.waitMin;
@@ -322,21 +364,28 @@ function buildDirectBusCandidate(pair, ridePath, arrivalInfo) {
         kind: "도보",
         label: `도보 ${initialWalkTime}분`,
         text: `출발지 → ${pair.startStation.stationName}`,
-        time: formatMinutes(initialWalkTime)
+        time: formatMinutes(initialWalkTime),
+        pathPoints: dedupePathPoints([
+          normalizeCoordPoint(pair.startStation.x, pair.startStation.y)
+        ])
       },
       {
         type: "bus",
         kind: "버스",
         label: pair.bus.busNo,
         text: `${pair.bus.busNo} · ${pair.startStation.stationName} → ${pair.endStation.stationName}`,
-        time: formatMinutes(rideTime)
+        time: formatMinutes(rideTime),
+        pathPoints: busPathPoints
       },
       {
         type: "walk",
         kind: "도보",
         label: `도보 ${finalWalkTime}분`,
         text: `${pair.endStation.stationName} → 목적지`,
-        time: formatMinutes(finalWalkTime)
+        time: formatMinutes(finalWalkTime),
+        pathPoints: dedupePathPoints([
+          normalizeCoordPoint(pair.endStation.x, pair.endStation.y)
+        ])
       }
     ],
     note,

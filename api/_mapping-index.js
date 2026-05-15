@@ -406,6 +406,8 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     stops: previewStops.map((stop) => ({
       seq: stop.seq,
       name: stop.name,
+      lat: stop.lat,
+      lng: stop.lng,
       isBoarding: String(stop.stationId) === String(mapping.stationId),
       isAlighting: String(stop.stationId) === String(mapping.alightingStationId)
     })),
@@ -415,6 +417,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
       plateNoMasked: maskPlateNo(vehicle.plateNo),
       remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
       nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
+      progressSeq: vehicle.progressSeq,
       progressPercent: Math.max(0, Math.min(100, ((vehicle.progressSeq - minSeq + 0.5) / cellCount) * 100))
     }))
   };

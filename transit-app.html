@@ -2201,108 +2201,43 @@
     overflow: hidden;
     border: 1px solid #dbe3ee;
     border-radius: 28px;
-    background:
-      radial-gradient(circle at 18% 20%, rgba(219, 234, 254, 0.9), transparent 30%),
-      linear-gradient(135deg, #f9fbff 0%, #eef4fb 52%, #f8fafc 100%);
+    background: #eef2f7;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 14px 36px rgba(15, 23, 42, 0.1);
   }
 
   .live-map-canvas {
     position: absolute;
     inset: 0;
+    z-index: 1;
   }
 
-  .live-map-schematic {
+  .live-map-fallback {
     position: absolute;
     inset: 0;
-    display: block;
-  }
-
-  .live-map-block {
-    position: absolute;
-    border: 1px solid rgba(203, 213, 225, 0.58);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.58);
-  }
-
-  .live-map-block.one {
-    left: 18px;
-    top: 78px;
-    width: 104px;
-    height: 70px;
-  }
-
-  .live-map-block.two {
-    right: 18px;
-    top: 82px;
-    width: 118px;
-    height: 82px;
-  }
-
-  .live-map-block.three {
-    left: 34px;
-    bottom: 42px;
-    width: 126px;
-    height: 78px;
-  }
-
-  .live-map-route-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-
-  .live-map-route-base {
-    fill: none;
-    stroke: #d7e3f3;
-    stroke-linecap: round;
-    stroke-width: 18;
-  }
-
-  .live-map-route-active {
-    fill: none;
-    stroke: #60a5fa;
-    stroke-dasharray: 12 16;
-    stroke-linecap: round;
-    stroke-width: 8;
-    animation: route-pulse 2.8s linear infinite;
-  }
-
-  @keyframes route-pulse {
-    from { stroke-dashoffset: 0; }
-    to { stroke-dashoffset: -56; }
-  }
-
-  .live-map-stop,
-  .live-map-user {
-    position: absolute;
     z-index: 2;
-    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: #f8fafc;
+    color: #334155;
+    padding: 24px;
+    text-align: center;
   }
 
-  .live-map-user {
-    left: 17%;
-    top: 68%;
-    width: 22px;
-    height: 22px;
-    border: 4px solid #fff;
-    border-radius: 999px;
-    background: #0f172a;
-    box-shadow: 0 0 0 7px rgba(15, 23, 42, 0.08), 0 10px 20px rgba(15, 23, 42, 0.18);
+  .live-map-fallback strong {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 900;
   }
 
-  .live-map-stop {
-    left: 46%;
-    top: 50%;
-    width: 26px;
-    height: 26px;
-    border: 4px solid #fff;
-    border-radius: 999px;
-    background: #2563eb;
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.26);
-    animation: stop-pulse 1.9s ease-out infinite;
+  .live-map-fallback span {
+    max-width: 230px;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.45;
+    font-weight: 800;
   }
 
   @keyframes stop-pulse {
@@ -2311,93 +2246,14 @@
     100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
   }
 
-  .cute-bus {
-    position: absolute;
-    z-index: 4;
-    left: 78%;
-    top: 32%;
-    width: 58px;
-    height: 42px;
-    transform: translate(-50%, -50%);
-    border: 4px solid #fff;
-    border-radius: 18px 18px 13px 13px;
-    background:
-      radial-gradient(circle at 16px 28px, #f8fafc 0 3px, transparent 4px),
-      radial-gradient(circle at 43px 28px, #f8fafc 0 3px, transparent 4px),
-      linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
-    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26), 0 0 0 9px rgba(96, 165, 250, 0.1);
-    animation: bus-approach 8s cubic-bezier(0.22, 1, 0.36, 1) infinite, bus-breathe 1.8s ease-in-out infinite;
-  }
-
-  .cute-bus::before {
-    content: "";
-    position: absolute;
-    left: 9px;
-    right: 9px;
-    top: 8px;
-    height: 12px;
-    border-radius: 8px;
-    background:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 42%, transparent 42% 48%, rgba(255, 255, 255, 0.92) 48% 100%);
-  }
-
-  .cute-bus::after {
-    content: "";
-    position: absolute;
-    left: 10px;
-    right: 10px;
-    bottom: -6px;
-    height: 9px;
-    border-radius: 999px;
-    background:
-      radial-gradient(circle at 15% 50%, #0f172a 0 4px, transparent 5px),
-      radial-gradient(circle at 85% 50%, #0f172a 0 4px, transparent 5px);
-  }
-
-  @keyframes bus-approach {
-    0% { left: 78%; top: 32%; transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
-    72% { left: 48%; top: 49%; transform: translate(-50%, -50%) rotate(-2deg) scale(1); }
-    86% { left: 47%; top: 49%; transform: translate(-50%, -50%) rotate(-2deg) scale(1); }
-    100% { left: 78%; top: 32%; transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
-  }
-
   @keyframes bus-breathe {
     0%, 100% { margin-top: 0; }
     50% { margin-top: -3px; }
   }
 
-  .live-map-label {
-    position: absolute;
-    z-index: 3;
-    max-width: 120px;
-    overflow: hidden;
-    color: #334155;
-    font-size: 11px;
-    font-weight: 800;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .live-map-label.user {
-    left: 8%;
-    top: calc(68% + 22px);
-  }
-
-  .live-map-label.stop {
-    left: 35%;
-    top: calc(50% + 24px);
-    color: #1d4ed8;
-  }
-
-  .live-map-label.bus {
-    right: 7%;
-    top: 34px;
-    color: #1d4ed8;
-  }
-
   .live-map-eta-chip {
     position: absolute;
-    z-index: 5;
+    z-index: 7;
     right: 14px;
     bottom: 14px;
     border: 1px solid rgba(191, 219, 254, 0.9);
@@ -3634,6 +3490,23 @@
     return { lat, lng };
   }
 
+  function toPathPoint(value) {
+    const lat = Number(value?.lat ?? value?.y);
+    const lng = Number(value?.lng ?? value?.x);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  }
+
+  function dedupePathPoints(points) {
+    const result = [];
+    points.filter(Boolean).forEach((point) => {
+      const prev = result[result.length - 1];
+      if (prev && Math.abs(prev.lat - point.lat) < 0.000001 && Math.abs(prev.lng - point.lng) < 0.000001) return;
+      result.push(point);
+    });
+    return result;
+  }
+
   function interpolatePoint(a, b, ratio) {
     return {
       lat: a.lat + (b.lat - a.lat) * ratio,
@@ -3641,13 +3514,63 @@
     };
   }
 
-  function buildLiveTransitPoints(route) {
+  function pointAtSeq(stops, seq) {
+    const sorted = stops
+      .map((stop) => ({ ...stop, point: toPathPoint(stop), seq: Number(stop.seq) }))
+      .filter((stop) => stop.point && Number.isFinite(stop.seq))
+      .sort((a, b) => a.seq - b.seq);
+    if (!sorted.length || !Number.isFinite(Number(seq))) return sorted[0]?.point || null;
+    const target = Number(seq);
+    let prev = sorted[0];
+    let next = sorted[sorted.length - 1];
+    for (let index = 0; index < sorted.length; index += 1) {
+      if (sorted[index].seq <= target) prev = sorted[index];
+      if (sorted[index].seq >= target) {
+        next = sorted[index];
+        break;
+      }
+    }
+    if (!prev || !next || prev.seq === next.seq) return (next || prev)?.point || null;
+    return interpolatePoint(prev.point, next.point, (target - prev.seq) / (next.seq - prev.seq));
+  }
+
+  function getCandidateRoutePoints(candidate) {
+    const previewStops = candidate?.busApproachPreview?.stops || [];
+    const previewPoints = dedupePathPoints(previewStops.map(toPathPoint));
+    if (previewPoints.length >= 2) return previewPoints;
+
+    return dedupePathPoints((candidate?.segments || [])
+      .flatMap((segment) => segment.pathPoints || [])
+      .map(toPathPoint));
+  }
+
+  function getPreviewBoardingPoint(candidate) {
+    const stops = candidate?.busApproachPreview?.stops || [];
+    const boarding = stops.find((stop) => stop.isBoarding) || stops[stops.length - 1];
+    return toPathPoint(boarding);
+  }
+
+  function getPreviewBusPoint(candidate) {
+    const preview = candidate?.busApproachPreview;
+    const vehicle = preview?.vehicles?.[0];
+    if (!preview?.stops?.length || !vehicle) return null;
+    return pointAtSeq(preview.stops, vehicle.progressSeq);
+  }
+
+  function buildLiveTransitPoints(route, candidate) {
     const from = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
     const to = toLatLngPoint(route?.to) || { lat: 37.5133, lng: 127.1002 };
     const user = state.userLocation || from;
-    const boarding = interpolatePoint(from, to, 0.34);
-    const busStart = interpolatePoint(from, to, 0.78);
-    return { from, to, user, boarding, busStart };
+    const routePoints = getCandidateRoutePoints(candidate);
+    const boarding = getPreviewBoardingPoint(candidate)
+      || routePoints[0]
+      || interpolatePoint(from, to, 0.34);
+    const busStart = getPreviewBusPoint(candidate)
+      || interpolatePoint(from, boarding, 0.35);
+    const polylinePoints = routePoints.length >= 2
+      ? routePoints
+      : dedupePathPoints([busStart, boarding, user]);
+    return { from, to, user, boarding, busStart, polylinePoints };
   }
 
   function startUserLocationWatch() {
@@ -3680,15 +3603,17 @@
   }
 
   function animateKakaoBus(entry, points) {
-    const duration = 8200;
+    const duration = 18000;
     const startMs = performance.now();
     const step = (now) => {
       if (!entry.container?.isConnected) return;
-      const cycle = ((now - startMs) % duration) / duration;
-      const eased = easeInOutCubic(Math.min(1, cycle / 0.82));
+      const progress = Math.min(1, (now - startMs) / duration);
+      const eased = easeInOutCubic(progress);
       const position = interpolatePoint(points.busStart, points.boarding, eased);
       entry.busOverlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
-      entry.animationFrame = requestAnimationFrame(step);
+      if (progress < 1) {
+        entry.animationFrame = requestAnimationFrame(step);
+      }
     };
     entry.animationFrame = requestAnimationFrame(step);
   }
@@ -3709,21 +3634,22 @@
       const routeId = container.dataset.routeId;
       if (!routeId || state.liveMaps[routeId]) return;
       const canvas = container.querySelector(".live-map-canvas");
-      const schematic = container.querySelector(".live-map-schematic");
+      const fallback = container.querySelector("[data-live-map-fallback]");
       const route = state.routes.find((item) => item.id === routeId);
       if (!canvas || !route) return;
 
-      const points = buildLiveTransitPoints(route);
+      const candidate = route.lastResult?.recommendation || null;
+      const points = buildLiveTransitPoints(route, candidate);
       const map = new maps.Map(canvas, {
         center: new maps.LatLng(points.boarding.lat, points.boarding.lng),
         level: 5
       });
-      const path = [points.user, points.boarding, points.to].map((point) => new maps.LatLng(point.lat, point.lng));
+      const path = points.polylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
       const polyline = new maps.Polyline({
         path,
-        strokeWeight: 6,
-        strokeColor: "#60a5fa",
-        strokeOpacity: 0.82,
+        strokeWeight: 7,
+        strokeColor: "#2563eb",
+        strokeOpacity: 0.74,
         strokeStyle: "solid"
       });
       polyline.setMap(map);
@@ -3752,9 +3678,9 @@
       busOverlay.setMap(map);
 
       const bounds = new maps.LatLngBounds();
-      path.forEach((point) => bounds.extend(point));
+      [...path, new maps.LatLng(points.user.lat, points.user.lng), new maps.LatLng(points.busStart.lat, points.busStart.lng)].forEach((point) => bounds.extend(point));
       map.setBounds(bounds, 24, 24, 24, 24);
-      if (schematic) schematic.style.display = "none";
+      if (fallback) fallback.style.display = "none";
 
       const entry = { maps, map, container, userOverlay, stopOverlay, busOverlay, polyline, animationFrame: null };
       state.liveMaps[routeId] = entry;
@@ -3782,22 +3708,11 @@
     const liveMap = compact ? "" : `
       <div class="live-map" data-live-map data-route-id="${escapeHtml(routeId)}">
         <div class="live-map-canvas" aria-hidden="true"></div>
-        <div class="live-map-schematic" aria-label="실시간 버스 접근 지도">
-          <div class="live-map-block one"></div>
-          <div class="live-map-block two"></div>
-          <div class="live-map-block three"></div>
-          <svg class="live-map-route-svg" viewBox="0 0 320 328" aria-hidden="true" focusable="false">
-            <path class="live-map-route-base" d="M252 105 C215 108 198 130 182 153 C164 179 136 200 58 222" />
-            <path class="live-map-route-active" d="M252 105 C215 108 198 130 182 153 C164 179 136 200 58 222" />
-          </svg>
-          <div class="live-map-user"></div>
-          <div class="live-map-stop"></div>
-          <div class="cute-bus" aria-hidden="true"></div>
-          <div class="live-map-label user">내 위치</div>
-          <div class="live-map-label stop">${escapeHtml(stops?.[1] || "탑승 정류장")}</div>
-          <div class="live-map-label bus">${escapeHtml(status.eta)}</div>
-          <div class="live-map-eta-chip">${escapeHtml(status.eta)}</div>
+        <div class="live-map-fallback" data-live-map-fallback>
+          <strong>Kakao Map 연결 중</strong>
+          <span>실제 지도 위에서 내 위치, 탑승 정류장, 접근 중인 버스를 불러오고 있습니다.</span>
         </div>
+        <div class="live-map-eta-chip">${escapeHtml(status.eta)}</div>
       </div>
     `;
     const nodes = segments.slice(0, 5).map((seg) => `
@@ -3819,8 +3734,6 @@
         ${liveMap}
         <div class="fast-flow-timeline">
           <div class="fast-flow-nodes">${nodes}</div>
-          <div class="fast-flow-glow"></div>
-          <div class="fast-flow-vehicle">BUS</div>
         </div>
         <div class="fast-flow-mini-track">
           <div class="fast-flow-inner">${html}</div>
@@ -4718,6 +4631,16 @@
       const minutes = Number(segment.sectionTime || 0);
       const start = segment.startName || "";
       const end = segment.endName || "";
+      const rawStops = segment.passStopList?.stations
+        || segment.passStopList?.station
+        || segment.passStopList
+        || [];
+      const stops = Array.isArray(rawStops) ? rawStops : [];
+      const pathPoints = dedupePathPoints([
+        toPathPoint({ x: segment.startX, y: segment.startY }),
+        ...stops.map((stop) => toPathPoint({ x: stop.x ?? stop.lng, y: stop.y ?? stop.lat })),
+        toPathPoint({ x: segment.endX, y: segment.endY })
+      ]);
       if (segment.trafficType === 3) {
         return {
           type: "walk",
@@ -4727,6 +4650,7 @@
           minutes,
           start,
           end,
+          pathPoints,
           label: `도보 ${minutes}분`
         };
       }
@@ -4740,6 +4664,7 @@
           minutes,
           start,
           end,
+          pathPoints,
           label: busNo
         };
       }
@@ -4752,6 +4677,7 @@
         minutes,
         start,
         end,
+        pathPoints,
         label: name
       };
     });
