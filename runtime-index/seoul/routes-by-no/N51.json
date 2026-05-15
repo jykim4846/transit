@@ -1,0 +1,14 @@
+{
+  "routeNo": "N51",
+  "collectedAt": "2026-05-15T05:26:55.742Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "117000002",
+      "routeNo": "N51",
+      "routeType": "15",
+      "startName": "시흥동차고지",
+      "endName": "하계동차고지"
+    }
+  ]
+}
