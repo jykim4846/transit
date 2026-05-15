@@ -1,0 +1,19 @@
+{
+  "key": "7f6d12ae9ae95ac6175d67d6e638552139a0e945",
+  "mapping": {
+    "routeNo": "640",
+    "routeId": "100100093",
+    "stationId": "121000091",
+    "stationSeq": 41,
+    "stationName": "강남역9번출구",
+    "alightingStationId": "119000037",
+    "alightingStationSeq": 51,
+    "alightingStationName": "비계",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:25:43.435Z"
+  },
+  "source": "odsay_direct"
+}
