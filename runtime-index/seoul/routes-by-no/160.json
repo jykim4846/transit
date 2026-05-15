@@ -1,0 +1,14 @@
+{
+  "routeNo": "160",
+  "collectedAt": "2026-05-15T05:27:03.005Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100033",
+      "routeNo": "160",
+      "routeType": "3",
+      "startName": "도봉산역광역환승센터",
+      "endName": "온수동종점"
+    }
+  ]
+}
