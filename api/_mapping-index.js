@@ -227,7 +227,8 @@ async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
           version: 3,
           createdAt: new Date().toISOString()
         };
-        await writeJson(busMappingPath(key), { key, mapping, source: "odsay_direct" });
+        // Fire-and-forget persistence so the response isn't blocked on GitHub PUT.
+        writeJson(busMappingPath(key), { key, mapping, source: "odsay_direct" }).catch(() => {});
         return mapping;
       }
     }
