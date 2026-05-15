@@ -13,31 +13,40 @@
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg: #f4efe6;
-    --bg-strong: #e8decf;
-    --paper: rgba(255, 252, 247, 0.84);
-    --paper-strong: #fffaf2;
-    --line: rgba(71, 57, 29, 0.14);
-    --text: #201810;
-    --text-muted: #70634f;
-    --accent: #1e7a5f;
-    --accent-strong: #165c47;
-    --accent-soft: rgba(30, 122, 95, 0.12);
-    --orange: #c5631f;
-    --orange-soft: rgba(197, 99, 31, 0.12);
-    --blue: #1c5bb7;
-    --blue-soft: rgba(28, 91, 183, 0.12);
-    --danger: #b44343;
-    --shadow: 0 22px 60px rgba(68, 51, 30, 0.12);
+    --bg: #fff8f5;
+    --bg-strong: #ffeee7;
+    --paper: rgba(255, 255, 255, 0.92);
+    --paper-strong: #ffffff;
+    --line: rgba(255, 169, 173, 0.18);
+    --text: #3a2c2b;
+    --text-muted: #8a7674;
+    --accent: #79cdb8;
+    --accent-strong: #56b39c;
+    --accent-soft: rgba(121, 205, 184, 0.18);
+    --orange: #ffb479;
+    --orange-soft: rgba(255, 180, 121, 0.22);
+    --blue: #93bcff;
+    --blue-soft: rgba(147, 188, 255, 0.22);
+    --danger: #ff8a9a;
+    --shadow: 0 22px 50px rgba(255, 169, 173, 0.18);
     --radius-xl: 28px;
     --radius-lg: 20px;
     --radius-md: 14px;
     --mono: "Space Mono", monospace;
+    /* 코지팝 파스텔 팔레트 — 더 밝고 비비드 */
+    --pastel-pink: #ffe3ec;
+    --pastel-pink-strong: #ffc1d4;
+    --pastel-sky: #dff0ff;
+    --pastel-sky-strong: #b8dcff;
+    --pastel-yellow: #fff4c4;
+    --pastel-mint: #d5f3e6;
+    --pastel-lavender: #ece1ff;
+    --cheek-pink: #ffc0cf;
   }
 
   * {
@@ -47,21 +56,22 @@
   html, body {
     margin: 0;
     min-height: 100%;
-    background: #f2ece1;
+    background: var(--bg);
     overflow-x: hidden;
   }
 
   body {
-    font-family: "IBM Plex Sans KR", sans-serif;
+    font-family: "Gowun Dodum", "IBM Plex Sans KR", sans-serif;
     color: var(--text);
     min-height: 100dvh;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     background:
-      radial-gradient(circle at top left, rgba(28, 91, 183, 0.1), transparent 28%),
-      radial-gradient(circle at top right, rgba(30, 122, 95, 0.12), transparent 26%),
-      linear-gradient(180deg, #f7f0e4 0%, #f2ece1 100%);
+      radial-gradient(circle at top left, rgba(147, 188, 255, 0.18), transparent 30%),
+      radial-gradient(circle at top right, rgba(255, 195, 212, 0.22), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(213, 243, 230, 0.25), transparent 32%),
+      linear-gradient(180deg, #fff8f5 0%, #fffaf6 100%);
   }
 
   body::before {
@@ -207,12 +217,24 @@
     display: block;
   }
 
+  @keyframes card-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .route-list > .route-card {
     display: none;
   }
 
   .route-list > .route-card.active {
     display: block;
+    animation: card-fade-in 0.24s ease both;
   }
 
   .route-tabs {
@@ -228,23 +250,32 @@
     flex: 0 0 auto;
     padding: 8px 14px;
     border-radius: 999px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    color: #475569;
+    background: rgba(255, 252, 247, 0.82);
+    border: 1px solid var(--line);
+    color: var(--text-muted);
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
   }
 
   .route-tab:hover {
-    border-color: #94a3b8;
+    background: rgba(255, 252, 247, 0.96);
+    border-color: rgba(71, 57, 29, 0.22);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  .route-tab:active {
+    transform: translateY(0);
   }
 
   .route-tab.active {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
+    box-shadow: 0 6px 16px rgba(30, 122, 95, 0.24);
+    transform: none;
   }
 
   .route-card {
@@ -425,11 +456,16 @@
   .btn {
     border: none;
     cursor: pointer;
-    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
   }
 
   .btn:hover {
     transform: translateY(-1px);
+  }
+
+  .btn:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.08s;
   }
 
   .btn:disabled {
@@ -1941,7 +1977,7 @@
   }
 
   body {
-    background: #f4f6f8;
+    background: var(--bg);
   }
 
   body::before {
@@ -1960,9 +1996,9 @@
     min-height: calc(100dvh - 38px);
     overflow: hidden;
     border-radius: 34px;
-    background: #f6f8fb;
+    background: var(--bg-strong);
     padding: 20px;
-    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.13);
+    box-shadow: 0 26px 70px rgba(68, 51, 30, 0.14);
   }
 
   .fast-phone::before,
@@ -1978,7 +2014,7 @@
     height: 210px;
     right: -76px;
     top: -56px;
-    background: rgba(147, 197, 253, 0.18);
+    background: rgba(30, 122, 95, 0.09);
     animation: ambient-drift-a 10s ease-in-out infinite;
   }
 
@@ -1987,7 +2023,7 @@
     height: 180px;
     left: -92px;
     top: 360px;
-    background: rgba(134, 239, 172, 0.14);
+    background: rgba(28, 91, 183, 0.07);
     animation: ambient-drift-b 12s ease-in-out infinite;
   }
 
@@ -2018,9 +2054,9 @@
     display: block;
     font-size: 25px;
     line-height: 1;
-    letter-spacing: 0;
+    letter-spacing: -0.03em;
     color: transparent;
-    background: linear-gradient(90deg, #0f172a 0%, #2563eb 68%, #0f766e 100%);
+    background: linear-gradient(90deg, var(--text) 0%, var(--accent-strong) 65%, var(--blue) 100%);
     -webkit-background-clip: text;
     background-clip: text;
   }
@@ -2028,32 +2064,35 @@
   .fast-brand span {
     display: block;
     margin-top: 5px;
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: lowercase;
   }
 
   .live-badge {
+    font-family: var(--mono);
     display: inline-flex;
     align-items: center;
     gap: 8px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #ecfdf5, #dcfce7);
-    color: #047857;
-    padding: 9px 12px;
+    background: rgba(255, 252, 247, 0.88);
+    color: var(--accent-strong);
+    border: 1px solid rgba(30, 122, 95, 0.16);
+    padding: 9px 13px;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 
   .live-badge::before {
     content: "";
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 999px;
-    background: #10b981;
-    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.13);
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(30, 122, 95, 0.14);
   }
 
   .fast-actions {
@@ -2066,7 +2105,8 @@
   .fast-actions .btn {
     border-radius: 999px;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .fast-actions #add-route-btn { flex: 1 1 auto; min-width: 0; }
@@ -2078,16 +2118,27 @@
   }
 
   .fast-actions .btn-primary {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
     padding: 14px 16px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 10px 24px rgba(30, 122, 95, 0.28);
+  }
+
+  .fast-actions .btn-primary:hover {
+    box-shadow: 0 14px 32px rgba(30, 122, 95, 0.36);
   }
 
   .fast-actions .btn-secondary {
     padding: 12px 13px;
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 252, 247, 0.82);
+    border: 1px solid rgba(71, 57, 29, 0.12);
+    color: var(--text-muted);
     backdrop-filter: blur(14px);
+  }
+
+  .fast-actions .btn-secondary:hover {
+    background: rgba(255, 252, 247, 0.96);
+    color: var(--text);
+    border-color: rgba(71, 57, 29, 0.22);
   }
 
   .route-list {
@@ -2108,11 +2159,11 @@
   }
 
   .fast-trip-panel {
-    border: 1px solid #e5e7eb;
-    border-radius: 32px;
-    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: var(--paper-strong);
     padding: 14px;
-    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 14px 36px rgba(68, 51, 30, 0.08);
   }
 
   .fast-trip-head {
@@ -2120,9 +2171,9 @@
     justify-content: space-between;
     gap: 12px;
     align-items: flex-start;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 600;
   }
 
   .fast-trip-title {
@@ -2138,7 +2189,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #475569;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
   }
 
   .fast-trip-menu {
@@ -2153,64 +2207,91 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    color: #475569;
+    background: rgba(255, 252, 247, 0.82);
+    color: var(--text-muted);
     cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
     backdrop-filter: blur(12px);
+  }
+
+  .fast-icon-btn:hover {
+    background: rgba(255, 252, 247, 0.96);
+    color: var(--text);
+    border-color: rgba(71, 57, 29, 0.22);
   }
 
   .fast-metrics {
     display: grid;
     grid-template-columns: 1.25fr 0.8fr 0.8fr;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .fast-metric {
     min-width: 0;
-    border: 1px solid #eef2f7;
-    border-radius: 28px;
-    padding: 14px 13px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 13px 12px;
   }
 
-  .fast-metric.arrive { background: #eff6ff; }
-  .fast-metric.transfer { background: #fff7ed; }
-  .fast-metric.walk { background: #ecfdf5; }
+  /* 도착·분 = blue (시간 = 정보성, 중립-파랑) */
+  .fast-metric.arrive {
+    background: rgba(28, 91, 183, 0.07);
+    border-color: rgba(28, 91, 183, 0.12);
+  }
+  /* 환승 = orange (주의/행동 필요) */
+  .fast-metric.transfer {
+    background: var(--orange-soft);
+    border-color: rgba(197, 99, 31, 0.12);
+  }
+  /* 도보 = green (긍정/건강) */
+  .fast-metric.walk {
+    background: var(--accent-soft);
+    border-color: rgba(30, 122, 95, 0.12);
+  }
 
   .fast-metric strong {
     display: block;
-    color: #020617;
-    font-size: 31px;
+    font-family: var(--mono);
     line-height: 1;
-    font-weight: 900;
-    letter-spacing: 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
+
+  .fast-metric.arrive strong { color: var(--blue); font-size: 28px; }
+  .fast-metric.transfer strong { color: var(--orange); font-size: 28px; }
+  .fast-metric.walk strong { color: var(--accent-strong); font-size: 28px; }
 
   .fast-metric span {
     display: block;
     margin-top: 6px;
-    color: #64748b;
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
+  .fast-metric.arrive span { color: var(--blue); opacity: 0.7; }
+  .fast-metric.transfer span { color: var(--orange); opacity: 0.7; }
+  .fast-metric.walk span { color: var(--accent-strong); opacity: 0.7; }
+
   .fast-next-action {
     margin-top: 10px;
-    border-radius: 24px;
-    background: #111827;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent-strong) 100%);
     color: #fff;
     padding: 15px;
-    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 12px 28px rgba(30, 122, 95, 0.24);
   }
 
   .fast-next-action .label {
-    color: rgba(255, 255, 255, 0.52);
-    font-size: 11px;
-    font-weight: 800;
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .fast-next-row {
@@ -2218,18 +2299,20 @@
     justify-content: space-between;
     gap: 12px;
     align-items: center;
-    margin-top: 4px;
+    margin-top: 5px;
   }
 
   .fast-next-row strong {
-    font-size: 17px;
-    line-height: 1.25;
-    font-weight: 900;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .fast-next-row span {
-    font-size: 28px;
-    font-weight: 900;
+    font-size: 22px;
+    font-weight: 400;
+    opacity: 0.6;
   }
 
   .fast-flow {
@@ -2248,10 +2331,10 @@
     height: 328px;
     margin-top: 0;
     overflow: hidden;
-    border: 1px solid #dbe3ee;
-    border-radius: 28px;
-    background: #eef2f7;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 14px 36px rgba(15, 23, 42, 0.1);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: #efe8da;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(68, 51, 30, 0.09);
   }
 
   .live-map-canvas {
@@ -2269,24 +2352,25 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-    background: #f8fafc;
-    color: #334155;
+    background: rgba(255, 252, 247, 0.96);
+    color: var(--text);
     padding: 24px;
     text-align: center;
   }
 
   .live-map-fallback strong {
-    color: #0f172a;
-    font-size: 15px;
-    font-weight: 900;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .live-map-fallback span {
     max-width: 230px;
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 12px;
     line-height: 1.45;
-    font-weight: 800;
+    font-weight: 400;
   }
 
   @keyframes stop-pulse {
@@ -2303,16 +2387,19 @@
   .live-map-eta-chip {
     position: absolute;
     z-index: 7;
-    right: 14px;
-    bottom: 14px;
-    border: 1px solid rgba(191, 219, 254, 0.9);
+    right: 12px;
+    bottom: 12px;
+    border: 1px solid rgba(28, 91, 183, 0.18);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
-    color: #1d4ed8;
-    padding: 9px 12px;
-    font-size: 12px;
-    font-weight: 900;
-    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14);
+    background: rgba(255, 252, 247, 0.94);
+    color: var(--blue);
+    padding: 8px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 18px rgba(28, 91, 183, 0.12);
+    backdrop-filter: blur(10px);
   }
 
   .kakao-bus-overlay {
@@ -2322,11 +2409,18 @@
     border: 4px solid #fff;
     border-radius: 18px 18px 13px 13px;
     background:
-      radial-gradient(circle at 16px 28px, #f8fafc 0 3px, transparent 4px),
-      radial-gradient(circle at 43px 28px, #f8fafc 0 3px, transparent 4px),
-      linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
-    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26), 0 0 0 9px rgba(96, 165, 250, 0.1);
-    animation: bus-breathe 1.8s ease-in-out infinite;
+      /* 눈 왼쪽 */
+      radial-gradient(ellipse 4px 5px at 16px 17px, #1d3a6b 0%, #1d3a6b 60%, transparent 70%),
+      /* 눈 오른쪽 */
+      radial-gradient(ellipse 4px 5px at 43px 17px, #1d3a6b 0%, #1d3a6b 60%, transparent 70%),
+      /* 눈 하이라이트 왼쪽 */
+      radial-gradient(circle at 18px 14px, rgba(255,255,255,0.9) 0 1.2px, transparent 2px),
+      /* 눈 하이라이트 오른쪽 */
+      radial-gradient(circle at 45px 14px, rgba(255,255,255,0.9) 0 1.2px, transparent 2px),
+      /* 바디 그라디언트 */
+      linear-gradient(160deg, #93c5fd 0%, #60a5fa 40%, #2563eb 100%);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26), 0 0 0 9px rgba(200, 230, 245, 0.14);
+    animation: cute-float 2.2s ease-in-out infinite;
   }
 
   .kakao-bus-overlay::before {
@@ -2338,7 +2432,12 @@
     height: 12px;
     border-radius: 8px;
     background:
-      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 42%, transparent 42% 48%, rgba(255, 255, 255, 0.92) 48% 100%);
+      /* 뺨 홍조 왼쪽 */
+      radial-gradient(ellipse 6px 4px at 12px 20px, rgba(245, 184, 196, 0.72) 0%, transparent 100%),
+      /* 뺨 홍조 오른쪽 */
+      radial-gradient(ellipse 6px 4px at calc(100% - 12px) 20px, rgba(245, 184, 196, 0.72) 0%, transparent 100%),
+      /* 유리창 두 칸 */
+      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 42%, rgba(200, 230, 245, 0.4) 42% 48%, rgba(255, 255, 255, 0.92) 48% 100%);
   }
 
   .kakao-bus-overlay::after {
@@ -2362,44 +2461,49 @@
   }
 
   .kakao-dot-overlay {
-    width: 22px;
-    height: 22px;
-    border: 4px solid #fff;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #fff;
     border-radius: 999px;
-    background: #0f172a;
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+    background: var(--text);
+    box-shadow: 0 6px 14px rgba(32, 24, 16, 0.18);
   }
 
   .kakao-stop-overlay {
-    width: 26px;
-    height: 26px;
-    border: 4px solid #fff;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #fff;
     border-radius: 999px;
-    background: #2563eb;
-    animation: stop-pulse 1.9s ease-out infinite;
+    background: var(--blue);
+    animation: stop-pulse 2s ease-out infinite;
   }
 
+  /* 일반 정류장 — 작고 조용하게 */
   .kakao-stop-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border: 2px solid #fff;
     border-radius: 999px;
-    background: #94a3b8;
-    box-shadow: 0 4px 9px rgba(15, 23, 42, 0.18);
+    background: rgba(71, 57, 29, 0.28);
+    box-shadow: 0 2px 6px rgba(32, 24, 16, 0.12);
   }
 
+  /* 탑승 정류장 — 파랑, 눈에 띄게 */
   .kakao-stop-dot.boarding {
-    width: 22px;
-    height: 22px;
-    border-width: 4px;
-    background: #2563eb;
+    width: 20px;
+    height: 20px;
+    border-width: 3px;
+    background: var(--blue);
+    box-shadow: 0 0 0 4px rgba(28, 91, 183, 0.16), 0 4px 12px rgba(28, 91, 183, 0.24);
   }
 
+  /* 하차 정류장 — 오렌지, 다음으로 중요 */
   .kakao-stop-dot.alighting {
-    width: 18px;
-    height: 18px;
-    border-width: 3px;
-    background: #f97316;
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+    background: var(--orange);
+    box-shadow: 0 0 0 3px rgba(197, 99, 31, 0.14), 0 3px 8px rgba(197, 99, 31, 0.2);
   }
 
   .kakao-bus-overlay .kakao-bus-label {
@@ -2422,65 +2526,69 @@
   .fast-flow-head {
     position: absolute;
     z-index: 6;
-    left: 14px;
-    right: 14px;
-    top: 14px;
+    left: 12px;
+    right: 12px;
+    top: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 0;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.88);
-    padding: 11px 12px;
-    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    background: rgba(255, 252, 247, 0.92);
+    padding: 10px 12px;
+    box-shadow: 0 8px 18px rgba(68, 51, 30, 0.09);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--line);
   }
 
   .fast-flow-head .kicker {
-    color: #94a3b8;
+    color: var(--text-muted);
     font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.2em;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
   .fast-flow-head strong {
     display: block;
-    margin-top: 3px;
-    color: #334155;
-    font-size: 13px;
-    font-weight: 900;
+    margin-top: 2px;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
   .fast-flow-live {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     flex-shrink: 0;
     border-radius: 999px;
-    background: #ecfdf5;
-    color: #047857;
-    padding: 7px 10px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    border: 1px solid rgba(30, 122, 95, 0.14);
+    padding: 6px 10px;
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
 
   .fast-flow-live::before {
     content: "";
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
-    background: #10b981;
-    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.13);
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30, 122, 95, 0.14);
   }
 
   .fast-flow-timeline {
     position: relative;
     margin-top: 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 22px;
-    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255, 252, 247, 0.82);
     padding: 14px 10px 6px;
   }
 
@@ -2490,9 +2598,9 @@
     left: 0;
     right: 0;
     top: 36px;
-    height: 6px;
+    height: 5px;
     border-radius: 999px;
-    background: #e2e8f0;
+    background: var(--bg-strong);
   }
 
   .fast-flow-nodes {
@@ -2516,46 +2624,51 @@
   .fast-flow-dot {
     position: relative;
     z-index: 2;
-    width: 20px;
-    height: 20px;
-    border: 4px solid #fff;
+    width: 18px;
+    height: 18px;
+    border: 3px solid var(--paper-strong);
     border-radius: 999px;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 6px rgba(68, 51, 30, 0.14);
   }
 
-  .fast-flow-dot.walk { background: #cbd5e1; }
-  .fast-flow-dot.bus { background: #60a5fa; }
-  .fast-flow-dot.wait { background: #fbcfe8; }
-  .fast-flow-dot.subway { background: #1d4ed8; }
+  /* walk = 중립 회갈색 */
+  .fast-flow-dot.walk { background: rgba(71, 57, 29, 0.28); }
+  /* bus = blue (탑승 개념) */
+  .fast-flow-dot.bus { background: var(--blue); }
+  /* wait = orange (주의/대기) */
+  .fast-flow-dot.wait { background: var(--orange); }
+  /* subway = accent green */
+  .fast-flow-dot.subway { background: var(--accent); }
 
   .fast-flow-label {
     max-width: 72px;
-    margin-top: 11px;
+    margin-top: 9px;
     border-radius: 999px;
-    background: #f1f5f9;
-    color: #334155;
-    padding: 5px 8px;
+    background: var(--bg-strong);
+    color: var(--text);
+    padding: 4px 8px;
     font-size: 10px;
-    font-weight: 900;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    letter-spacing: -0.01em;
   }
 
   .fast-flow-minutes {
-    margin-top: 5px;
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 800;
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 500;
   }
 
   .fast-flow-mini-track {
     position: relative;
-    height: 20px;
+    height: 18px;
     margin-top: 10px;
     overflow: hidden;
     border-radius: 999px;
-    background: #e2e8f0;
+    background: var(--bg-strong);
   }
 
   .fast-flow-mini-track::before {
@@ -2593,10 +2706,10 @@
     overflow: hidden;
   }
 
-  .fast-flow-seg.walk { background: #cbd5e1; color: #475569; }
-  .fast-flow-seg.bus { background: #60a5fa; }
-  .fast-flow-seg.wait { background: #fbcfe8; color: #9d174d; }
-  .fast-flow-seg.subway { background: #1d4ed8; }
+  .fast-flow-seg.walk { background: rgba(71, 57, 29, 0.22); color: var(--text-muted); }
+  .fast-flow-seg.bus { background: var(--blue); }
+  .fast-flow-seg.wait { background: var(--orange); color: #fff; }
+  .fast-flow-seg.subway { background: var(--accent); }
 
   .fast-flow-vehicle,
   .fast-flow-glow {
@@ -2652,34 +2765,40 @@
     justify-content: space-between;
     gap: 12px;
     margin-top: 10px;
-    border-radius: 18px;
-    background: #f8fafc;
-    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(255, 252, 247, 0.82);
+    border: 1px solid var(--line);
+    padding: 11px 13px;
   }
 
   .fast-flow-status .label {
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 900;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   .fast-flow-status strong {
     display: block;
-    margin-top: 4px;
-    color: #1e293b;
+    margin-top: 3px;
+    color: var(--text);
     font-size: 13px;
     line-height: 1.25;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .fast-flow-eta {
     flex-shrink: 0;
     border-radius: 999px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    padding: 8px 10px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    border: 1px solid rgba(28, 91, 183, 0.12);
+    padding: 7px 10px;
+    font-family: var(--mono);
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 700;
   }
 
   .fast-flow.compact {
@@ -2711,16 +2830,16 @@
     align-items: center;
     gap: 7px;
     margin-top: 11px;
-    color: #64748b;
-    font-size: 13px;
+    color: var(--text-muted);
+    font-size: 12px;
     line-height: 1.4;
-    font-weight: 800;
+    font-weight: 500;
   }
 
   .fast-candidates {
     display: grid;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 10px;
   }
 
   .fast-candidates:empty { display: none; }
@@ -2728,38 +2847,42 @@
   .fast-candidate {
     width: 100%;
     text-align: left;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    border-radius: 32px;
-    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
     padding: 14px;
-    box-shadow: 0 10px 30px rgba(148, 163, 184, 0.12);
-    backdrop-filter: blur(18px);
+    box-shadow: 0 8px 20px rgba(68, 51, 30, 0.07);
+    backdrop-filter: blur(14px);
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
   }
 
   .fast-candidate.recommended {
-    border-color: #0f172a;
-    box-shadow: 0 20px 50px rgba(96, 165, 250, 0.22);
-  }
-
-  .fast-candidate {
-    cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    border-color: rgba(30, 122, 95, 0.30);
+    box-shadow: 0 12px 32px rgba(30, 122, 95, 0.12);
   }
 
   .fast-candidate:hover {
     transform: translateY(-1px);
-    border-color: rgba(15, 23, 42, 0.45);
+    border-color: rgba(71, 57, 29, 0.22);
+    box-shadow: 0 12px 28px rgba(68, 51, 30, 0.12);
   }
 
+  .fast-candidate:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(68, 51, 30, 0.08);
+  }
+
+  /* active = 선택됨 = accent green (not blue — blue is for bus/boarding) */
   .fast-candidate.active {
-    border-color: #2563eb;
-    background: linear-gradient(180deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.85));
-    box-shadow: 0 22px 50px rgba(37, 99, 235, 0.22);
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(30, 122, 95, 0.07), rgba(255, 252, 247, 0.95));
+    box-shadow: 0 14px 36px rgba(30, 122, 95, 0.16);
     transform: translateY(-1px);
   }
 
   .fast-candidate:not(.active):not(.recommended) {
-    opacity: 0.86;
+    opacity: 0.88;
   }
 
   .fast-candidate:not(.active):not(.recommended):hover {
@@ -2770,10 +2893,10 @@
     margin-top: 10px;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(37, 99, 235, 0.1);
-    color: #1d4ed8;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
 
@@ -2795,24 +2918,26 @@
   .fast-candidate-tag {
     display: inline-flex;
     border-radius: 999px;
-    padding: 6px 10px;
+    padding: 5px 10px;
     font-size: 11px;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 
   .fast-candidate-title {
-    margin-top: 10px;
-    color: #020617;
-    font-size: 16px;
-    line-height: 1.25;
-    font-weight: 900;
+    margin-top: 8px;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .fast-candidate-meta {
-    margin-top: 4px;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 700;
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
   }
 
   .fast-candidate-score {
@@ -2822,28 +2947,32 @@
 
   .fast-candidate-score strong {
     display: block;
-    font-size: 31px;
+    font-family: var(--mono);
+    font-size: 26px;
     line-height: 1;
-    font-weight: 900;
-    letter-spacing: 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
   }
 
   .fast-candidate-score span {
     display: block;
-    margin-top: 2px;
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 900;
+    margin-top: 3px;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .fast-detail {
-    margin-top: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 34px;
-    background: rgba(255, 255, 255, 0.75);
+    margin-top: 10px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
     padding: 14px;
-    box-shadow: 0 12px 40px rgba(148, 163, 184, 0.15);
-    backdrop-filter: blur(18px);
+    box-shadow: 0 8px 24px rgba(68, 51, 30, 0.07);
+    backdrop-filter: blur(14px);
   }
 
   .fast-detail-toggle {
@@ -2855,22 +2984,28 @@
     background: transparent;
     padding: 0;
     text-align: left;
-    color: #020617;
+    color: var(--text);
     cursor: pointer;
+    transition: opacity 0.14s ease;
+  }
+
+  .fast-detail-toggle:hover {
+    opacity: 0.76;
   }
 
   .fast-detail-toggle strong {
     display: block;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   .fast-detail-toggle span {
     display: block;
-    margin-top: 4px;
-    color: #64748b;
+    margin-top: 3px;
+    color: var(--text-muted);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 500;
   }
 
   .fast-card .route-details {
@@ -2886,13 +3021,13 @@
   .fast-card .detail-block {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--line);
   }
 
   .fast-card .segment-item,
   .fast-card .candidate-card {
-    border-color: #f1f5f9;
-    background: #f8fafc;
+    border-color: var(--line);
+    background: rgba(255, 252, 247, 0.72);
   }
 
   .fast-refresh {
@@ -2905,24 +3040,38 @@
     justify-content: center;
     gap: 8px;
     margin-top: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--line);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.7);
-    color: #0f172a;
-    padding: 15px 18px;
-    font-size: 14px;
-    font-weight: 900;
-    box-shadow: 0 20px 50px rgba(148, 163, 184, 0.22);
+    background: rgba(255, 252, 247, 0.88);
+    color: var(--text);
+    padding: 14px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    box-shadow: 0 14px 36px rgba(68, 51, 30, 0.14);
     backdrop-filter: blur(24px);
     cursor: pointer;
+    transition: background 0.16s ease, box-shadow 0.16s ease, transform 0.14s ease;
+  }
+
+  .fast-refresh:hover {
+    background: rgba(255, 252, 247, 0.98);
+    box-shadow: 0 18px 44px rgba(68, 51, 30, 0.18);
+    transform: translateY(-1px);
+  }
+
+  .fast-refresh:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 20px rgba(68, 51, 30, 0.10);
   }
 
   .fast-footer {
     margin-top: 18px;
-    color: #94a3b8;
+    color: var(--text-muted);
     text-align: center;
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 500;
+    opacity: 0.7;
   }
 
   .advanced-options {
@@ -3011,6 +3160,313 @@
       padding-right: 14px;
     }
   }
+
+  /* ====================================================
+     코지팝 귀여운 스타일 레이어 — 2nd pass
+     ==================================================== */
+
+  /* 키프레임 */
+  @keyframes cute-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  @keyframes cute-blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.05); }
+  }
+
+  @keyframes cute-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  @keyframes cute-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
+  }
+
+  @keyframes cute-bounce-in {
+    0% { transform: translateY(0px) scale(1); }
+    40% { transform: translateY(-5px) scale(1.04); }
+    70% { transform: translateY(2px) scale(0.98); }
+    100% { transform: translateY(0px) scale(1); }
+  }
+
+  @keyframes cute-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes cute-pulse-boarding {
+    0% { box-shadow: 0 0 0 0 rgba(249, 208, 216, 0.8), 0 4px 12px rgba(28, 91, 183, 0.24); }
+    70% { box-shadow: 0 0 0 10px rgba(249, 208, 216, 0), 0 4px 12px rgba(28, 91, 183, 0.24); }
+    100% { box-shadow: 0 0 0 0 rgba(249, 208, 216, 0), 0 4px 12px rgba(28, 91, 183, 0.24); }
+  }
+
+  @keyframes cute-star-spin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  @keyframes cute-tab-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-3px) scale(1.06); }
+    60% { transform: translateY(1px) scale(0.97); }
+  }
+
+  @keyframes empty-wave {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
+  }
+
+  /* ---- 브랜드 마스코트 ---- */
+  .brand-mascot {
+    display: inline-block;
+    animation: cute-float 3s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  .fast-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---- 버스 오버레이 귀엽게 ---- */
+  .kakao-bus-overlay {
+    border-radius: 22px 22px 16px 16px;
+    box-shadow: 0 18px 32px rgba(37, 99, 235, 0.28), 0 0 0 9px rgba(200, 230, 245, 0.18);
+    animation: cute-float 2.2s ease-in-out infinite;
+  }
+
+  .kakao-bus-overlay.secondary {
+    animation-delay: 0.4s;
+    animation-duration: 2.6s;
+  }
+
+  /* 버스 얼굴 - ::before 는 유리창, 귀여운 눈은 SVG로 대체 (overlay 내부에 SVG 주입됨) */
+
+  /* ---- 탑승 정류장 — 하트 핀 느낌 ---- */
+  .kakao-stop-dot.boarding {
+    animation: cute-pulse-boarding 1.8s ease-out infinite;
+    /* 하트 실루엣 강조 */
+    clip-path: none;
+  }
+
+  /* 탑승 정류장: 내부에 하트 포인트 — 원 안에 작은 파스텔 포인트 */
+  .kakao-stop-dot.boarding::after {
+    content: "♥";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: white;
+    line-height: 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* 하차 정류장: 별 포인트 */
+  .kakao-stop-dot.alighting {
+    position: relative;
+  }
+
+  .kakao-stop-dot.alighting::after {
+    content: "★";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8px;
+    color: white;
+    line-height: 1;
+    animation: cute-star-spin 4s linear infinite;
+  }
+
+  /* ---- 내 위치 마커 ---- */
+  .kakao-dot-overlay {
+    box-shadow: 0 0 0 4px rgba(200, 230, 245, 0.5), 0 6px 14px rgba(32, 24, 16, 0.18);
+  }
+
+  /* ---- 탭 마이크로인터랙션 ---- */
+  .route-tab.active {
+    background: linear-gradient(135deg, var(--accent) 0%, #2d9e7a 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 6px 18px rgba(30, 122, 95, 0.28);
+    animation: cute-tab-bounce 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  /* ---- Refresh 버튼 스핀 ---- */
+  .fast-refresh.spinning .refresh-icon {
+    animation: cute-spin 0.6s ease-in-out;
+  }
+
+  .header-refresh-btn.spinning svg,
+  .header-refresh-btn.spinning {
+    animation: cute-spin 0.6s ease-in-out;
+  }
+
+  /* ---- candidate card hover wiggle ---- */
+  .fast-candidate:hover {
+    transform: translateY(-2px) rotate(-0.6deg);
+    box-shadow: 0 14px 34px rgba(68, 51, 30, 0.14);
+  }
+
+  .fast-candidate:nth-child(even):hover {
+    transform: translateY(-2px) rotate(0.6deg);
+  }
+
+  /* ---- 빈 상태 일러스트 ---- */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 22px 28px;
+    gap: 6px;
+  }
+
+  .empty-state-illust {
+    margin-bottom: 10px;
+    animation: cute-breathe 3.5s ease-in-out infinite;
+  }
+
+  .empty-state-wave {
+    animation: empty-wave 1.4s ease-in-out infinite;
+    transform-origin: bottom center;
+    display: inline-block;
+  }
+
+  .empty-state strong {
+    text-align: center;
+  }
+
+  /* ---- live-map-fallback 일러스트 ---- */
+  .live-map-fallback {
+    gap: 10px;
+    text-align: center;
+  }
+
+  .live-map-fallback-illust {
+    animation: cute-float 2.8s ease-in-out infinite;
+  }
+
+  /* ---- 헤더 pill 귀여운 배경 ---- */
+  .fast-metric.arrive {
+    background: linear-gradient(135deg, rgba(200, 230, 245, 0.5), rgba(28, 91, 183, 0.07));
+    border-color: rgba(147, 201, 232, 0.4);
+    border-radius: 24px;
+  }
+
+  .fast-metric.transfer {
+    background: linear-gradient(135deg, rgba(252, 238, 196, 0.6), rgba(197, 99, 31, 0.07));
+    border-color: rgba(240, 210, 140, 0.4);
+    border-radius: 24px;
+  }
+
+  .fast-metric.walk {
+    background: linear-gradient(135deg, rgba(196, 234, 223, 0.6), rgba(30, 122, 95, 0.07));
+    border-color: rgba(150, 210, 190, 0.4);
+    border-radius: 24px;
+  }
+
+  /* ---- fast-phone 배경 데코 ---- */
+  .fast-phone {
+    background: linear-gradient(160deg, #ede5d8 0%, #e4d8c6 100%);
+  }
+
+  /* ---- 헤더 데코 줄무늬 ---- */
+  .fast-header::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+      var(--pastel-pink) 0%,
+      var(--pastel-yellow) 25%,
+      var(--pastel-mint) 50%,
+      var(--pastel-sky) 75%,
+      var(--pastel-lavender) 100%
+    );
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .fast-header {
+    position: relative;
+    padding-bottom: 20px;
+    margin-bottom: -2px;
+  }
+
+  /* ---- 카드 모서리 + 부드러운 그림자 ---- */
+  .fast-trip-panel {
+    border-radius: 30px;
+    box-shadow: 0 16px 40px rgba(68, 51, 30, 0.09);
+  }
+
+  .fast-candidate {
+    border-radius: 26px;
+  }
+
+  /* ---- next-action 귀여운 그라디언트 ---- */
+  .fast-next-action {
+    background: linear-gradient(135deg, #1e5040 0%, #1e7a5f 55%, #2563a8 100%);
+    border-radius: 24px;
+  }
+
+  /* ---- add-route-btn 핑크 액센트 포인트 ---- */
+  #add-route-btn {
+    background: linear-gradient(135deg, var(--accent-strong) 0%, #2d9e7a 100%);
+    box-shadow: 0 10px 24px rgba(30, 122, 95, 0.26);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #add-route-btn::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--pastel-pink);
+    opacity: 0.7;
+  }
+
+  /* ---- live-badge 귀여운 ---- */
+  .live-badge {
+    border-radius: 16px;
+    border-color: rgba(200, 230, 245, 0.6);
+    background: rgba(255, 252, 247, 0.95);
+  }
+
+  /* ---- route-tab 귀엽게 ---- */
+  .route-tab {
+    border-radius: 16px;
+    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease;
+  }
+
+  .route-tab:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  /* ---- 정류장 승차 마커 핑크 포인트 ---- */
+  .kakao-stop-dot.boarding {
+    border-color: rgba(249, 208, 216, 0.8);
+  }
 </style>
 </head>
 <body>
@@ -3019,14 +3475,60 @@
     <div class="fast-content">
       <header class="fast-header">
         <div class="fast-brand">
-          <strong>transit</strong>
-          <span>soft live routing</span>
+          <!-- 버스 마스코트 SVG — 눈/뺨 있는 귀여운 얼굴 -->
+          <span class="brand-mascot" aria-hidden="true">
+            <svg width="36" height="30" viewBox="0 0 36 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 차체 -->
+              <rect x="1" y="5" width="34" height="20" rx="7" fill="#60a5fa"/>
+              <rect x="1" y="5" width="34" height="20" rx="7" fill="url(#bus-grad)"/>
+              <!-- 전면 유리창 (두 칸) -->
+              <rect x="5" y="9" width="11" height="8" rx="3" fill="rgba(255,255,255,0.88)"/>
+              <rect x="20" y="9" width="11" height="8" rx="3" fill="rgba(255,255,255,0.88)"/>
+              <!-- 눈 -->
+              <ellipse cx="10.5" cy="13" rx="2.2" ry="2.5" fill="#1d3a6b" class="bus-eye-left"/>
+              <ellipse cx="25.5" cy="13" rx="2.2" ry="2.5" fill="#1d3a6b" class="bus-eye-right"/>
+              <!-- 눈 하이라이트 -->
+              <circle cx="11.4" cy="11.8" r="0.7" fill="white"/>
+              <circle cx="26.4" cy="11.8" r="0.7" fill="white"/>
+              <!-- 뺨 홍조 -->
+              <ellipse cx="7" cy="16.5" rx="2.8" ry="1.6" fill="#f5b8c4" opacity="0.7"/>
+              <ellipse cx="29" cy="16.5" rx="2.8" ry="1.6" fill="#f5b8c4" opacity="0.7"/>
+              <!-- 미소 -->
+              <path d="M13 18 Q18 21.5 23 18" stroke="#1d3a6b" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+              <!-- 바퀴 -->
+              <circle cx="9" cy="25.5" r="3.5" fill="#1e293b"/>
+              <circle cx="9" cy="25.5" r="1.8" fill="#94a3b8"/>
+              <circle cx="27" cy="25.5" r="3.5" fill="#1e293b"/>
+              <circle cx="27" cy="25.5" r="1.8" fill="#94a3b8"/>
+              <!-- 상단 안테나 -->
+              <rect x="16" y="1" width="4" height="5" rx="1" fill="#93c5fd"/>
+              <circle cx="18" cy="1" r="1.5" fill="#fcd34d"/>
+              <defs>
+                <linearGradient id="bus-grad" x1="1" y1="5" x2="35" y2="25" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#93c5fd"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </span>
+          <div>
+            <strong>transit</strong>
+            <span>soft live routing</span>
+          </div>
         </div>
         <div class="live-badge" id="clock">--:--</div>
       </header>
       <div class="fast-actions">
         <button class="btn btn-primary btn-compact" id="add-route-btn">출발지·도착지</button>
-        <button class="btn btn-secondary btn-compact" id="header-refresh-btn" aria-label="새로고침">새로고침</button>
+        <button class="btn btn-secondary btn-compact" id="header-refresh-btn" aria-label="새로고침">
+          <span class="refresh-icon-wrap" aria-hidden="true">
+            <svg class="refresh-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 7A6 6 0 1 1 7 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M7 1L10 3.5L7 5.5" fill="currentColor"/>
+            </svg>
+          </span>
+          새로고침
+        </button>
         <button class="btn btn-secondary btn-compact" id="key-settings-btn" aria-label="키 설정">키</button>
       </div>
       <section>
@@ -4142,6 +4644,38 @@
       <div class="live-map" data-live-map data-route-id="${escapeHtml(routeId)}">
         <div class="live-map-canvas" aria-hidden="true"></div>
         <div class="live-map-fallback" data-live-map-fallback>
+          <div class="live-map-fallback-illust" aria-hidden="true">
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 지도 배경 -->
+              <rect x="8" y="12" width="48" height="38" rx="8" fill="#e8f4fd"/>
+              <rect x="8" y="12" width="48" height="38" rx="8" fill="url(#map-grad)" opacity="0.7"/>
+              <!-- 지도 도로 선 -->
+              <rect x="14" y="24" width="36" height="3" rx="1.5" fill="#b0bec5" opacity="0.7"/>
+              <rect x="14" y="32" width="20" height="3" rx="1.5" fill="#b0bec5" opacity="0.7"/>
+              <rect x="28" y="20" width="3" height="24" rx="1.5" fill="#b0bec5" opacity="0.7"/>
+              <!-- 핀 마커 -->
+              <ellipse cx="40" cy="36" rx="5" ry="7" fill="#f06292"/>
+              <ellipse cx="40" cy="36" rx="3" ry="4.5" fill="#e91e63"/>
+              <circle cx="40" cy="33" r="2.5" fill="white" opacity="0.7"/>
+              <ellipse cx="40" cy="42" rx="3" ry="1.2" fill="#c2185b" opacity="0.4"/>
+              <!-- 돋보기 -->
+              <circle cx="58" cy="48" r="10" fill="white" opacity="0.92" stroke="#90caf9" stroke-width="2"/>
+              <circle cx="58" cy="48" r="6.5" fill="#e3f2fd"/>
+              <line x1="65" y1="55" x2="70" y2="60" stroke="#90caf9" stroke-width="3" stroke-linecap="round"/>
+              <!-- 돋보기 안 지도 힌트 -->
+              <rect x="54" y="45" width="8" height="1.5" rx="0.75" fill="#90caf9" opacity="0.8"/>
+              <rect x="54" y="48" width="5" height="1.5" rx="0.75" fill="#90caf9" opacity="0.6"/>
+              <!-- 별 -->
+              <polygon points="20,14 21,17 24,17 21.5,19 22.5,22 20,20 17.5,22 18.5,19 16,17 19,17" fill="#ffd54f" opacity="0.8"/>
+              <circle cx="60" cy="18" r="2.5" fill="#f8bbd9" opacity="0.9"/>
+              <defs>
+                <linearGradient id="map-grad" x1="8" y1="12" x2="56" y2="50" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#c8e6f5"/>
+                  <stop offset="100%" stop-color="#e8f5e9"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
           <strong>Kakao Map 연결 중</strong>
           <span>실제 지도 위에서 내 위치, 탑승 정류장, 접근 중인 버스를 불러오고 있습니다.</span>
         </div>
@@ -4674,8 +5208,74 @@
   function renderEmptyCard() {
     return `
       <div class="empty-state">
-        <strong>저장된 루트가 없습니다</strong>
-        자주 가는 버스 출퇴근 경로를 저장해두고, 루트마다 추천 기준을 정해보세요.
+        <!-- 빈 상태 일러스트 — 버스 정류장에서 기다리는 캐릭터 -->
+        <div class="empty-state-illust" aria-hidden="true">
+          <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 하늘 배경 원 -->
+            <circle cx="55" cy="55" r="50" fill="#f0f8ff" opacity="0.6"/>
+            <!-- 구름 -->
+            <ellipse cx="28" cy="28" rx="12" ry="7" fill="white" opacity="0.9"/>
+            <ellipse cx="38" cy="25" rx="9" ry="6" fill="white" opacity="0.9"/>
+            <ellipse cx="22" cy="30" rx="7" ry="5" fill="white" opacity="0.8"/>
+            <!-- 땅 -->
+            <rect x="10" y="82" width="90" height="8" rx="4" fill="#c8e6c9" opacity="0.7"/>
+            <!-- 버스 정류장 기둥 -->
+            <rect x="52" y="40" width="5" height="44" rx="2" fill="#90a4ae"/>
+            <!-- 정류장 표지판 -->
+            <rect x="44" y="28" width="28" height="16" rx="5" fill="#1c5bb7"/>
+            <rect x="44" y="28" width="28" height="16" rx="5" fill="url(#stop-grad)"/>
+            <text x="58" y="39" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">BUS</text>
+            <!-- 캐릭터 몸통 -->
+            <rect x="30" y="60" width="20" height="22" rx="7" fill="#fce4ec"/>
+            <rect x="30" y="60" width="20" height="22" rx="7" fill="url(#char-body-grad)"/>
+            <!-- 캐릭터 머리 -->
+            <ellipse cx="40" cy="54" rx="12" ry="11" fill="#ffe0b2"/>
+            <!-- 귀 -->
+            <ellipse cx="28" cy="53" rx="3.5" ry="4" fill="#ffe0b2"/>
+            <ellipse cx="28" cy="53" rx="2" ry="2.5" fill="#f8bbd9" opacity="0.8"/>
+            <ellipse cx="52" cy="53" rx="3.5" ry="4" fill="#ffe0b2"/>
+            <ellipse cx="52" cy="53" rx="2" ry="2.5" fill="#f8bbd9" opacity="0.8"/>
+            <!-- 머리카락 -->
+            <path d="M28 48 Q40 36 52 48" fill="#5d4037"/>
+            <ellipse cx="34" cy="44" rx="5" ry="4" fill="#5d4037"/>
+            <ellipse cx="46" cy="44" rx="5" ry="4" fill="#5d4037"/>
+            <!-- 눈 -->
+            <ellipse cx="35" cy="53" rx="2.5" ry="3" fill="#3e2723"/>
+            <ellipse cx="45" cy="53" rx="2.5" ry="3" fill="#3e2723"/>
+            <circle cx="36" cy="51.5" r="0.9" fill="white"/>
+            <circle cx="46" cy="51.5" r="0.9" fill="white"/>
+            <!-- 뺨 -->
+            <ellipse cx="30" cy="57" rx="3.5" ry="2" fill="#f8bbd9" opacity="0.75"/>
+            <ellipse cx="50" cy="57" rx="3.5" ry="2" fill="#f8bbd9" opacity="0.75"/>
+            <!-- 입 (씩 웃음) -->
+            <path d="M36 60 Q40 63 44 60" stroke="#5d4037" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+            <!-- 손 (흔드는 쪽) -->
+            <ellipse cx="70" cy="60" rx="6" ry="5" fill="#ffe0b2" class="empty-state-wave" style="transform-origin:70px 70px"/>
+            <ellipse cx="72" cy="57" rx="2" ry="2.5" fill="#ffe0b2"/>
+            <ellipse cx="75" cy="56" rx="2" ry="2.5" fill="#ffe0b2"/>
+            <ellipse cx="78" cy="57" rx="2" ry="2.5" fill="#ffe0b2"/>
+            <!-- 가방 -->
+            <rect x="22" y="68" width="10" height="13" rx="4" fill="#b3e5fc"/>
+            <rect x="24" y="66" width="6" height="4" rx="2" fill="#81d4fa"/>
+            <!-- 꽃 장식 -->
+            <circle cx="88" cy="36" r="5" fill="#fce4ec" opacity="0.9"/>
+            <circle cx="88" cy="36" r="2.5" fill="#f48fb1"/>
+            <circle cx="88" cy="28" r="3" fill="#fff9c4" opacity="0.9"/>
+            <circle cx="88" cy="28" r="1.5" fill="#fff176"/>
+            <defs>
+              <linearGradient id="stop-grad" x1="44" y1="28" x2="72" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#1c5bb7"/>
+                <stop offset="100%" stop-color="#1565c0"/>
+              </linearGradient>
+              <linearGradient id="char-body-grad" x1="30" y1="60" x2="50" y2="82" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#f8bbd9"/>
+                <stop offset="100%" stop-color="#fce4ec"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <strong>루트를 저장해보세요!</strong>
+        자주 가는 버스 출퇴근 경로를 저장해두면<br>루트마다 추천 기준을 정해 한눈에 볼 수 있어요.
       </div>
     `;
   }
