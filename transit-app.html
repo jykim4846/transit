@@ -3750,9 +3750,10 @@
       `;
     } else {
       fallback.innerHTML = `
-        <strong>실시간 차량 방향 정보를 확인 중이에요</strong>
-        <span>${escapeHtml(boardingName)} 정류장 기준으로 접근 중인 버스를 찾고 있어요.</span>
+        <strong>이 노선은 실시간 위치 정보가 없어요</strong>
+        <span>${escapeHtml(boardingName)} → ${escapeHtml(alightingName)} · 노선 매핑이 수집되면 자동으로 표시됩니다.</span>
         ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
+        <span>경로 정보는 계속 사용할 수 있어요.</span>
       `;
     }
   }
