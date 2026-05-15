@@ -1,0 +1,14 @@
+{
+  "routeNo": "262",
+  "collectedAt": "2026-05-15T05:26:22.849Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100044",
+      "routeNo": "262",
+      "routeType": "3",
+      "startName": "중랑차고지",
+      "endName": "여의도"
+    }
+  ]
+}
