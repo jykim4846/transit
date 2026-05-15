@@ -2057,9 +2057,9 @@
   }
 
   .fast-actions {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
     margin-bottom: 14px;
   }
 
@@ -2067,6 +2067,14 @@
     border-radius: 999px;
     font-size: 13px;
     font-weight: 900;
+  }
+
+  .fast-actions #add-route-btn { flex: 1 1 auto; min-width: 0; }
+  .fast-actions .btn-compact {
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1;
+    flex: 0 0 auto;
   }
 
   .fast-actions .btn-primary {
@@ -3017,8 +3025,9 @@
         <div class="live-badge" id="clock">--:--</div>
       </header>
       <div class="fast-actions">
-        <button class="btn btn-primary" id="add-route-btn">출발지와 도착지 설정</button>
-        <button class="btn btn-secondary" id="key-settings-btn">키</button>
+        <button class="btn btn-primary btn-compact" id="add-route-btn">출발지·도착지</button>
+        <button class="btn btn-secondary btn-compact" id="header-refresh-btn" aria-label="새로고침">새로고침</button>
+        <button class="btn btn-secondary btn-compact" id="key-settings-btn" aria-label="키 설정">키</button>
       </div>
       <section>
     <div class="route-tabs" id="route-tabs"></div>
@@ -4771,7 +4780,6 @@
             </button>
             <div class="route-details">${detailsHtml}</div>
           </section>
-          <button class="fast-refresh" data-action="refresh" data-id="${escapeHtml(route.id)}">${iconSvg("refresh", 16)} ${loading ? "계산 중..." : "실시간으로 다시 계산"}</button>
         </div>
       </article>
     `;
@@ -4880,13 +4888,13 @@
   function bindRouteSwipe() {
     const list = document.getElementById("route-list");
     if (!list) return;
-    const SWIPE_MIN_X = 60;
+    const SWIPE_MIN_X = 45;
     let startX = 0;
     let startY = 0;
     let tracking = false;
     list.addEventListener("pointerdown", (event) => {
       if (event.pointerType === "mouse" && event.button !== 0) return;
-      if (event.target.closest(".live-map, .fast-candidate, .fast-candidates, button, [data-action], a, input, textarea")) {
+      if (event.target.closest(".live-map, .fast-candidate, button, [data-action], a, input, textarea")) {
         tracking = false;
         return;
       }
@@ -5639,6 +5647,15 @@
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
+    document.getElementById("header-refresh-btn").addEventListener("click", () => {
+      if (state.activeRouteId) {
+        refreshRoute(state.activeRouteId);
+      } else if (state.routes.length) {
+        refreshRoute(state.routes[0].id);
+      } else {
+        showToast("새로고침할 루트가 없습니다");
+      }
+    });
     updateOdsayKeyVisibility();
     document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
     document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
