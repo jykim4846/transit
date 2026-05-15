@@ -1900,7 +1900,7 @@
   }
 
   body {
-    background: #f7f7fb;
+    background: #f4f6f8;
   }
 
   body::before {
@@ -1919,10 +1919,9 @@
     min-height: calc(100dvh - 38px);
     overflow: hidden;
     border-radius: 34px;
-    background: linear-gradient(180deg, #fff7fb 0%, #f4f8ff 100%);
+    background: #f6f8fb;
     padding: 20px;
-    box-shadow: 0 30px 80px rgba(120, 119, 198, 0.18);
-    backdrop-filter: blur(18px);
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.13);
   }
 
   .fast-phone::before,
@@ -1938,8 +1937,8 @@
     height: 210px;
     right: -76px;
     top: -56px;
-    background: linear-gradient(135deg, rgba(186, 230, 253, 0.7), rgba(199, 210, 254, 0.42));
-    filter: blur(24px);
+    background: rgba(147, 197, 253, 0.18);
+    animation: ambient-drift-a 10s ease-in-out infinite;
   }
 
   .fast-phone::after {
@@ -1947,8 +1946,18 @@
     height: 180px;
     left: -92px;
     top: 360px;
-    background: linear-gradient(135deg, rgba(251, 207, 232, 0.62), rgba(255, 228, 230, 0.22));
-    filter: blur(24px);
+    background: rgba(134, 239, 172, 0.14);
+    animation: ambient-drift-b 12s ease-in-out infinite;
+  }
+
+  @keyframes ambient-drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-10px, 12px, 0) scale(1.04); }
+  }
+
+  @keyframes ambient-drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(12px, -8px, 0) scale(1.03); }
   }
 
   .fast-content {
@@ -1970,7 +1979,7 @@
     line-height: 1;
     letter-spacing: 0;
     color: transparent;
-    background: linear-gradient(90deg, #0f172a 0%, #4338ca 58%, #ec4899 100%);
+    background: linear-gradient(90deg, #0f172a 0%, #2563eb 68%, #0f766e 100%);
     -webkit-background-clip: text;
     background-clip: text;
   }
@@ -2050,12 +2059,11 @@
   }
 
   .fast-trip-panel {
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    border: 1px solid #e5e7eb;
     border-radius: 38px;
-    background: rgba(255, 255, 255, 0.7);
+    background: #fff;
     padding: 18px;
-    box-shadow: 0 20px 60px rgba(148, 163, 184, 0.22);
-    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   }
 
   .fast-trip-head {
@@ -2113,14 +2121,13 @@
 
   .fast-metric {
     min-width: 0;
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    border: 1px solid #eef2f7;
     border-radius: 28px;
     padding: 14px 13px;
-    backdrop-filter: blur(12px);
   }
 
-  .fast-metric.arrive { background: linear-gradient(135deg, #eff6ff, #e0f2fe); }
-  .fast-metric.transfer { background: linear-gradient(135deg, #fff1f2, #fce7f3); }
+  .fast-metric.arrive { background: #eff6ff; }
+  .fast-metric.transfer { background: #fff7ed; }
   .fast-metric.walk { background: #ecfdf5; }
 
   .fast-metric strong {
@@ -2187,6 +2194,204 @@
     box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
   }
 
+  .live-map {
+    position: relative;
+    height: 210px;
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    background:
+      linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+      linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+      linear-gradient(135deg, #f8fafc, #eef6ff);
+    background-size: 34px 34px, 34px 34px, auto;
+  }
+
+  .live-map-canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  .live-map-schematic {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .live-map-route {
+    position: absolute;
+    left: 15%;
+    right: 15%;
+    top: 52%;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #dbeafe, #93c5fd, #bfdbfe);
+  }
+
+  .live-map-route::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.78), transparent);
+    animation: route-pulse 2.6s linear infinite;
+  }
+
+  @keyframes route-pulse {
+    from { transform: translateX(-45%); }
+    to { transform: translateX(90%); }
+  }
+
+  .live-map-stop,
+  .live-map-user {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+  }
+
+  .live-map-user {
+    left: 15%;
+    top: 52%;
+    width: 18px;
+    height: 18px;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    background: #0f172a;
+    box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.08);
+  }
+
+  .live-map-stop {
+    left: 44%;
+    top: 52%;
+    width: 22px;
+    height: 22px;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    background: #2563eb;
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.26);
+    animation: stop-pulse 1.9s ease-out infinite;
+  }
+
+  @keyframes stop-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.26); }
+    70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  }
+
+  .cute-bus {
+    position: absolute;
+    z-index: 4;
+    left: 78%;
+    top: 52%;
+    width: 46px;
+    height: 31px;
+    transform: translate(-50%, -50%);
+    border: 3px solid #fff;
+    border-radius: 13px 13px 10px 10px;
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+    animation: bus-approach 7.5s ease-in-out infinite, bus-breathe 1.8s ease-in-out infinite;
+  }
+
+  .cute-bus::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    top: 6px;
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .cute-bus::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: -5px;
+    height: 7px;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 15% 50%, #0f172a 0 3px, transparent 4px),
+      radial-gradient(circle at 85% 50%, #0f172a 0 3px, transparent 4px);
+  }
+
+  @keyframes bus-approach {
+    0%, 100% { left: 78%; }
+    50% { left: 48%; }
+  }
+
+  @keyframes bus-breathe {
+    0%, 100% { margin-top: 0; }
+    50% { margin-top: -3px; }
+  }
+
+  .live-map-label {
+    position: absolute;
+    z-index: 3;
+    max-width: 120px;
+    overflow: hidden;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .live-map-label.user {
+    left: 8%;
+    top: calc(52% + 20px);
+  }
+
+  .live-map-label.stop {
+    left: 33%;
+    top: calc(52% + 20px);
+    color: #1d4ed8;
+  }
+
+  .live-map-label.bus {
+    right: 7%;
+    top: calc(52% - 42px);
+    color: #1d4ed8;
+  }
+
+  .kakao-bus-overlay {
+    position: relative;
+    width: 46px;
+    height: 31px;
+    border: 3px solid #fff;
+    border-radius: 13px 13px 10px 10px;
+    background: linear-gradient(180deg, #60a5fa, #2563eb);
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+    animation: bus-breathe 1.8s ease-in-out infinite;
+  }
+
+  .kakao-bus-overlay::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    right: 7px;
+    top: 6px;
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.86);
+  }
+
+  .kakao-bus-overlay::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: -5px;
+    height: 7px;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 15% 50%, #0f172a 0 3px, transparent 4px),
+      radial-gradient(circle at 85% 50%, #0f172a 0 3px, transparent 4px);
+  }
+
   .fast-flow-head {
     display: flex;
     align-items: center;
@@ -2235,7 +2440,7 @@
 
   .fast-flow-timeline {
     position: relative;
-    margin-top: 18px;
+    margin-top: 14px;
   }
 
   .fast-flow-timeline::before {
@@ -2444,6 +2649,7 @@
   }
 
   .fast-flow.compact .fast-flow-head,
+  .fast-flow.compact .live-map,
   .fast-flow.compact .fast-flow-timeline,
   .fast-flow.compact .fast-flow-status {
     display: none;
@@ -2874,6 +3080,7 @@
   const LEGACY_STORAGE_KEY = "transit-routes";
   const ROUTE_CARD_COLLAPSED_KEY = "transit-route-card-collapsed";
   const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
+  const KAKAO_MAP_KEY_STORAGE = "transit-kakao-map-key";
   const AUTOCOMPLETE_MIN_LENGTH = 2;
   const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
 
@@ -2911,6 +3118,9 @@
     expandedRouteIds: new Set(),
     modalRouteId: null,
     previewMaps: {},
+    liveMaps: {},
+    userLocation: null,
+    locationWatchId: null,
     mapPickerTarget: null,
     autocompleteSelection: {
       from: null,
@@ -2938,6 +3148,14 @@
       return;
     }
     localStorage.setItem(ODSAY_BROWSER_KEY_STORAGE, value.trim());
+  }
+
+  function setKakaoMapKey(value) {
+    if (!value) {
+      localStorage.removeItem(KAKAO_MAP_KEY_STORAGE);
+      return;
+    }
+    localStorage.setItem(KAKAO_MAP_KEY_STORAGE, value.trim());
   }
 
   function normalizeLegacyRoute(route) {
@@ -3284,8 +3502,183 @@
     };
   }
 
+  function getKakaoMapKey() {
+    const metaKey = document.querySelector('meta[name="kakao-map-key"]')?.content || "";
+    return (localStorage.getItem(KAKAO_MAP_KEY_STORAGE) || window.TRANSIT_KAKAO_MAP_KEY || metaKey || "").trim();
+  }
+
+  async function resolveKakaoMapKey() {
+    const localKey = getKakaoMapKey();
+    if (localKey) return localKey;
+    if (resolveKakaoMapKey.promise) return resolveKakaoMapKey.promise;
+    resolveKakaoMapKey.promise = fetch("/api/config", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : {})
+      .then((payload) => String(payload.kakaoMapKey || "").trim())
+      .catch(() => "");
+    return resolveKakaoMapKey.promise;
+  }
+
+  async function loadKakaoMaps() {
+    const key = await resolveKakaoMapKey();
+    if (!key) return Promise.reject(new Error("Kakao Maps key missing"));
+    if (window.kakao?.maps) {
+      return new Promise((resolve) => window.kakao.maps.load(() => resolve(window.kakao.maps)));
+    }
+    if (loadKakaoMaps.promise) return loadKakaoMaps.promise;
+
+    loadKakaoMaps.promise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false`;
+      script.async = true;
+      script.onload = () => window.kakao?.maps ? window.kakao.maps.load(() => resolve(window.kakao.maps)) : reject(new Error("Kakao Maps unavailable"));
+      script.onerror = () => reject(new Error("Kakao Maps failed to load"));
+      document.head.appendChild(script);
+    });
+    return loadKakaoMaps.promise;
+  }
+
+  function toLatLngPoint(location) {
+    const lat = Number(location?.y ?? location?.lat);
+    const lng = Number(location?.x ?? location?.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  }
+
+  function interpolatePoint(a, b, ratio) {
+    return {
+      lat: a.lat + (b.lat - a.lat) * ratio,
+      lng: a.lng + (b.lng - a.lng) * ratio
+    };
+  }
+
+  function buildLiveTransitPoints(route) {
+    const from = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
+    const to = toLatLngPoint(route?.to) || { lat: 37.5133, lng: 127.1002 };
+    const user = state.userLocation || from;
+    const boarding = interpolatePoint(from, to, 0.34);
+    const busStart = interpolatePoint(from, to, 0.78);
+    return { from, to, user, boarding, busStart };
+  }
+
+  function startUserLocationWatch() {
+    if (state.locationWatchId != null || !navigator.geolocation) return;
+    state.locationWatchId = navigator.geolocation.watchPosition(
+      (position) => {
+        state.userLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        Object.values(state.liveMaps).forEach((entry) => {
+          if (!entry?.maps || !entry.userOverlay) return;
+          entry.userOverlay.setPosition(new entry.maps.LatLng(state.userLocation.lat, state.userLocation.lng));
+        });
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 15000, timeout: 8000 }
+    );
+  }
+
+  function overlayContent(html, className = "") {
+    const el = document.createElement("div");
+    el.className = className;
+    el.innerHTML = html;
+    return el;
+  }
+
+  function markerDot(color, size = 18) {
+    return `<div style="width:${size}px;height:${size}px;border:4px solid #fff;border-radius:999px;background:${color};box-shadow:0 8px 18px rgba(15,23,42,.16);"></div>`;
+  }
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function animateKakaoBus(entry, points) {
+    const duration = 8200;
+    const startMs = performance.now();
+    const step = (now) => {
+      if (!entry.container?.isConnected) return;
+      const cycle = ((now - startMs) % duration) / duration;
+      const eased = easeInOutCubic(cycle);
+      const position = interpolatePoint(points.busStart, points.boarding, eased);
+      entry.busOverlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
+      entry.animationFrame = requestAnimationFrame(step);
+    };
+    entry.animationFrame = requestAnimationFrame(step);
+  }
+
+  async function initLiveTransitMaps() {
+    const containers = Array.from(document.querySelectorAll("[data-live-map]"));
+    if (!containers.length) return;
+
+    let maps;
+    try {
+      maps = await loadKakaoMaps();
+    } catch (_) {
+      return;
+    }
+    startUserLocationWatch();
+
+    containers.forEach((container) => {
+      const routeId = container.dataset.routeId;
+      if (!routeId || state.liveMaps[routeId]) return;
+      const canvas = container.querySelector(".live-map-canvas");
+      const schematic = container.querySelector(".live-map-schematic");
+      const route = state.routes.find((item) => item.id === routeId);
+      if (!canvas || !route) return;
+
+      const points = buildLiveTransitPoints(route);
+      const map = new maps.Map(canvas, {
+        center: new maps.LatLng(points.boarding.lat, points.boarding.lng),
+        level: 5
+      });
+      const path = [points.user, points.boarding, points.to].map((point) => new maps.LatLng(point.lat, point.lng));
+      const polyline = new maps.Polyline({
+        path,
+        strokeWeight: 6,
+        strokeColor: "#60a5fa",
+        strokeOpacity: 0.82,
+        strokeStyle: "solid"
+      });
+      polyline.setMap(map);
+
+      const userOverlay = new maps.CustomOverlay({
+        position: new maps.LatLng(points.user.lat, points.user.lng),
+        content: overlayContent(markerDot("#0f172a", 18)),
+        xAnchor: 0.5,
+        yAnchor: 0.5
+      });
+      const stopOverlay = new maps.CustomOverlay({
+        position: new maps.LatLng(points.boarding.lat, points.boarding.lng),
+        content: overlayContent(markerDot("#2563eb", 22)),
+        xAnchor: 0.5,
+        yAnchor: 0.5
+      });
+      const busOverlay = new maps.CustomOverlay({
+        position: new maps.LatLng(points.busStart.lat, points.busStart.lng),
+        content: overlayContent("", "kakao-bus-overlay"),
+        xAnchor: 0.5,
+        yAnchor: 0.5
+      });
+
+      userOverlay.setMap(map);
+      stopOverlay.setMap(map);
+      busOverlay.setMap(map);
+
+      const bounds = new maps.LatLngBounds();
+      path.forEach((point) => bounds.extend(point));
+      map.setBounds(bounds, 24, 24, 24, 24);
+      if (schematic) schematic.style.display = "none";
+
+      const entry = { maps, map, container, userOverlay, stopOverlay, busOverlay, polyline, animationFrame: null };
+      state.liveMaps[routeId] = entry;
+      animateKakaoBus(entry, points);
+    });
+  }
+
   function renderFastFlow(candidate, options = {}) {
     const compact = Boolean(options.compact);
+    const routeId = options.routeId || "";
     const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
       type: inferSegmentType(seg),
       label: seg.label || seg.kind || "",
@@ -3300,6 +3693,20 @@
     }).join("");
     const stops = getFastFlowStops(candidate);
     const status = getFastFlowStatus(candidate, stops);
+    const liveMap = compact ? "" : `
+      <div class="live-map" data-live-map data-route-id="${escapeHtml(routeId)}">
+        <div class="live-map-canvas" aria-hidden="true"></div>
+        <div class="live-map-schematic" aria-label="실시간 버스 접근 지도">
+          <div class="live-map-route"></div>
+          <div class="live-map-user"></div>
+          <div class="live-map-stop"></div>
+          <div class="cute-bus" aria-hidden="true"></div>
+          <div class="live-map-label user">내 위치</div>
+          <div class="live-map-label stop">${escapeHtml(stops?.[1] || "탑승 정류장")}</div>
+          <div class="live-map-label bus">${escapeHtml(status.eta)}</div>
+        </div>
+      </div>
+    `;
     const nodes = segments.slice(0, 5).map((seg) => `
       <div class="fast-flow-node">
         <span class="fast-flow-dot ${escapeHtml(seg.type)}"></span>
@@ -3316,6 +3723,7 @@
           </div>
           <div class="fast-flow-live">LIVE</div>
         </div>
+        ${liveMap}
         <div class="fast-flow-timeline">
           <div class="fast-flow-nodes">${nodes}</div>
           <div class="fast-flow-glow"></div>
@@ -3895,7 +4303,7 @@
                 <span>→</span>
               </div>
             </div>
-            ${primary ? renderFastFlow(primary) : ""}
+            ${primary ? renderFastFlow(primary, { routeId: route.id }) : ""}
             <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
           </section>
           <section class="fast-candidates">
@@ -3950,7 +4358,9 @@
       return;
     }
     const ctx = getCommuteContext();
+    state.liveMaps = {};
     list.innerHTML = getOrderedRoutes().map((r) => renderRouteCard(r, ctx)).join("");
+    requestAnimationFrame(initLiveTransitMaps);
     state.lastCommutePhase = ctx?.phase || null;
   }
 
@@ -4086,8 +4496,19 @@
     );
     if (input === null) return;
     setBrowserOdsayKey(input);
+    const kakaoInput = window.prompt(
+      "Kakao Maps JavaScript 키를 입력하세요. 비우고 저장하면 지도는 간이 live map으로 표시됩니다.",
+      getKakaoMapKey()
+    );
+    if (kakaoInput !== null) {
+      setKakaoMapKey(kakaoInput);
+      loadKakaoMaps.promise = null;
+      resolveKakaoMapKey.promise = null;
+      state.liveMaps = {};
+      requestAnimationFrame(initLiveTransitMaps);
+    }
     updateOdsayKeyVisibility();
-    showToast(input.trim() ? "브라우저 fallback용 ODsay 키를 저장했습니다" : "저장된 ODsay 키를 삭제했습니다");
+    showToast(input.trim() || kakaoInput?.trim() ? "브라우저 키 설정을 저장했습니다" : "저장된 브라우저 키를 삭제했습니다");
   }
 
   function updateOdsayKeyVisibility() {
