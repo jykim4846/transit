@@ -3082,10 +3082,6 @@
     }
   };
 
-  const TRANSPORT_META = {
-    bus: { label: "버스만" }
-  };
-
   const state = {
     routes: [],
     collapsedRouteIds: new Set(JSON.parse(localStorage.getItem(ROUTE_CARD_COLLAPSED_KEY) || "[]")),
@@ -3397,10 +3393,6 @@
 
   function priorityLabel(value) {
     return PRIORITY_META[value]?.label || value;
-  }
-
-  function transportLabel(value) {
-    return TRANSPORT_META[value]?.label || value;
   }
 
   function describeRecommendation(route, recommendation) {
