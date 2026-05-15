@@ -3602,42 +3602,33 @@
       .filter((bus) => bus.point);
   }
 
-  function getSyntheticPreviousStopPoint(origin, boarding) {
-    const latDelta = boarding.lat - origin.lat;
-    const lngDelta = boarding.lng - origin.lng;
-    if (Math.abs(latDelta) + Math.abs(lngDelta) < 0.001) {
-      return { lat: boarding.lat + 0.0045, lng: boarding.lng - 0.006 };
-    }
-    return {
-      lat: boarding.lat + latDelta * 2.4,
-      lng: boarding.lng + lngDelta * 2.4
-    };
-  }
-
   function buildLiveTransitPoints(route, candidate) {
     const origin = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
     const destination = toLatLngPoint(route?.to) || null;
     const user = state.userLocation || origin;
     const boarding = getBoardingStopPoint(candidate, origin);
     const approachPoints = getApproachStopPoints(candidate);
-    const syntheticStart = getSyntheticPreviousStopPoint(origin, boarding);
     const approachingBuses = getRealtimeBusPoints(candidate);
-    const busStart = approachingBuses[0]?.point
-      || (approachPoints.length >= 2 ? approachPoints[0] : syntheticStart);
-    const polylinePoints = approachPoints.length >= 2
-      ? approachPoints
-      : dedupePathPoints([busStart, boarding]);
-    const busPoints = approachingBuses.length
-      ? approachingBuses
-      : [{ index: 0, label: "다음", point: busStart }];
+    if (approachPoints.length < 2) {
+      return {
+        canRenderMap: false,
+        fallbackMessage: "실시간 차량 방향 정보를 확인 중이에요",
+        origin,
+        destination,
+        user,
+        boardingStop: boarding,
+        busPoints: [],
+        approachPolylinePoints: []
+      };
+    }
     return {
+      canRenderMap: true,
       origin,
       destination,
       user,
       boardingStop: boarding,
-      busStart,
-      busPoints,
-      approachPolylinePoints: polylinePoints
+      busPoints: approachingBuses,
+      approachPolylinePoints: approachPoints
     };
   }
 
@@ -3713,6 +3704,16 @@
 
       const candidate = route.lastResult?.recommendation || null;
       const points = buildLiveTransitPoints(route, candidate);
+      if (!points.canRenderMap) {
+        if (fallback) {
+          fallback.innerHTML = `
+            <strong>${escapeHtml(points.fallbackMessage || "실시간 차량 방향 정보를 확인 중이에요")}</strong>
+            <span>정확한 노선 방향이 확인되면 실제 지도 위에 접근 중인 버스를 표시합니다.</span>
+          `;
+          fallback.style.display = "grid";
+        }
+        return;
+      }
       const map = new maps.Map(canvas, {
         center: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
         level: 5
@@ -3766,7 +3767,7 @@
 
       const entry = { maps, map, container, userOverlay, stopOverlay, busOverlays, polyline, animationFrame: null };
       state.liveMaps[routeId] = entry;
-      animateKakaoBuses(entry, points);
+      if (busOverlays.length) animateKakaoBuses(entry, points);
     });
   }
 

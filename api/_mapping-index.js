@@ -368,6 +368,24 @@ function getVehicleProgressSeq(vehicle, stopSeqByStationId) {
   return null;
 }
 
+function getApproachStartSeq(stops, mapping, stopWindow) {
+  const boardingSeq = Number(mapping.stationSeq);
+  const defaultStartSeq = Math.max(1, boardingSeq - (stopWindow - 1));
+  const boardingNameKey = normalizeNameKey(mapping.stationName);
+  if (!boardingNameKey) return defaultStartSeq;
+
+  const previousSameStop = stops
+    .filter((stop) => {
+      if (Number(stop.seq) >= boardingSeq) return false;
+      if (String(stop.stationId) === String(mapping.stationId)) return true;
+      return normalizeNameKey(stop.name) === boardingNameKey;
+    })
+    .sort((a, b) => Number(b.seq) - Number(a.seq))[0];
+
+  if (!previousSameStop) return defaultStartSeq;
+  return Math.max(defaultStartSeq, Number(previousSameStop.seq) + 1);
+}
+
 async function getBusApproachPreview(mapping, stopWindow = 10) {
   const stops = await getOrFetchStops(mapping.routeId);
   const boardingIndex = stops.findIndex((stop) => String(stop.stationId) === String(mapping.stationId));
@@ -376,12 +394,14 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
   const stopSeqByStationId = new Map(stops.map((stop) => [String(stop.stationId), stop.seq]));
   const vehicles = await getBusPositionsByRoute(mapping.routeId);
   const maxApproachGap = Math.ceil(stops.length / 3);
+  const approachStartSeq = getApproachStartSeq(stops, mapping, stopWindow);
   const approaching = vehicles
     .map((vehicle) => {
       const progressSeq = getVehicleProgressSeq(vehicle, stopSeqByStationId);
       if (!Number.isFinite(progressSeq)) return null;
       const remainingSeq = mapping.stationSeq - progressSeq;
       if (remainingSeq <= 0 || remainingSeq > Math.min(10, maxApproachGap)) return null;
+      if (progressSeq < approachStartSeq) return null;
       return {
         ...vehicle,
         progressSeq,
@@ -392,8 +412,7 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
     .sort((a, b) => a.remainingSeq - b.remainingSeq)
     .slice(0, 3);
 
-  const startSeq = Math.max(1, mapping.stationSeq - (stopWindow - 1));
-  const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= mapping.stationSeq);
+  const previewStops = stops.filter((stop) => stop.seq >= approachStartSeq && stop.seq <= mapping.stationSeq);
   if (!previewStops.length) return null;
 
   const minSeq = previewStops[0].seq;
@@ -405,6 +424,8 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
     boardingStopName: mapping.stationName,
     boardingStationId: mapping.stationId,
     boardingStationSeq: mapping.stationSeq,
+    approachStartSeq,
+    approachDirectionFrom: previewStops[0]?.name || "",
     stops: previewStops.map((stop) => ({
       seq: stop.seq,
       name: stop.name,
