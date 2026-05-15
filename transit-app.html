@@ -2060,9 +2060,9 @@
 
   .fast-trip-panel {
     border: 1px solid #e5e7eb;
-    border-radius: 38px;
+    border-radius: 32px;
     background: #fff;
-    padding: 18px;
+    padding: 14px;
     box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
   }
 
@@ -2116,7 +2116,7 @@
     display: grid;
     grid-template-columns: 1.25fr 0.8fr 0.8fr;
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 12px;
   }
 
   .fast-metric {
@@ -2150,12 +2150,12 @@
   }
 
   .fast-next-action {
-    margin-top: 14px;
-    border-radius: 30px;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    margin-top: 10px;
+    border-radius: 24px;
+    background: #111827;
     color: #fff;
     padding: 15px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.22);
   }
 
   .fast-next-action .label {
@@ -2185,27 +2185,26 @@
 
   .fast-flow {
     position: relative;
-    margin-top: 18px;
+    margin-top: 14px;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
-    border-radius: 30px;
-    background: #fff;
-    padding: 14px;
-    box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
+    border: 0;
+    border-radius: 28px;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
   }
 
   .live-map {
     position: relative;
-    height: 210px;
-    margin-top: 14px;
+    height: 328px;
+    margin-top: 0;
     overflow: hidden;
-    border: 1px solid #e5e7eb;
-    border-radius: 24px;
+    border: 1px solid #dbe3ee;
+    border-radius: 28px;
     background:
-      linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px),
-      linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
-      linear-gradient(135deg, #f8fafc, #eef6ff);
-    background-size: 34px 34px, 34px 34px, auto;
+      radial-gradient(circle at 18% 20%, rgba(219, 234, 254, 0.9), transparent 30%),
+      linear-gradient(135deg, #f9fbff 0%, #eef4fb 52%, #f8fafc 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 14px 36px rgba(15, 23, 42, 0.1);
   }
 
   .live-map-canvas {
@@ -2219,28 +2218,61 @@
     display: block;
   }
 
-  .live-map-route {
+  .live-map-block {
     position: absolute;
-    left: 15%;
-    right: 15%;
-    top: 52%;
-    height: 8px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #dbeafe, #93c5fd, #bfdbfe);
+    border: 1px solid rgba(203, 213, 225, 0.58);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.58);
   }
 
-  .live-map-route::after {
-    content: "";
+  .live-map-block.one {
+    left: 18px;
+    top: 78px;
+    width: 104px;
+    height: 70px;
+  }
+
+  .live-map-block.two {
+    right: 18px;
+    top: 82px;
+    width: 118px;
+    height: 82px;
+  }
+
+  .live-map-block.three {
+    left: 34px;
+    bottom: 42px;
+    width: 126px;
+    height: 78px;
+  }
+
+  .live-map-route-svg {
     position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.78), transparent);
-    animation: route-pulse 2.6s linear infinite;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .live-map-route-base {
+    fill: none;
+    stroke: #d7e3f3;
+    stroke-linecap: round;
+    stroke-width: 18;
+  }
+
+  .live-map-route-active {
+    fill: none;
+    stroke: #60a5fa;
+    stroke-dasharray: 12 16;
+    stroke-linecap: round;
+    stroke-width: 8;
+    animation: route-pulse 2.8s linear infinite;
   }
 
   @keyframes route-pulse {
-    from { transform: translateX(-45%); }
-    to { transform: translateX(90%); }
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -56; }
   }
 
   .live-map-stop,
@@ -2251,21 +2283,21 @@
   }
 
   .live-map-user {
-    left: 15%;
-    top: 52%;
-    width: 18px;
-    height: 18px;
+    left: 17%;
+    top: 68%;
+    width: 22px;
+    height: 22px;
     border: 4px solid #fff;
     border-radius: 999px;
     background: #0f172a;
-    box-shadow: 0 0 0 6px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 0 0 7px rgba(15, 23, 42, 0.08), 0 10px 20px rgba(15, 23, 42, 0.18);
   }
 
   .live-map-stop {
-    left: 44%;
-    top: 52%;
-    width: 22px;
-    height: 22px;
+    left: 46%;
+    top: 50%;
+    width: 26px;
+    height: 26px;
     border: 4px solid #fff;
     border-radius: 999px;
     background: #2563eb;
@@ -2283,44 +2315,50 @@
     position: absolute;
     z-index: 4;
     left: 78%;
-    top: 52%;
-    width: 46px;
-    height: 31px;
+    top: 32%;
+    width: 58px;
+    height: 42px;
     transform: translate(-50%, -50%);
-    border: 3px solid #fff;
-    border-radius: 13px 13px 10px 10px;
-    background: linear-gradient(180deg, #60a5fa, #2563eb);
-    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
-    animation: bus-approach 7.5s ease-in-out infinite, bus-breathe 1.8s ease-in-out infinite;
+    border: 4px solid #fff;
+    border-radius: 18px 18px 13px 13px;
+    background:
+      radial-gradient(circle at 16px 28px, #f8fafc 0 3px, transparent 4px),
+      radial-gradient(circle at 43px 28px, #f8fafc 0 3px, transparent 4px),
+      linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26), 0 0 0 9px rgba(96, 165, 250, 0.1);
+    animation: bus-approach 8s cubic-bezier(0.22, 1, 0.36, 1) infinite, bus-breathe 1.8s ease-in-out infinite;
   }
 
   .cute-bus::before {
     content: "";
     position: absolute;
-    left: 7px;
-    right: 7px;
-    top: 6px;
-    height: 8px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.86);
+    left: 9px;
+    right: 9px;
+    top: 8px;
+    height: 12px;
+    border-radius: 8px;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 42%, transparent 42% 48%, rgba(255, 255, 255, 0.92) 48% 100%);
   }
 
   .cute-bus::after {
     content: "";
     position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: -5px;
-    height: 7px;
+    left: 10px;
+    right: 10px;
+    bottom: -6px;
+    height: 9px;
     border-radius: 999px;
     background:
-      radial-gradient(circle at 15% 50%, #0f172a 0 3px, transparent 4px),
-      radial-gradient(circle at 85% 50%, #0f172a 0 3px, transparent 4px);
+      radial-gradient(circle at 15% 50%, #0f172a 0 4px, transparent 5px),
+      radial-gradient(circle at 85% 50%, #0f172a 0 4px, transparent 5px);
   }
 
   @keyframes bus-approach {
-    0%, 100% { left: 78%; }
-    50% { left: 48%; }
+    0% { left: 78%; top: 32%; transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
+    72% { left: 48%; top: 49%; transform: translate(-50%, -50%) rotate(-2deg) scale(1); }
+    86% { left: 47%; top: 49%; transform: translate(-50%, -50%) rotate(-2deg) scale(1); }
+    100% { left: 78%; top: 32%; transform: translate(-50%, -50%) rotate(-6deg) scale(0.96); }
   }
 
   @keyframes bus-breathe {
@@ -2342,62 +2380,109 @@
 
   .live-map-label.user {
     left: 8%;
-    top: calc(52% + 20px);
+    top: calc(68% + 22px);
   }
 
   .live-map-label.stop {
-    left: 33%;
-    top: calc(52% + 20px);
+    left: 35%;
+    top: calc(50% + 24px);
     color: #1d4ed8;
   }
 
   .live-map-label.bus {
     right: 7%;
-    top: calc(52% - 42px);
+    top: 34px;
     color: #1d4ed8;
+  }
+
+  .live-map-eta-chip {
+    position: absolute;
+    z-index: 5;
+    right: 14px;
+    bottom: 14px;
+    border: 1px solid rgba(191, 219, 254, 0.9);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #1d4ed8;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14);
   }
 
   .kakao-bus-overlay {
     position: relative;
-    width: 46px;
-    height: 31px;
-    border: 3px solid #fff;
-    border-radius: 13px 13px 10px 10px;
-    background: linear-gradient(180deg, #60a5fa, #2563eb);
-    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+    width: 58px;
+    height: 42px;
+    border: 4px solid #fff;
+    border-radius: 18px 18px 13px 13px;
+    background:
+      radial-gradient(circle at 16px 28px, #f8fafc 0 3px, transparent 4px),
+      radial-gradient(circle at 43px 28px, #f8fafc 0 3px, transparent 4px),
+      linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.26), 0 0 0 9px rgba(96, 165, 250, 0.1);
     animation: bus-breathe 1.8s ease-in-out infinite;
   }
 
   .kakao-bus-overlay::before {
     content: "";
     position: absolute;
-    left: 7px;
-    right: 7px;
-    top: 6px;
-    height: 8px;
-    border-radius: 5px;
-    background: rgba(255, 255, 255, 0.86);
+    left: 9px;
+    right: 9px;
+    top: 8px;
+    height: 12px;
+    border-radius: 8px;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.92) 0 42%, transparent 42% 48%, rgba(255, 255, 255, 0.92) 48% 100%);
   }
 
   .kakao-bus-overlay::after {
     content: "";
     position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: -5px;
-    height: 7px;
+    left: 10px;
+    right: 10px;
+    bottom: -6px;
+    height: 9px;
     border-radius: 999px;
     background:
-      radial-gradient(circle at 15% 50%, #0f172a 0 3px, transparent 4px),
-      radial-gradient(circle at 85% 50%, #0f172a 0 3px, transparent 4px);
+      radial-gradient(circle at 15% 50%, #0f172a 0 4px, transparent 5px),
+      radial-gradient(circle at 85% 50%, #0f172a 0 4px, transparent 5px);
+  }
+
+  .kakao-dot-overlay {
+    width: 22px;
+    height: 22px;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    background: #0f172a;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+  }
+
+  .kakao-stop-overlay {
+    width: 26px;
+    height: 26px;
+    border: 4px solid #fff;
+    border-radius: 999px;
+    background: #2563eb;
+    animation: stop-pulse 1.9s ease-out infinite;
   }
 
   .fast-flow-head {
+    position: absolute;
+    z-index: 6;
+    left: 14px;
+    right: 14px;
+    top: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 0;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.88);
+    padding: 11px 12px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
   }
 
   .fast-flow-head .kicker {
@@ -2441,6 +2526,10 @@
   .fast-flow-timeline {
     position: relative;
     margin-top: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    background: #fff;
+    padding: 14px 10px 6px;
   }
 
   .fast-flow-timeline::before {
@@ -2448,7 +2537,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 22px;
+    top: 36px;
     height: 6px;
     border-radius: 999px;
     background: #e2e8f0;
@@ -2511,6 +2600,7 @@
   .fast-flow-mini-track {
     position: relative;
     height: 20px;
+    margin-top: 10px;
     overflow: hidden;
     border-radius: 999px;
     background: #e2e8f0;
@@ -2609,7 +2699,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-top: 16px;
+    margin-top: 10px;
     border-radius: 18px;
     background: #f8fafc;
     padding: 12px 14px;
@@ -3585,10 +3675,6 @@
     return el;
   }
 
-  function markerDot(color, size = 18) {
-    return `<div style="width:${size}px;height:${size}px;border:4px solid #fff;border-radius:999px;background:${color};box-shadow:0 8px 18px rgba(15,23,42,.16);"></div>`;
-  }
-
   function easeInOutCubic(t) {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
@@ -3599,7 +3685,7 @@
     const step = (now) => {
       if (!entry.container?.isConnected) return;
       const cycle = ((now - startMs) % duration) / duration;
-      const eased = easeInOutCubic(cycle);
+      const eased = easeInOutCubic(Math.min(1, cycle / 0.82));
       const position = interpolatePoint(points.busStart, points.boarding, eased);
       entry.busOverlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
       entry.animationFrame = requestAnimationFrame(step);
@@ -3644,13 +3730,13 @@
 
       const userOverlay = new maps.CustomOverlay({
         position: new maps.LatLng(points.user.lat, points.user.lng),
-        content: overlayContent(markerDot("#0f172a", 18)),
+        content: overlayContent("", "kakao-dot-overlay"),
         xAnchor: 0.5,
         yAnchor: 0.5
       });
       const stopOverlay = new maps.CustomOverlay({
         position: new maps.LatLng(points.boarding.lat, points.boarding.lng),
-        content: overlayContent(markerDot("#2563eb", 22)),
+        content: overlayContent("", "kakao-stop-overlay"),
         xAnchor: 0.5,
         yAnchor: 0.5
       });
@@ -3697,13 +3783,20 @@
       <div class="live-map" data-live-map data-route-id="${escapeHtml(routeId)}">
         <div class="live-map-canvas" aria-hidden="true"></div>
         <div class="live-map-schematic" aria-label="실시간 버스 접근 지도">
-          <div class="live-map-route"></div>
+          <div class="live-map-block one"></div>
+          <div class="live-map-block two"></div>
+          <div class="live-map-block three"></div>
+          <svg class="live-map-route-svg" viewBox="0 0 320 328" aria-hidden="true" focusable="false">
+            <path class="live-map-route-base" d="M252 105 C215 108 198 130 182 153 C164 179 136 200 58 222" />
+            <path class="live-map-route-active" d="M252 105 C215 108 198 130 182 153 C164 179 136 200 58 222" />
+          </svg>
           <div class="live-map-user"></div>
           <div class="live-map-stop"></div>
           <div class="cute-bus" aria-hidden="true"></div>
           <div class="live-map-label user">내 위치</div>
           <div class="live-map-label stop">${escapeHtml(stops?.[1] || "탑승 정류장")}</div>
           <div class="live-map-label bus">${escapeHtml(status.eta)}</div>
+          <div class="live-map-eta-chip">${escapeHtml(status.eta)}</div>
         </div>
       </div>
     `;
@@ -4282,6 +4375,7 @@
                 <button class="fast-icon-btn" data-action="delete" data-id="${escapeHtml(route.id)}" aria-label="삭제">${iconSvg("trash", 15)}</button>
               </div>
             </div>
+            ${primary ? renderFastFlow(primary, { routeId: route.id }) : ""}
             <div class="fast-metrics">
               <div class="fast-metric arrive">
                 <strong>${escapeHtml(totalMin)}</strong>
@@ -4303,7 +4397,6 @@
                 <span>→</span>
               </div>
             </div>
-            ${primary ? renderFastFlow(primary, { routeId: route.id }) : ""}
             <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
           </section>
           <section class="fast-candidates">
