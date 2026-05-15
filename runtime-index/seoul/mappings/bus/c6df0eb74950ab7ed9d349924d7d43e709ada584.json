@@ -1,0 +1,19 @@
+{
+  "key": "c6df0eb74950ab7ed9d349924d7d43e709ada584",
+  "mapping": {
+    "routeNo": "742",
+    "routeId": "100100116",
+    "stationId": "112000106",
+    "stationSeq": 17,
+    "stationName": "DMC파크뷰자이.별동상가",
+    "alightingStationId": "112000127",
+    "alightingStationSeq": 25,
+    "alightingStationName": "신촌기차역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T23:22:22.580Z"
+  },
+  "source": "odsay_direct"
+}
