@@ -1,0 +1,19 @@
+{
+  "key": "8f03a9e49247a9ec729122130a44114ed9645a54",
+  "mapping": {
+    "routeNo": "마포12",
+    "routeId": "113900003",
+    "stationId": "113900116",
+    "stationSeq": 15,
+    "stationName": "중부여성발전센터",
+    "alightingStationId": "113900151",
+    "alightingStationSeq": 21,
+    "alightingStationName": "서강수협.신수중학교",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T09:49:11.696Z"
+  },
+  "source": "odsay_direct"
+}
