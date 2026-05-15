@@ -1,0 +1,19 @@
+{
+  "key": "7ab0eedf9492a0a7f53a007016f5a92c200d1851",
+  "mapping": {
+    "routeNo": "360",
+    "routeId": "100100057",
+    "stationId": "118000067",
+    "stationSeq": 49,
+    "stationName": "여의도공원1번출입구",
+    "alightingStationId": "122000184",
+    "alightingStationSeq": 71,
+    "alightingStationName": "강남역1번출구.역삼세무서",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:21.273Z"
+  },
+  "source": "odsay_direct"
+}
