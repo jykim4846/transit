@@ -1,0 +1,18 @@
+{
+  "key": "088537b163f61e1cc5ad59837126e5730f1412ce",
+  "mapping": {
+    "routeNo": "7013B",
+    "routeId": "100100448",
+    "stationId": "113000042",
+    "stationSeq": 49,
+    "stationName": "마포역",
+    "alightingStationId": "113000495",
+    "alightingStationSeq": 70,
+    "alightingStationName": "가좌역1번출구",
+    "confidence": "medium",
+    "score": 855,
+    "version": 2,
+    "createdAt": "2026-05-15T03:54:26.531Z"
+  },
+  "source": "runtime_resolve"
+}
