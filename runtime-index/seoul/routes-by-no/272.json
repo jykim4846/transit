@@ -1,0 +1,14 @@
+{
+  "routeNo": "272",
+  "collectedAt": "2026-05-15T05:26:17.243Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100048",
+      "routeNo": "272",
+      "routeType": "3",
+      "startName": "면목동",
+      "endName": "남가좌동"
+    }
+  ]
+}
