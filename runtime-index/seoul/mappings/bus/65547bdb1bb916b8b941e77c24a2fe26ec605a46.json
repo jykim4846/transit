@@ -1,0 +1,19 @@
+{
+  "key": "65547bdb1bb916b8b941e77c24a2fe26ec605a46",
+  "mapping": {
+    "routeNo": "272",
+    "routeId": "100100048",
+    "stationId": "100000022",
+    "stationSeq": 62,
+    "stationName": "경복궁",
+    "alightingStationId": "100000128",
+    "alightingStationSeq": 65,
+    "alightingStationName": "창경궁.서울대학교병원",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:16.734Z"
+  },
+  "source": "odsay_direct"
+}
