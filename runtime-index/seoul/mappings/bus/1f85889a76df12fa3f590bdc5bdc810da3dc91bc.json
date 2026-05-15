@@ -1,0 +1,18 @@
+{
+  "key": "1f85889a76df12fa3f590bdc5bdc810da3dc91bc",
+  "mapping": {
+    "routeNo": "360",
+    "routeId": "100100057",
+    "stationId": "122000181",
+    "stationSeq": 22,
+    "stationName": "강남역12번출구",
+    "alightingStationId": "118000007",
+    "alightingStationSeq": 43,
+    "alightingStationName": "여의도환승센터",
+    "confidence": "medium",
+    "score": 603,
+    "version": 2,
+    "createdAt": "2026-05-15T04:56:28.478Z"
+  },
+  "source": "runtime_resolve"
+}
