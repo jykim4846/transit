@@ -2889,6 +2889,223 @@
     opacity: 1;
   }
 
+  .boarding-panel {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--pastel-sky);
+    border: 1px solid var(--blue-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .boarding-panel.boarded {
+    background: linear-gradient(135deg, #ffd6a0 0%, #ffb4c9 50%, #cfb2ff 100%);
+    border: 2px solid var(--accent-strong);
+    box-shadow: 0 14px 34px rgba(255, 138, 166, 0.32), 0 0 0 4px rgba(255, 192, 207, 0.45);
+    animation: cute-breathe 1.8s ease-in-out infinite;
+    padding: 14px 16px;
+  }
+
+  .boarding-panel.boarded::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: calc(var(--radius-md) + 6px);
+    background: radial-gradient(circle, rgba(255, 195, 212, 0.3), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .boarding-panel.boarded { position: relative; z-index: 1; }
+
+  .boarding-panel-mascot {
+    flex-shrink: 0;
+    width: 52px;
+    height: 48px;
+    position: relative;
+  }
+
+  .boarding-panel-mascot svg {
+    overflow: visible;
+  }
+
+  .boarding-panel-mascot .bm-body {
+    transform-origin: 26px 36px;
+    animation: bus-hop 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite, bus-wobble 1.8s ease-in-out infinite;
+  }
+
+  .boarding-panel-mascot .bm-shadow {
+    transform-origin: 26px 42px;
+    animation: shadow-pulse 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  .boarding-panel-mascot .bm-wheels {
+    animation: bus-hop 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  .boarding-panel-mascot .bm-arm {
+    transform-origin: 19px 19px;
+    animation: passenger-wave 0.6s ease-in-out infinite alternate;
+  }
+
+  .boarding-panel-mascot .bm-sparkles text {
+    animation: sparkle-twinkle 1.4s ease-in-out infinite;
+  }
+
+  .boarding-panel-mascot .bm-sparkles text:nth-child(2) {
+    animation-delay: 0.5s;
+  }
+
+  .boarding-panel-mascot .bm-sparkles text:nth-child(3) {
+    animation-delay: 0.9s;
+  }
+
+  @keyframes bus-hop {
+    0%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+    55% { transform: translateY(-5px); }
+  }
+
+  @keyframes bus-wobble {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+  }
+
+  @keyframes shadow-pulse {
+    0%, 100% { transform: scaleX(1); opacity: 0.55; }
+    40%, 55% { transform: scaleX(0.7); opacity: 0.3; }
+  }
+
+  @keyframes passenger-wave {
+    0% { transform: rotate(-20deg); }
+    100% { transform: rotate(15deg); }
+  }
+
+  @keyframes sparkle-twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.6) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(30deg); }
+  }
+
+  .boarding-panel.boarded strong {
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .boarding-panel.boarded .boarding-panel-tag {
+    color: var(--accent-strong);
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .boarding-panel-btn.end {
+    background: var(--accent-strong);
+    color: #fff;
+    border-color: var(--accent-strong);
+    box-shadow: 0 6px 14px rgba(86, 179, 156, 0.32);
+  }
+
+  .boarding-panel-info {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .boarding-panel-tag {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .boarding-panel strong {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .boarding-panel span:not(.boarding-panel-tag) {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .boarding-panel-btn {
+    flex-shrink: 0;
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: #fff;
+    color: var(--accent-strong);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .boarding-panel-btn:hover { transform: translateY(-1px); }
+  .boarding-panel-btn:active { transform: scale(0.96); }
+
+  .boarding-panel-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(121, 205, 184, 0.28);
+  }
+
+  .kakao-bus-overlay.boarded {
+    width: 70px;
+    height: 50px;
+    border-radius: 22px 22px 16px 16px;
+    border-color: #fff8e7;
+    background:
+      radial-gradient(circle at 18px 32px, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 52px 32px, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 16px 24px, rgba(255, 138, 166, 0.95) 0 3.2px, transparent 4px),
+      radial-gradient(circle at 54px 24px, rgba(255, 138, 166, 0.95) 0 3.2px, transparent 4px),
+      linear-gradient(160deg, #ffb479 0%, #ff8aa6 55%, #cfb2ff 100%);
+    box-shadow:
+      0 0 0 6px rgba(255, 195, 212, 0.55),
+      0 0 0 14px rgba(207, 178, 255, 0.32),
+      0 18px 32px rgba(255, 138, 166, 0.5);
+    transform-origin: center 88%;
+    animation: bus-hop 0.9s cubic-bezier(0.45, 0, 0.55, 1) infinite, bus-wobble 1.8s ease-in-out infinite;
+  }
+
+  .kakao-bus-overlay.boarded::before {
+    left: 12px;
+    right: 12px;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.95) 0 42%, rgba(255, 248, 231, 0.3) 42% 58%, rgba(255, 255, 255, 0.95) 58% 100%);
+  }
+
+  .kakao-bus-overlay.boarded::after {
+    left: 12px;
+    right: 12px;
+    bottom: -7px;
+    background:
+      radial-gradient(circle at 15% 50%, #3a2c2b 0 4.5px, transparent 5.5px),
+      radial-gradient(circle at 85% 50%, #3a2c2b 0 4.5px, transparent 5.5px);
+  }
+
+  .kakao-bus-label.boarded {
+    background: linear-gradient(135deg, #ff8aa6, #ffb479);
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 8px 16px rgba(255, 138, 166, 0.42);
+    animation: cute-breathe 1.6s ease-in-out infinite;
+  }
+
+  .kakao-bus-overlay.dimmed {
+    opacity: 0.32;
+    filter: saturate(0.5);
+    transform: scale(0.85);
+  }
+
   .fast-selection-hint {
     margin-top: 10px;
     padding: 8px 12px;
@@ -3304,13 +3521,68 @@
   }
 
   /* ---- Refresh 버튼 스핀 ---- */
-  .fast-refresh.spinning .refresh-icon {
-    animation: cute-spin 0.6s ease-in-out;
+  .fast-refresh.spinning .refresh-icon,
+  #header-refresh-btn.spinning .refresh-icon {
+    animation: cute-spin 1s linear infinite;
   }
 
-  .header-refresh-btn.spinning svg,
-  .header-refresh-btn.spinning {
-    animation: cute-spin 0.6s ease-in-out;
+  #header-refresh-btn.spinning {
+    pointer-events: none;
+    opacity: 0.92;
+  }
+
+  /* ---- Tracking 토글 활성 상태 ---- */
+  #tracking-toggle-btn[aria-pressed="true"] {
+    background: linear-gradient(135deg, var(--pastel-mint), var(--accent-soft));
+    color: var(--accent-strong);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(121, 205, 184, 0.18);
+  }
+
+  #tracking-toggle-btn[aria-pressed="true"]::after {
+    content: "●";
+    margin-left: 4px;
+    color: var(--accent-strong);
+    font-size: 10px;
+    animation: cute-breathe 1.6s ease-in-out infinite;
+  }
+
+  /* ---- 단일 컬럼 preview + 입력 힌트 ---- */
+  .preview-grid.preview-grid-single {
+    grid-template-columns: 1fr;
+  }
+
+  .form-hint {
+    display: block;
+    margin-top: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ---- 카드 로딩 progress bar ---- */
+  .route-card.loading {
+    position: relative;
+  }
+
+  .route-card.loading::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(90deg, transparent 0%, var(--pastel-pink-strong) 30%, var(--pastel-sky-strong) 60%, transparent 100%);
+    background-size: 200% 100%;
+    animation: card-loading-stream 1.2s linear infinite;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  @keyframes card-loading-stream {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
   }
 
   /* ---- candidate card hover wiggle ---- */
@@ -3519,17 +3791,18 @@
         <div class="live-badge" id="clock">--:--</div>
       </header>
       <div class="fast-actions">
-        <button class="btn btn-primary btn-compact" id="add-route-btn">출발지·도착지</button>
-        <button class="btn btn-secondary btn-compact" id="header-refresh-btn" aria-label="새로고침">
+        <button class="btn btn-primary btn-compact" id="add-route-btn">목적지 추가</button>
+        <button class="btn btn-secondary btn-compact" id="header-refresh-btn" aria-label="현재 위치로 재검색">
           <span class="refresh-icon-wrap" aria-hidden="true">
             <svg class="refresh-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13 7A6 6 0 1 1 7 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               <path d="M7 1L10 3.5L7 5.5" fill="currentColor"/>
             </svg>
           </span>
-          새로고침
+          재검색
         </button>
-        <button class="btn btn-secondary btn-compact" id="key-settings-btn" aria-label="키 설정">키</button>
+        <button class="btn btn-secondary btn-compact" id="tracking-toggle-btn" aria-label="이동 트래킹 토글" aria-pressed="false">트래킹</button>
+        <button class="btn btn-secondary btn-compact" id="key-settings-btn" aria-label="키 설정" hidden>키</button>
       </div>
       <section>
     <div class="route-tabs" id="route-tabs"></div>
@@ -3556,39 +3829,22 @@
         <input type="text" id="route-label-input" placeholder="예: 출근, 퇴근, 병원" maxlength="18">
       </div>
 
-      <div class="form-row">
-        <label for="route-from-input">출발지</label>
-        <div class="autocomplete-wrap">
-          <input type="text" id="route-from-input" placeholder="예: 강남역, 더현대 서울" autocomplete="off">
-          <div class="autocomplete-dropdown" id="route-from-dropdown"></div>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <label for="route-to-input">도착지</label>
+      <div class="form-row full">
+        <label for="route-to-input">목적지</label>
         <div class="autocomplete-wrap">
           <input type="text" id="route-to-input" placeholder="예: 여의도역, 판교역 카카오" autocomplete="off">
           <div class="autocomplete-dropdown" id="route-to-dropdown"></div>
         </div>
+        <span class="form-hint">출발지는 매번 현재 위치로 자동 설정돼요.</span>
       </div>
 
       <div class="form-row full">
-        <label>선택 위치 확인</label>
-        <div class="preview-grid">
+        <label>목적지 미리보기</label>
+        <div class="preview-grid preview-grid-single">
           <div class="place-preview">
             <div class="place-preview-head">
               <div>
-                <strong>출발지</strong>
-                <span id="route-from-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
-              </div>
-              <button class="mini-map-btn" type="button" data-map-pick="from" id="route-from-map-pick-btn">지도에서 찍기</button>
-            </div>
-            <div class="place-preview-map empty" id="route-from-preview-map">검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.</div>
-          </div>
-          <div class="place-preview">
-            <div class="place-preview-head">
-              <div>
-                <strong>도착지</strong>
+                <strong>목적지</strong>
                 <span id="route-to-preview-label">위치를 선택하면 이곳에 지도가 보입니다.</span>
               </div>
               <button class="mini-map-btn" type="button" data-map-pick="to" id="route-to-map-pick-btn">지도에서 찍기</button>
@@ -3684,6 +3940,10 @@
     expandedRouteIds: new Set(),
     selectedCandidateIds: {},
     activeRouteId: null,
+    trackingActive: false,
+    trackingTimer: null,
+    initialRefreshDone: false,
+    boardedTrip: null,
     modalRouteId: null,
     previewMaps: {},
     liveMaps: {},
@@ -3767,11 +4027,18 @@
     return { ...route, transportFilter: "bus" };
   }
 
+  function forceCurrentLocationFrom(route) {
+    return {
+      ...route,
+      from: { name: "현재 위치", isCurrentLocation: true, x: null, y: null, kind: "현재 위치" }
+    };
+  }
+
   function migrateAndLoadRoutes() {
     const current = localStorage.getItem(STORAGE_KEY);
     if (current) {
       try {
-        return (JSON.parse(current) || []).map(forceBusOnly);
+        return (JSON.parse(current) || []).map(forceBusOnly).map(forceCurrentLocationFrom);
       } catch {
         return [];
       }
@@ -3781,7 +4048,7 @@
     if (!legacy) return [];
 
     try {
-      const migrated = (JSON.parse(legacy) || []).map(normalizeLegacyRoute).map(forceBusOnly);
+      const migrated = (JSON.parse(legacy) || []).map(normalizeLegacyRoute).map(forceBusOnly).map(forceCurrentLocationFrom);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
     } catch {
@@ -4490,12 +4757,14 @@
       const initialVehicles = candidate?.busApproachPreview?.vehicles || [];
       const busOverlays = initialVehicles.map((vehicle, index) => {
         const pos = vehicleLatLng(vehicle, previewStops) || points.boardingStop;
+        const boarded = isBoardedVehicle(vehicle, route.id);
+        const className = vehicleClassFor(vehicle, index, route.id);
         const overlay = new maps.CustomOverlay({
           position: new maps.LatLng(pos.lat, pos.lng),
-          content: overlayContent(busLabelHtml(vehicle), `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
+          content: overlayContent(busLabelHtml(vehicle, boarded), className),
           xAnchor: 0.5,
           yAnchor: 0.5,
-          zIndex: 10 - index
+          zIndex: boarded ? 100 : 10 - index
         });
         overlay.setMap(map);
         return { key: vehicle.key, index, overlay, position: { ...pos } };
@@ -4530,8 +4799,13 @@
     return pointAtSeq(stops || [], vehicle?.progressSeq);
   }
 
-  function busLabelHtml(vehicle) {
-    const parts = [escapeHtml(vehicle.label || "다음")];
+  function busLabelHtml(vehicle, isBoarded = false) {
+    const parts = [];
+    if (isBoarded) {
+      parts.push("🎒 탑승 중");
+    } else {
+      parts.push(escapeHtml(vehicle.label || "다음"));
+    }
     if (vehicle.catchable === false) {
       parts.push(`${escapeHtml(vehicle.remainingStops || 0)}정거장 뒤`);
     } else {
@@ -4542,7 +4816,12 @@
         ? `${escapeHtml(vehicle.passedAgoMinutes ?? vehicle.etaMinutes)}분 전 통과`
         : `${escapeHtml(vehicle.etaMinutes)}분 후`);
     }
-    return `<span class="kakao-bus-label">${parts.join(" · ")}</span>`;
+    return `<span class="kakao-bus-label${isBoarded ? " boarded" : ""}">${parts.join(" · ")}</span>`;
+  }
+
+  function isBoardedVehicle(vehicle, routeId) {
+    const trip = state.boardedTrip;
+    return Boolean(trip && trip.routeId === routeId && String(vehicle.key) === String(trip.vehicleKey));
   }
 
   function startBusPolling(routeId, candidate) {
@@ -4589,6 +4868,18 @@
     requestAnimationFrame(step);
   }
 
+  function vehicleClassFor(vehicle, index, routeId) {
+    const trip = state.boardedTrip;
+    const isBoarded = trip?.routeId === routeId && String(vehicle.key) === String(trip.vehicleKey);
+    const dimmed = trip?.routeId === routeId && !isBoarded;
+    return [
+      "kakao-bus-overlay",
+      index > 0 ? "secondary" : "",
+      isBoarded ? "boarded" : "",
+      dimmed ? "dimmed" : ""
+    ].filter(Boolean).join(" ");
+  }
+
   function updateLiveVehicles(routeId, preview) {
     const entry = state.liveMaps[routeId];
     if (!entry || !preview?.vehicles) return;
@@ -4598,20 +4889,24 @@
     vehicles.forEach((vehicle, index) => {
       const targetPos = vehicleLatLng(vehicle, stops);
       if (!targetPos) return;
+      const boarded = isBoardedVehicle(vehicle, routeId);
+      const className = vehicleClassFor(vehicle, index, routeId);
       const existing = entry.busOverlays.find((b) => b.key === vehicle.key);
       if (existing) {
-        const labelEl = existing.overlay.getContent().querySelector(".kakao-bus-label");
-        if (labelEl) labelEl.outerHTML = busLabelHtml(vehicle);
+        const content = existing.overlay.getContent();
+        content.className = className;
+        const labelEl = content.querySelector(".kakao-bus-label");
+        if (labelEl) labelEl.outerHTML = busLabelHtml(vehicle, boarded);
         tweenOverlayPosition(entry.maps, existing.overlay, existing.position, targetPos);
         existing.position = targetPos;
         nextOverlays.push(existing);
       } else {
         const overlay = new entry.maps.CustomOverlay({
           position: new entry.maps.LatLng(targetPos.lat, targetPos.lng),
-          content: overlayContent(busLabelHtml(vehicle), `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
+          content: overlayContent(busLabelHtml(vehicle, boarded), className),
           xAnchor: 0.5,
           yAnchor: 0.5,
-          zIndex: 10 - index
+          zIndex: boarded ? 100 : 10 - index
         });
         overlay.setMap(entry.map);
         nextOverlays.push({ key: vehicle.key, index, overlay, position: { ...targetPos } });
@@ -4621,6 +4916,35 @@
       if (!nextOverlays.find((next) => next.key === bus.key)) bus.overlay.setMap(null);
     });
     entry.busOverlays = nextOverlays;
+
+    const trip = state.boardedTrip;
+    if (trip?.routeId === routeId) {
+      const matched = vehicles.find((v) => String(v.key) === String(trip.vehicleKey));
+      if (matched) {
+        trip.remainingStops = Math.max(0, Number(matched.remainingStops || 0));
+        trip.etaMinutes = matched.etaMinutes;
+        trip.lastProgressSeq = Number(matched.progressSeq) || trip.lastProgressSeq;
+        updateBoardingPanelDOM(routeId, trip);
+        if (trip.alightingSeq != null && trip.lastProgressSeq >= trip.alightingSeq - 0.1) {
+          endBoarding("alighting");
+        }
+      } else if (trip.alightingSeq != null && trip.lastProgressSeq >= trip.alightingSeq - 1) {
+        endBoarding("alighting");
+      }
+    }
+  }
+
+  function updateBoardingPanelDOM(routeId, trip) {
+    const panel = document.querySelector(`.boarding-panel.boarded[data-route-id="${CSS.escape(routeId)}"]`);
+    if (!panel) return;
+    panel.innerHTML = `
+      <div class="boarding-panel-info">
+        <span class="boarding-panel-tag">탑승 중 🚌</span>
+        <strong>${escapeHtml(trip.alightingName || "하차 정류장")}까지 ${escapeHtml(trip.remainingStops ?? "-")}정거장</strong>
+        ${trip.etaMinutes != null ? `<span>약 ${escapeHtml(trip.etaMinutes)}분 후 하차</span>` : ""}
+      </div>
+      <button type="button" class="boarding-panel-btn" data-action="end-boarding">하차했어요</button>
+    `;
   }
 
   function renderFastFlow(candidate, options = {}) {
@@ -5302,6 +5626,71 @@
     const selectionBadge = isAlternateActive
       ? `<div class="fast-selection-hint">선택한 대안 후보로 표시 중이에요${recommendation ? ` · 추천(${escapeHtml(getCandidateTitle(recommendation))})로 돌아가려면 추천 카드를 누르세요` : ""}</div>`
       : "";
+    const tripStatus = getBoardingStatusForRoute(route.id);
+    const isBoardedHere = Boolean(tripStatus);
+    const boardingPanel = (() => {
+      if (isBoardedHere) {
+        const remain = Math.max(0, Number(tripStatus.remainingStops || 0));
+        const eta = tripStatus.etaMinutes;
+        return `
+          <div class="boarding-panel boarded" data-route-id="${escapeHtml(route.id)}">
+            <div class="boarding-panel-mascot" aria-hidden="true">
+              <svg width="52" height="48" viewBox="0 0 52 48" xmlns="http://www.w3.org/2000/svg">
+                <ellipse class="bm-shadow" cx="26" cy="42" rx="18" ry="3" fill="rgba(58, 44, 43, 0.16)"/>
+                <g class="bm-body">
+                  <rect x="6" y="8" width="40" height="28" rx="10" fill="#ffd6a0" stroke="#3a2c2b" stroke-width="2"/>
+                  <rect x="10" y="13" width="14" height="10" rx="3" fill="#fff8e7"/>
+                  <rect x="28" y="13" width="14" height="10" rx="3" fill="#fff8e7"/>
+                  <g class="bm-passenger">
+                    <circle cx="17" cy="18" r="2.6" fill="#3a2c2b"/>
+                    <rect x="15" y="19.5" width="4" height="3" rx="1" fill="#79cdb8"/>
+                    <path class="bm-arm" d="M19 19 L23 16" stroke="#3a2c2b" stroke-width="1.6" stroke-linecap="round"/>
+                  </g>
+                  <circle cx="16" cy="28" r="1.6" fill="#ff8aa6"/>
+                  <circle cx="36" cy="28" r="1.6" fill="#ff8aa6"/>
+                  <path d="M21 29 q5 3 10 0" stroke="#3a2c2b" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+                  <circle cx="20" cy="22" r="1.3" fill="#3a2c2b"/>
+                  <circle cx="32" cy="22" r="1.3" fill="#3a2c2b"/>
+                  <circle cx="20.5" cy="21.4" r="0.4" fill="#fff"/>
+                  <circle cx="32.5" cy="21.4" r="0.4" fill="#fff"/>
+                </g>
+                <g class="bm-wheels">
+                  <circle cx="14" cy="38" r="4" fill="#3a2c2b"/>
+                  <circle cx="38" cy="38" r="4" fill="#3a2c2b"/>
+                  <circle cx="14" cy="38" r="1.6" fill="#fff"/>
+                  <circle cx="38" cy="38" r="1.6" fill="#fff"/>
+                </g>
+                <g class="bm-sparkles">
+                  <text x="2" y="14" font-size="8" fill="#ffb479">✦</text>
+                  <text x="44" y="10" font-size="9" fill="#ff8aa6">✦</text>
+                  <text x="46" y="36" font-size="7" fill="#93bcff">✦</text>
+                </g>
+              </svg>
+            </div>
+            <div class="boarding-panel-info">
+              <span class="boarding-panel-tag">🎒 탑승 중</span>
+              <strong>${escapeHtml(tripStatus.alightingName || "하차 정류장")}까지 ${remain}정거장</strong>
+              ${eta != null ? `<span>약 ${escapeHtml(eta)}분 후 하차</span>` : '<span>버스 위치 추적 중…</span>'}
+            </div>
+            <button type="button" class="boarding-panel-btn end" data-action="end-boarding">하차</button>
+          </div>
+        `;
+      }
+      const previewVehicles = primary?.busApproachPreview?.vehicles || [];
+      const nextCatchable = previewVehicles.find((v) => v.catchable !== false);
+      if (!nextCatchable) return "";
+      const etaText = nextCatchable.etaMinutes != null ? `${nextCatchable.etaMinutes}분 후 도착` : "곧 도착";
+      return `
+        <div class="boarding-panel">
+          <div class="boarding-panel-info">
+            <span class="boarding-panel-tag">🚌 탑승 시작</span>
+            <strong>${escapeHtml(primary?.routeNo || "버스")} · ${escapeHtml(nextCatchable.label || "다음")} ${escapeHtml(etaText)}</strong>
+            <span>이 버스에 탑승하면 알려드릴게요</span>
+          </div>
+          <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}">이 버스 탑승</button>
+        </div>
+      `;
+    })();
     const detailsHtml = result ? `
       <div class="detail-block">
         <h3>${isAlternateActive ? "선택 후보 상세" : "추천 상세"}</h3>
@@ -5361,6 +5750,7 @@
             </div>
             <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
             ${selectionBadge}
+            ${boardingPanel}
           </section>
           <section class="fast-candidates">
             ${compareCandidates.length ? compareCandidates.slice(0, 4).map((candidate, index) => renderFastCandidate(
@@ -5413,6 +5803,13 @@
     Object.entries(state.liveMaps).forEach(([routeId, entry]) => {
       if (entry?.animationFrame) cancelAnimationFrame(entry.animationFrame);
       if (entry?.pollTimer) clearInterval(entry.pollTimer);
+      try {
+        entry?.approachPolyline?.setMap?.(null);
+        entry?.ridingPolyline?.setMap?.(null);
+        entry?.userOverlay?.setMap?.(null);
+        (entry?.stopOverlays || []).forEach((overlay) => { try { overlay?.setMap?.(null); } catch {} });
+        (entry?.busOverlays || []).forEach((bus) => { try { bus?.overlay?.setMap?.(null); } catch {} });
+      } catch {}
     });
     state.liveMaps = {};
     Object.keys(state.liveMapTimers).forEach((routeId) => clearLiveMapTimer(routeId));
@@ -5462,6 +5859,104 @@
     if (!state.routes.find((route) => route.id === routeId)) return;
     state.activeRouteId = routeId;
     renderRoutes();
+  }
+
+  async function triggerActiveRefresh(options = {}) {
+    const routeId = state.activeRouteId || (state.routes[0] && state.routes[0].id);
+    if (!routeId) {
+      if (!options.silent) showToast("새로고침할 루트가 없습니다");
+      return;
+    }
+    const btn = document.getElementById("header-refresh-btn");
+    if (btn) {
+      btn.classList.add("spinning");
+      btn.setAttribute("aria-busy", "true");
+    }
+    try {
+      await refreshRouteWithOptions(routeId, options);
+    } finally {
+      if (btn) {
+        btn.classList.remove("spinning");
+        btn.removeAttribute("aria-busy");
+      }
+    }
+  }
+
+  function setTrackingButton(active) {
+    const btn = document.getElementById("tracking-toggle-btn");
+    if (btn) btn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  function toggleTracking() {
+    if (state.trackingActive) {
+      if (state.trackingTimer) clearInterval(state.trackingTimer);
+      state.trackingTimer = null;
+      state.trackingActive = false;
+      setTrackingButton(false);
+      showToast("이동 트래킹을 끕니다");
+      return;
+    }
+    if (!state.routes.length) {
+      showToast("저장된 루트가 없어요");
+      return;
+    }
+    state.trackingActive = true;
+    setTrackingButton(true);
+    startUserLocationWatch();
+    showToast("이동 트래킹을 시작합니다");
+    triggerActiveRefresh({ silent: true });
+    state.trackingTimer = setInterval(() => {
+      triggerActiveRefresh({ silent: true });
+    }, 60000);
+  }
+
+  function startBoarding(routeId, candidate) {
+    const vehicles = candidate?.busApproachPreview?.vehicles || [];
+    const target = vehicles.find((v) => v.catchable !== false) || vehicles[0];
+    if (!target || !target.key) {
+      showToast("탑승할 수 있는 버스가 없어요");
+      return;
+    }
+    state.boardedTrip = {
+      routeId,
+      candidateId: candidate.id,
+      vehicleKey: String(target.key),
+      vehicleLabel: target.label || "다음",
+      routeNo: candidate.routeNo,
+      startedAt: Date.now(),
+      alightingSeq: candidate.busApproachPreview?.alightingStationSeq || null,
+      alightingName: candidate.busApproachPreview?.alightingStopName || candidate.alightingStopName || null,
+      lastProgressSeq: Number(target.progressSeq) || 0,
+      remainingStops: target.remainingStops,
+      etaMinutes: target.etaMinutes
+    };
+    showToast(`${candidate.routeNo || "버스"} 탑승을 시작합니다`);
+    renderRoutes();
+  }
+
+  function endBoarding(reason = "manual") {
+    if (!state.boardedTrip) return;
+    const name = state.boardedTrip.alightingName;
+    state.boardedTrip = null;
+    if (reason === "alighting") {
+      showToast(name ? `${name} 도착! 하차 준비하세요` : "하차 정류장에 도착했어요");
+    } else if (reason === "manual") {
+      showToast("탑승을 종료했어요");
+    }
+    renderRoutes();
+  }
+
+  function getBoardingStatusForRoute(routeId) {
+    const trip = state.boardedTrip;
+    if (!trip || trip.routeId !== routeId) return null;
+    return trip;
+  }
+
+  function maybeInitialAutoRefresh() {
+    if (state.initialRefreshDone) return;
+    if (!state.routes.length) return;
+    state.initialRefreshDone = true;
+    triggerActiveRefresh({ silent: true });
   }
 
   function bindRouteTabs() {
@@ -6068,6 +6563,29 @@
     return refreshRouteWithOptions(routeId, {});
   }
 
+  function getCurrentPositionAsync(options = { enableHighAccuracy: true, maximumAge: 15000, timeout: 8000 }) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("위치 정보를 사용할 수 없는 환경입니다"));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve({ x: position.coords.longitude, y: position.coords.latitude }),
+        (error) => reject(new Error(error.message || "위치 정보를 가져오지 못했습니다")),
+        options
+      );
+    });
+  }
+
+  async function resolveCurrentLocationFrom() {
+    if (state.userLocation?.lat != null && state.userLocation?.lng != null) {
+      return { name: "현재 위치", isCurrentLocation: true, x: state.userLocation.lng, y: state.userLocation.lat, kind: "현재 위치" };
+    }
+    const coords = await getCurrentPositionAsync();
+    state.userLocation = { lat: coords.y, lng: coords.x };
+    return { name: "현재 위치", isCurrentLocation: true, x: coords.x, y: coords.y, kind: "현재 위치" };
+  }
+
   async function refreshRouteWithOptions(routeId, options = {}) {
     const route = state.routes.find((item) => item.id === routeId);
     if (!route || state.loadingRouteIds.has(routeId)) return;
@@ -6077,7 +6595,7 @@
     renderRoutes();
 
     try {
-      const from = route.from?.x != null && route.from?.y != null ? route.from : await resolveStationByName(route.from?.name || "");
+      const from = await resolveCurrentLocationFrom();
       const to = route.to?.x != null && route.to?.y != null ? route.to : await resolveStationByName(route.to?.name || "");
       const params = new URLSearchParams({
         fromX: String(from.x),
@@ -6134,15 +6652,13 @@
     state.mapPickerTarget = null;
     const route = state.routes.find((item) => item.id === routeId) || null;
 
-    document.getElementById("modal-title").textContent = route ? "루트 편집" : "새 루트 추가";
+    document.getElementById("modal-title").textContent = route ? "목적지 편집" : "새 목적지 추가";
     document.getElementById("route-label-input").value = route?.label || "";
-    document.getElementById("route-from-input").value = route?.from?.name || "";
     document.getElementById("route-to-input").value = route?.to?.name || "";
 
-    state.autocompleteSelection.from = route?.from?.x != null && route?.from?.y != null ? route.from : null;
+    state.autocompleteSelection.from = null;
     state.autocompleteSelection.to = route?.to?.x != null && route?.to?.y != null ? route.to : null;
     updateMapPickButtons();
-    updateLocationPreview("from", state.autocompleteSelection.from);
     updateLocationPreview("to", state.autocompleteSelection.to);
 
     setOptionGroupValue("priority", route?.priority || "fastest");
@@ -6156,9 +6672,7 @@
     state.autocompleteSelection.from = null;
     state.autocompleteSelection.to = null;
     updateMapPickButtons();
-    clearLocationPreview("from");
     clearLocationPreview("to");
-    document.getElementById("route-from-dropdown").classList.remove("open");
     document.getElementById("route-to-dropdown").classList.remove("open");
     document.getElementById("modal-overlay").classList.remove("active");
   }
@@ -6178,21 +6692,18 @@
 
   async function saveRoute() {
     const label = document.getElementById("route-label-input").value.trim() || "루트";
-    const fromName = document.getElementById("route-from-input").value.trim();
     const toName = document.getElementById("route-to-input").value.trim();
     const priority = getSelectedValue("priority") || "fastest";
     const transportFilter = "bus";
 
-    if (!fromName || !toName) {
-      showToast("출발지와 도착지를 입력해주세요");
+    if (!toName) {
+      showToast("목적지를 입력해주세요");
       return;
     }
 
     const original = state.routes.find((item) => item.id === state.modalRouteId);
 
-    const from = state.autocompleteSelection.from && state.autocompleteSelection.from.name === fromName
-      ? state.autocompleteSelection.from
-      : { name: fromName, x: null, y: null };
+    const from = { name: "현재 위치", isCurrentLocation: true, x: null, y: null, kind: "현재 위치" };
 
     const to = state.autocompleteSelection.to && state.autocompleteSelection.to.name === toName
       ? state.autocompleteSelection.to
@@ -6247,17 +6758,9 @@
   function bindStaticEvents() {
     document.getElementById("add-route-btn").addEventListener("click", () => openModal());
     document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
-    document.getElementById("header-refresh-btn").addEventListener("click", () => {
-      if (state.activeRouteId) {
-        refreshRoute(state.activeRouteId);
-      } else if (state.routes.length) {
-        refreshRoute(state.routes[0].id);
-      } else {
-        showToast("새로고침할 루트가 없습니다");
-      }
-    });
+    document.getElementById("header-refresh-btn").addEventListener("click", () => triggerActiveRefresh({ silent: false }));
+    document.getElementById("tracking-toggle-btn").addEventListener("click", () => toggleTracking());
     updateOdsayKeyVisibility();
-    document.getElementById("route-from-map-pick-btn").addEventListener("click", () => openMapPicker("from"));
     document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
     document.getElementById("modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
@@ -6284,6 +6787,12 @@
       if (action === "edit") openModal(id);
       if (action === "delete") deleteRoute(id);
       if (action === "select-candidate") selectCandidate(id, target.dataset.candidateId);
+      if (action === "start-boarding") {
+        const route = state.routes.find((r) => r.id === id);
+        const candidate = route ? getSelectedCandidate(route) : null;
+        if (route && candidate) startBoarding(id, candidate);
+      }
+      if (action === "end-boarding") endBoarding("manual");
     });
 
     document.querySelectorAll("#priority-options .option-card").forEach((card) => {
@@ -6490,12 +6999,12 @@
   state.routes = migrateAndLoadRoutes();
   bindStaticEvents();
   updateMapPickButtons();
-  setupAutocomplete("route-from-input", "route-from-dropdown", "from");
   setupAutocomplete("route-to-input", "route-to-dropdown", "to");
   setOptionGroupValue("priority", "fastest");
   updateClock();
   setInterval(updateClock, 10000);
   renderRoutes();
+  maybeInitialAutoRefresh();
 
   function tickCountdowns() {
     const nowMs = Date.now();
