@@ -1,0 +1,19 @@
+{
+  "key": "1202becba3be198f35453270f05f73ee2627f2ba",
+  "mapping": {
+    "routeNo": "742",
+    "routeId": "100100116",
+    "stationId": "112000106",
+    "stationSeq": 17,
+    "stationName": "DMC파크뷰자이.별동상가",
+    "alightingStationId": "112000010",
+    "alightingStationSeq": 23,
+    "alightingStationName": "서대문우체국",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T23:23:19.225Z"
+  },
+  "source": "odsay_direct"
+}
