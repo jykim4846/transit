@@ -705,8 +705,15 @@ function buildCandidate(path, index, priority, liveWait) {
   const firstTransitLabel = firstTransit
     ? normalizeSegment(firstTransit).label
     : "도보";
-  const routeNo = firstTransit?.trafficType === 2 ? (normalizeLanes(firstTransit)[0]?.busNo || null) : null;
+  const firstLane = firstTransit ? (normalizeLanes(firstTransit)[0] || null) : null;
+  const routeNo = firstTransit?.trafficType === 2 ? (firstLane?.busNo || null) : null;
   const mode = firstTransit?.trafficType === 2 ? "bus" : (firstTransit?.trafficType === 1 ? "subway" : "walk");
+  const firstTransitStations = firstTransit?.passStopList?.stations || firstTransit?.passStopList?.station || [];
+  const boardingStation = firstTransitStations[0] || null;
+  const alightingStation = firstTransitStations[firstTransitStations.length - 1] || null;
+  const boardingStationId = mode === "bus" && boardingStation?.localStationID ? String(boardingStation.localStationID) : null;
+  const alightingStationId = mode === "bus" && alightingStation?.localStationID ? String(alightingStation.localStationID) : null;
+  const busRouteId = mode === "bus" && firstLane?.busLocalBlID ? String(firstLane.busLocalBlID) : null;
 
   return {
     id: `path-${index}`,
@@ -730,6 +737,9 @@ function buildCandidate(path, index, priority, liveWait) {
     transferRiskText: transferTiming.transferRiskText,
     mode,
     routeNo,
+    busRouteId,
+    boardingStationId,
+    alightingStationId,
     firstTransitLabel,
     boardingStopName,
     boardingApproachText: boardingStopName
@@ -759,8 +769,16 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
     const mapping = await resolveBusMapping(candidate, fromX, fromY, toX, toY);
     if (!mapping) return candidate;
     const arrivalInfo = await getSeoulBusArrival(mapping, candidate.initialWalkTime);
-    if (arrivalInfo == null) return candidate;
     const busApproachPreview = await getBusApproachPreview(mapping).catch(() => null);
+    if (arrivalInfo == null) {
+      // No catchable arrival (e.g. nearest bus already too close to make on foot, or
+      // empty realtime feed). Still attach the live preview so the UI can render
+      // the approaching buses on the map — wait time falls back to interval estimate.
+      if (busApproachPreview) {
+        return { ...candidate, busApproachPreview };
+      }
+      return candidate;
+    }
     const arrivalSecondsSorted = arrivalInfo.arrivalSecondsSorted || [];
     const arrivalAtMsSorted = arrivalInfo.arrivalAtMsSorted || [];
     const walkSeconds = arrivalInfo.walkSeconds || 0;

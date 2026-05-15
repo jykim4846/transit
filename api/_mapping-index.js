@@ -52,11 +52,36 @@ function distanceMeters(fromX, fromY, toX, toY) {
 async function getOrFetchRoutes(routeNo) {
   const cached = await readJson(routeListPath(routeNo), null);
   if (cached?.routes?.length) return cached.routes;
+
+  const normalizedTarget = normalizeRouteNo(routeNo);
+  try {
+    const fetched = await searchRoutesByNumber(routeNo);
+    const exact = fetched.filter((route) => normalizeRouteNo(route.routeNo) === normalizedTarget);
+    if (exact.length) {
+      const routes = exact.map((route) => ({
+        routeId: String(route.routeId),
+        routeNo: route.routeNo,
+        routeType: route.routeType,
+        startName: route.startName,
+        endName: route.endName
+      }));
+      await writeJson(routeListPath(routeNo), {
+        routeNo: normalizedTarget,
+        collectedAt: new Date().toISOString(),
+        source: "seoul_api",
+        routes
+      });
+      return routes;
+    }
+  } catch {
+    // fall through to workbook fallback
+  }
+
   const rows = getWorkbookRowsIfCached();
   if (!rows) return [];
   const routes = [...new Map(
     rows
-      .filter((row) => normalizeRouteNo(row.routeNo) === normalizeRouteNo(routeNo))
+      .filter((row) => normalizeRouteNo(row.routeNo) === normalizedTarget)
       .map((row) => [String(row.routeId), {
         routeId: String(row.routeId),
         routeNo: row.routeNo,
@@ -66,8 +91,9 @@ async function getOrFetchRoutes(routeNo) {
       }])
   ).values()];
   await writeJson(routeListPath(routeNo), {
-    routeNo: normalizeRouteNo(routeNo),
+    routeNo: normalizedTarget,
     collectedAt: new Date().toISOString(),
+    source: "workbook_fallback",
     routes
   });
   return routes;
@@ -76,6 +102,37 @@ async function getOrFetchRoutes(routeNo) {
 async function getOrFetchStops(routeId) {
   const cached = await readJson(routeStopsPath(routeId), null);
   if (cached?.stops?.length) return cached.stops;
+
+  try {
+    const fetched = await getStopsByRoute(routeId);
+    if (fetched.length) {
+      const stops = fetched
+        .map((stop) => ({
+          routeId: String(stop.routeId || routeId),
+          seq: Number(stop.seq || 0),
+          stationId: stop.stationId,
+          arsId: stop.arsId,
+          name: stop.name,
+          lat: Number(stop.lat),
+          lng: Number(stop.lng),
+          direction: stop.direction || ""
+        }))
+        .filter((stop) => stop.stationId && stop.seq > 0)
+        .sort((a, b) => a.seq - b.seq);
+      if (stops.length) {
+        await writeJson(routeStopsPath(routeId), {
+          routeId: String(routeId),
+          collectedAt: new Date().toISOString(),
+          source: "seoul_api",
+          stops
+        });
+        return stops;
+      }
+    }
+  } catch {
+    // fall through to workbook fallback
+  }
+
   const rows = getWorkbookRowsIfCached();
   if (!rows) return [];
   const stops = rows
@@ -84,6 +141,7 @@ async function getOrFetchStops(routeId) {
   await writeJson(routeStopsPath(routeId), {
     routeId: String(routeId),
     collectedAt: new Date().toISOString(),
+    source: "workbook_fallback",
     stops
   });
   return stops;
@@ -141,6 +199,38 @@ async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
   const cached = await readJson(busMappingPath(key), null);
   if (cached?.mapping) {
     return cached.mapping;
+  }
+
+  // Fast-path: ODsay already returned the exact Seoul busRouteId + stationIds for the
+  // boarding and alighting stops. Trust them — just resolve the stop sequence numbers
+  // from the route's stop list so realtime arrival lookups have an `ord`.
+  if (candidate.busRouteId && candidate.boardingStationId) {
+    const stops = await getOrFetchStops(candidate.busRouteId);
+    if (stops.length) {
+      const boardStop = stops.find((stop) => String(stop.stationId) === String(candidate.boardingStationId));
+      const alightStop = candidate.alightingStationId
+        ? stops.find((stop) => String(stop.stationId) === String(candidate.alightingStationId) && (!boardStop || stop.seq > boardStop.seq))
+        : null;
+      if (boardStop) {
+        const mapping = {
+          routeNo: candidate.routeNo,
+          routeId: String(candidate.busRouteId),
+          stationId: String(boardStop.stationId),
+          stationSeq: Number(boardStop.seq),
+          stationName: boardStop.name,
+          alightingStationId: alightStop ? String(alightStop.stationId) : null,
+          alightingStationSeq: alightStop ? Number(alightStop.seq) : null,
+          alightingStationName: alightStop ? alightStop.name : (candidate.alightingStopName || null),
+          confidence: alightStop ? "high" : "medium",
+          score: 0,
+          source: "odsay_direct",
+          version: 3,
+          createdAt: new Date().toISOString()
+        };
+        await writeJson(busMappingPath(key), { key, mapping, source: "odsay_direct" });
+        return mapping;
+      }
+    }
   }
 
   const routes = await getOrFetchRoutes(candidate.routeNo);
