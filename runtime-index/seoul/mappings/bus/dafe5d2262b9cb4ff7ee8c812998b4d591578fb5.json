@@ -1,0 +1,19 @@
+{
+  "key": "dafe5d2262b9cb4ff7ee8c812998b4d591578fb5",
+  "mapping": {
+    "routeNo": "5012",
+    "routeId": "100100248",
+    "stationId": "118000071",
+    "stationSeq": 59,
+    "stationName": "여의도역5번출구",
+    "alightingStationId": "118000021",
+    "alightingStationSeq": 64,
+    "alightingStationName": "영등포로터리",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:27:01.042Z"
+  },
+  "source": "odsay_direct"
+}
