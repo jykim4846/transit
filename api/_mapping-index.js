@@ -403,9 +403,12 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     routeNo: mapping.routeNo,
     routeId: mapping.routeId,
     boardingStopName: mapping.stationName,
+    boardingStationId: mapping.stationId,
+    boardingStationSeq: mapping.stationSeq,
     stops: previewStops.map((stop) => ({
       seq: stop.seq,
       name: stop.name,
+      stationId: stop.stationId,
       lat: stop.lat,
       lng: stop.lng,
       isBoarding: String(stop.stationId) === String(mapping.stationId),

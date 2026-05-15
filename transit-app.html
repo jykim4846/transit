@@ -3534,42 +3534,57 @@
     return interpolatePoint(prev.point, next.point, (target - prev.seq) / (next.seq - prev.seq));
   }
 
-  function getCandidateRoutePoints(candidate) {
-    const previewStops = candidate?.busApproachPreview?.stops || [];
-    const previewPoints = dedupePathPoints(previewStops.map(toPathPoint));
-    if (previewPoints.length >= 2) return previewPoints;
-
-    return dedupePathPoints((candidate?.segments || [])
-      .flatMap((segment) => segment.pathPoints || [])
-      .map(toPathPoint));
+  function getFirstBusSegment(candidate) {
+    return (candidate?.segments || []).find((segment) => inferSegmentType(segment) === "bus") || null;
   }
 
-  function getPreviewBoardingPoint(candidate) {
+  function getBoardingStopPoint(candidate, from, to) {
     const stops = candidate?.busApproachPreview?.stops || [];
-    const boarding = stops.find((stop) => stop.isBoarding) || stops[stops.length - 1];
-    return toPathPoint(boarding);
+    const boarding = stops.find((stop) => stop.isBoarding)
+      || stops.find((stop) => Number(stop.seq) === Number(candidate?.busApproachPreview?.boardingStationSeq))
+      || stops[stops.length - 1];
+    const previewPoint = toPathPoint(boarding);
+    if (previewPoint) return previewPoint;
+
+    const firstBus = getFirstBusSegment(candidate);
+    const segmentPoint = toPathPoint(firstBus?.pathPoints?.[0]);
+    if (segmentPoint) return segmentPoint;
+
+    return interpolatePoint(from, to, 0.34);
   }
 
-  function getPreviewBusPoint(candidate) {
+  function getApproachStopPoints(candidate) {
+    const stops = candidate?.busApproachPreview?.stops || [];
+    const boardingSeq = Number(candidate?.busApproachPreview?.boardingStationSeq);
+    const approachStops = stops
+      .filter((stop) => !Number.isFinite(boardingSeq) || Number(stop.seq) <= boardingSeq)
+      .sort((a, b) => Number(a.seq) - Number(b.seq));
+    return dedupePathPoints(approachStops.map(toPathPoint));
+  }
+
+  function getRealtimeBusPoint(candidate) {
     const preview = candidate?.busApproachPreview;
     const vehicle = preview?.vehicles?.[0];
     if (!preview?.stops?.length || !vehicle) return null;
     return pointAtSeq(preview.stops, vehicle.progressSeq);
   }
 
+  function getSyntheticApproachStart(from, boarding) {
+    return interpolatePoint(boarding, from, 0.42);
+  }
+
   function buildLiveTransitPoints(route, candidate) {
     const from = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
     const to = toLatLngPoint(route?.to) || { lat: 37.5133, lng: 127.1002 };
     const user = state.userLocation || from;
-    const routePoints = getCandidateRoutePoints(candidate);
-    const boarding = getPreviewBoardingPoint(candidate)
-      || routePoints[0]
-      || interpolatePoint(from, to, 0.34);
-    const busStart = getPreviewBusPoint(candidate)
-      || interpolatePoint(from, boarding, 0.35);
-    const polylinePoints = routePoints.length >= 2
-      ? routePoints
-      : dedupePathPoints([busStart, boarding, user]);
+    const boarding = getBoardingStopPoint(candidate, from, to);
+    const approachPoints = getApproachStopPoints(candidate);
+    const syntheticStart = getSyntheticApproachStart(from, boarding);
+    const busStart = getRealtimeBusPoint(candidate)
+      || (approachPoints.length >= 2 ? approachPoints[0] : syntheticStart);
+    const polylinePoints = approachPoints.length >= 2
+      ? approachPoints
+      : dedupePathPoints([busStart, boarding]);
     return { from, to, user, boarding, busStart, polylinePoints };
   }
 
@@ -3678,7 +3693,12 @@
       busOverlay.setMap(map);
 
       const bounds = new maps.LatLngBounds();
-      [...path, new maps.LatLng(points.user.lat, points.user.lng), new maps.LatLng(points.busStart.lat, points.busStart.lng)].forEach((point) => bounds.extend(point));
+      [
+        ...path,
+        new maps.LatLng(points.user.lat, points.user.lng),
+        new maps.LatLng(points.boarding.lat, points.boarding.lng),
+        new maps.LatLng(points.busStart.lat, points.busStart.lng)
+      ].forEach((point) => bounds.extend(point));
       map.setBounds(bounds, 24, 24, 24, 24);
       if (fallback) fallback.style.display = "none";
 
