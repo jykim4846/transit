@@ -1,0 +1,19 @@
+{
+  "key": "965fb516406d202d1af2925360ff7c645289f3ab",
+  "mapping": {
+    "routeNo": "7739",
+    "routeId": "100100552",
+    "stationId": "112000106",
+    "stationSeq": 11,
+    "stationName": "DMC파크뷰자이.별동상가",
+    "alightingStationId": "113000135",
+    "alightingStationSeq": 19,
+    "alightingStationName": "연남동",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T17:25:42.243Z"
+  },
+  "source": "odsay_direct"
+}
