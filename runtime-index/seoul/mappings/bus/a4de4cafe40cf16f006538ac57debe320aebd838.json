@@ -1,0 +1,19 @@
+{
+  "key": "a4de4cafe40cf16f006538ac57debe320aebd838",
+  "mapping": {
+    "routeNo": "272",
+    "routeId": "100100048",
+    "stationId": "100000022",
+    "stationSeq": 62,
+    "stationName": "경복궁",
+    "alightingStationId": "105000486",
+    "alightingStationSeq": 74,
+    "alightingStationName": "신설동역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:53.945Z"
+  },
+  "source": "odsay_direct"
+}
