@@ -10,5 +10,6 @@
       "path": "/api/index/collect?limit=8",
       "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "ignoreCommand": "bash -c 'echo \"$VERCEL_GIT_COMMIT_MESSAGE\" | grep -qE \"^Update runtime index:\" && exit 0 || exit 1'"
 }
