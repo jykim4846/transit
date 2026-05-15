@@ -1,0 +1,19 @@
+{
+  "key": "4654cf0890321ca7aac393f5f9d8089b976779e5",
+  "mapping": {
+    "routeNo": "600",
+    "routeId": "100100085",
+    "stationId": "118000072",
+    "stationSeq": 25,
+    "stationName": "한국거래소",
+    "alightingStationId": "113000003",
+    "alightingStationSeq": 28,
+    "alightingStationName": "공덕역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:27:02.391Z"
+  },
+  "source": "odsay_direct"
+}
