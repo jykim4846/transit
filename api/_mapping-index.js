@@ -368,7 +368,7 @@ function getVehicleProgressSeq(vehicle, stopSeqByStationId) {
   return null;
 }
 
-async function getBusApproachPreview(mapping, stopWindow = 6) {
+async function getBusApproachPreview(mapping, stopWindow = 10) {
   const stops = await getOrFetchStops(mapping.routeId);
   const boardingIndex = stops.findIndex((stop) => String(stop.stationId) === String(mapping.stationId));
   if (boardingIndex < 0) return null;
@@ -381,7 +381,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
       const progressSeq = getVehicleProgressSeq(vehicle, stopSeqByStationId);
       if (!Number.isFinite(progressSeq)) return null;
       const remainingSeq = mapping.stationSeq - progressSeq;
-      if (remainingSeq < -0.25 || remainingSeq > maxApproachGap) return null;
+      if (remainingSeq <= 0 || remainingSeq > Math.min(10, maxApproachGap)) return null;
       return {
         ...vehicle,
         progressSeq,
@@ -390,7 +390,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     })
     .filter(Boolean)
     .sort((a, b) => a.remainingSeq - b.remainingSeq)
-    .slice(0, 2);
+    .slice(0, 3);
 
   const startSeq = Math.max(1, mapping.stationSeq - (stopWindow - 1));
   const previewStops = stops.filter((stop) => stop.seq >= startSeq && stop.seq <= mapping.stationSeq);
@@ -416,7 +416,7 @@ async function getBusApproachPreview(mapping, stopWindow = 6) {
     })),
     vehicles: approaching.map((vehicle, index) => ({
       key: vehicle.vehicleId,
-      label: index === 0 ? "다음" : "다다음",
+      label: index === 0 ? "다음" : (index === 1 ? "다다음" : "세번째"),
       plateNoMasked: maskPlateNo(vehicle.plateNo),
       remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
       nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",

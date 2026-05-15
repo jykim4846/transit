@@ -2305,6 +2305,13 @@
       radial-gradient(circle at 85% 50%, #0f172a 0 4px, transparent 5px);
   }
 
+  .kakao-bus-overlay.secondary {
+    opacity: 0.84;
+    transform: scale(0.82);
+    transform-origin: center;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+  }
+
   .kakao-dot-overlay {
     width: 22px;
     height: 22px;
@@ -3438,12 +3445,12 @@
     const firstRide = (candidate?.segments || []).find((segment) => segment.type === "bus" || segment.kind === "버스")
       || (candidate?.segments || []).find((segment) => segment.type === "subway" || segment.kind === "지하철");
     const label = firstRide?.label || candidate?.firstTransitLabel || "이동";
-    const target = stops?.[1] || candidate?.boardingStopName || "다음 정류장";
+    const target = candidate?.boardingStopName || stops?.[0] || "탑승 정류장";
     const eta = candidate?.firstWaitMin != null
       ? `${candidate.firstWaitMin}분 후 도착`
       : `${Math.max(1, Math.min(9, Math.round(Number(firstRide?.minutes || candidate?.totalTime || 3) / 3)))}분 후 도착`;
     return {
-      text: `${label}이 ${target} 접근 중`,
+      text: `${label}이 ${target}으로 오고 있어요`,
       eta
     };
   }
@@ -3538,7 +3545,15 @@
     return (candidate?.segments || []).find((segment) => inferSegmentType(segment) === "bus") || null;
   }
 
-  function getBoardingStopPoint(candidate, from, to) {
+  function getBoardingSeq(preview) {
+    const explicitSeq = Number(preview?.boardingStationSeq);
+    if (Number.isFinite(explicitSeq)) return explicitSeq;
+    const boardingStop = (preview?.stops || []).find((stop) => stop.isBoarding);
+    const inferredSeq = Number(boardingStop?.seq);
+    return Number.isFinite(inferredSeq) ? inferredSeq : null;
+  }
+
+  function getBoardingStopPoint(candidate, origin) {
     const stops = candidate?.busApproachPreview?.stops || [];
     const boarding = stops.find((stop) => stop.isBoarding)
       || stops.find((stop) => Number(stop.seq) === Number(candidate?.busApproachPreview?.boardingStationSeq))
@@ -3550,42 +3565,80 @@
     const segmentPoint = toPathPoint(firstBus?.pathPoints?.[0]);
     if (segmentPoint) return segmentPoint;
 
-    return interpolatePoint(from, to, 0.34);
+    return origin;
   }
 
   function getApproachStopPoints(candidate) {
-    const stops = candidate?.busApproachPreview?.stops || [];
-    const boardingSeq = Number(candidate?.busApproachPreview?.boardingStationSeq);
-    const approachStops = stops
-      .filter((stop) => !Number.isFinite(boardingSeq) || Number(stop.seq) <= boardingSeq)
+    const preview = candidate?.busApproachPreview;
+    const stops = preview?.stops || [];
+    const boardingSeq = getBoardingSeq(preview);
+    const sortedStops = stops
+      .filter((stop) => toPathPoint(stop))
       .sort((a, b) => Number(a.seq) - Number(b.seq));
+    let boardingIndex = sortedStops.findIndex((stop) => stop.isBoarding);
+    if (boardingIndex < 0) {
+      boardingIndex = sortedStops.findIndex((stop) => Number(stop.seq) === boardingSeq);
+    }
+    const approachStops = Number.isFinite(boardingSeq)
+      ? sortedStops.filter((stop) => Number(stop.seq) <= boardingSeq)
+      : (boardingIndex >= 0 ? sortedStops.slice(0, boardingIndex + 1) : []);
     return dedupePathPoints(approachStops.map(toPathPoint));
   }
 
-  function getRealtimeBusPoint(candidate) {
+  function getRealtimeBusPoints(candidate) {
     const preview = candidate?.busApproachPreview;
-    const vehicle = preview?.vehicles?.[0];
-    if (!preview?.stops?.length || !vehicle) return null;
-    return pointAtSeq(preview.stops, vehicle.progressSeq);
+    const boardingSeq = getBoardingSeq(preview);
+    if (!preview?.stops?.length || !preview?.vehicles?.length) return [];
+    return preview.vehicles
+      .filter((vehicle) => boardingSeq == null || Number(vehicle.progressSeq) < boardingSeq)
+      .slice(0, 3)
+      .map((vehicle, index) => ({
+        index,
+        label: vehicle.label || (index === 0 ? "다음" : `${index + 1}번째`),
+        remainingStops: vehicle.remainingStops,
+        etaMinutes: vehicle.etaMinutes,
+        point: pointAtSeq(preview.stops, vehicle.progressSeq)
+      }))
+      .filter((bus) => bus.point);
   }
 
-  function getSyntheticApproachStart(from, boarding) {
-    return interpolatePoint(boarding, from, 0.42);
+  function getSyntheticPreviousStopPoint(origin, boarding) {
+    const latDelta = boarding.lat - origin.lat;
+    const lngDelta = boarding.lng - origin.lng;
+    if (Math.abs(latDelta) + Math.abs(lngDelta) < 0.001) {
+      return { lat: boarding.lat + 0.0045, lng: boarding.lng - 0.006 };
+    }
+    return {
+      lat: boarding.lat + latDelta * 2.4,
+      lng: boarding.lng + lngDelta * 2.4
+    };
   }
 
   function buildLiveTransitPoints(route, candidate) {
-    const from = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
-    const to = toLatLngPoint(route?.to) || { lat: 37.5133, lng: 127.1002 };
-    const user = state.userLocation || from;
-    const boarding = getBoardingStopPoint(candidate, from, to);
+    const origin = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
+    const destination = toLatLngPoint(route?.to) || null;
+    const user = state.userLocation || origin;
+    const boarding = getBoardingStopPoint(candidate, origin);
     const approachPoints = getApproachStopPoints(candidate);
-    const syntheticStart = getSyntheticApproachStart(from, boarding);
-    const busStart = getRealtimeBusPoint(candidate)
+    const syntheticStart = getSyntheticPreviousStopPoint(origin, boarding);
+    const approachingBuses = getRealtimeBusPoints(candidate);
+    const busStart = approachingBuses[0]?.point
       || (approachPoints.length >= 2 ? approachPoints[0] : syntheticStart);
     const polylinePoints = approachPoints.length >= 2
       ? approachPoints
       : dedupePathPoints([busStart, boarding]);
-    return { from, to, user, boarding, busStart, polylinePoints };
+    const busPoints = approachingBuses.length
+      ? approachingBuses
+      : [{ index: 0, label: "다음", point: busStart }];
+    return {
+      origin,
+      destination,
+      user,
+      boardingStop: boarding,
+      busStart,
+      busPoints,
+      approachPolylinePoints: polylinePoints
+    };
   }
 
   function startUserLocationWatch() {
@@ -3617,16 +3670,21 @@
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
-  function animateKakaoBus(entry, points) {
-    const duration = 18000;
+  function animateKakaoBuses(entry, points) {
+    const baseDuration = 18000;
     const startMs = performance.now();
     const step = (now) => {
       if (!entry.container?.isConnected) return;
-      const progress = Math.min(1, (now - startMs) / duration);
-      const eased = easeInOutCubic(progress);
-      const position = interpolatePoint(points.busStart, points.boarding, eased);
-      entry.busOverlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
-      if (progress < 1) {
+      let active = false;
+      entry.busOverlays.forEach((bus) => {
+        const duration = baseDuration + bus.index * 5000;
+        const progress = Math.min(1, (now - startMs) / duration);
+        const eased = easeInOutCubic(progress);
+        const position = interpolatePoint(bus.start, points.boardingStop, eased);
+        bus.overlay.setPosition(new entry.maps.LatLng(position.lat, position.lng));
+        if (progress < 1) active = true;
+      });
+      if (active) {
         entry.animationFrame = requestAnimationFrame(step);
       }
     };
@@ -3656,10 +3714,10 @@
       const candidate = route.lastResult?.recommendation || null;
       const points = buildLiveTransitPoints(route, candidate);
       const map = new maps.Map(canvas, {
-        center: new maps.LatLng(points.boarding.lat, points.boarding.lng),
+        center: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
         level: 5
       });
-      const path = points.polylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
+      const path = points.approachPolylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
       const polyline = new maps.Polyline({
         path,
         strokeWeight: 7,
@@ -3676,35 +3734,39 @@
         yAnchor: 0.5
       });
       const stopOverlay = new maps.CustomOverlay({
-        position: new maps.LatLng(points.boarding.lat, points.boarding.lng),
+        position: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
         content: overlayContent("", "kakao-stop-overlay"),
         xAnchor: 0.5,
         yAnchor: 0.5
       });
-      const busOverlay = new maps.CustomOverlay({
-        position: new maps.LatLng(points.busStart.lat, points.busStart.lng),
-        content: overlayContent("", "kakao-bus-overlay"),
-        xAnchor: 0.5,
-        yAnchor: 0.5
-      });
+      const busOverlays = points.busPoints.map((bus, index) => ({
+        index,
+        start: bus.point,
+        overlay: new maps.CustomOverlay({
+          position: new maps.LatLng(bus.point.lat, bus.point.lng),
+          content: overlayContent("", `kakao-bus-overlay${index > 0 ? " secondary" : ""}`),
+          xAnchor: 0.5,
+          yAnchor: 0.5
+        })
+      }));
 
       userOverlay.setMap(map);
       stopOverlay.setMap(map);
-      busOverlay.setMap(map);
+      busOverlays.forEach((bus) => bus.overlay.setMap(map));
 
       const bounds = new maps.LatLngBounds();
       [
         ...path,
         new maps.LatLng(points.user.lat, points.user.lng),
-        new maps.LatLng(points.boarding.lat, points.boarding.lng),
-        new maps.LatLng(points.busStart.lat, points.busStart.lng)
+        new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
+        ...points.busPoints.map((bus) => new maps.LatLng(bus.point.lat, bus.point.lng))
       ].forEach((point) => bounds.extend(point));
       map.setBounds(bounds, 24, 24, 24, 24);
       if (fallback) fallback.style.display = "none";
 
-      const entry = { maps, map, container, userOverlay, stopOverlay, busOverlay, polyline, animationFrame: null };
+      const entry = { maps, map, container, userOverlay, stopOverlay, busOverlays, polyline, animationFrame: null };
       state.liveMaps[routeId] = entry;
-      animateKakaoBus(entry, points);
+      animateKakaoBuses(entry, points);
     });
   }
 
