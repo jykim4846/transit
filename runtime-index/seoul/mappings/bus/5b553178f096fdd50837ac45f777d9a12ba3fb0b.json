@@ -1,0 +1,19 @@
+{
+  "key": "5b553178f096fdd50837ac45f777d9a12ba3fb0b",
+  "mapping": {
+    "routeNo": "721",
+    "routeId": "100100112",
+    "stationId": "112000102",
+    "stationSeq": 4,
+    "stationName": "북가좌삼호.DMC아이파크아파트",
+    "alightingStationId": "113000421",
+    "alightingStationSeq": 12,
+    "alightingStationName": "동교동삼거리",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T23:22:21.061Z"
+  },
+  "source": "odsay_direct"
+}
