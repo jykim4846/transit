@@ -1,0 +1,18 @@
+{
+  "key": "6743737a10933190c2d4cf88503232ea0fbbe565",
+  "mapping": {
+    "routeNo": "7611",
+    "routeId": "100100345",
+    "stationId": "113000001",
+    "stationSeq": 45,
+    "stationName": "마포역",
+    "alightingStationId": "112000425",
+    "alightingStationSeq": 62,
+    "alightingStationName": "남가좌동새마을금고",
+    "confidence": "high",
+    "score": 137,
+    "version": 2,
+    "createdAt": "2026-05-15T03:54:20.875Z"
+  },
+  "source": "runtime_resolve"
+}
