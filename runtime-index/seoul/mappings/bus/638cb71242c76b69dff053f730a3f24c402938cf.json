@@ -1,0 +1,19 @@
+{
+  "key": "638cb71242c76b69dff053f730a3f24c402938cf",
+  "mapping": {
+    "routeNo": "401",
+    "routeId": "100100062",
+    "stationId": "100000031",
+    "stationSeq": 50,
+    "stationName": "세종문화회관",
+    "alightingStationId": "122000086",
+    "alightingStationSeq": 73,
+    "alightingStationName": "봉은사.삼성1파출소앞",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T05:26:14.816Z"
+  },
+  "source": "odsay_direct"
+}
