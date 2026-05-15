@@ -1,0 +1,19 @@
+{
+  "key": "0153df7a1ec34c5e05d9565085d6211202aefdb8",
+  "mapping": {
+    "routeNo": "7738",
+    "routeId": "100100364",
+    "stationId": "112000149",
+    "stationSeq": 14,
+    "stationName": "연가초교.DMC래미안클라시스",
+    "alightingStationId": "112000139",
+    "alightingStationSeq": 19,
+    "alightingStationName": "연희동자치회관",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T17:25:44.164Z"
+  },
+  "source": "odsay_direct"
+}
