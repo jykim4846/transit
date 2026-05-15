@@ -1,0 +1,14 @@
+{
+  "routeNo": "151",
+  "collectedAt": "2026-05-15T05:26:55.367Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100030",
+      "routeNo": "151",
+      "routeType": "3",
+      "startName": "우이동",
+      "endName": "중앙대"
+    }
+  ]
+}
