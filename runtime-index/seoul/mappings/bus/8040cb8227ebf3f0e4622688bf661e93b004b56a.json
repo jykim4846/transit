@@ -1,0 +1,19 @@
+{
+  "key": "8040cb8227ebf3f0e4622688bf661e93b004b56a",
+  "mapping": {
+    "routeNo": "7739",
+    "routeId": "100100552",
+    "stationId": "112000415",
+    "stationSeq": 12,
+    "stationName": "가재울초등학교",
+    "alightingStationId": "112000141",
+    "alightingStationSeq": 15,
+    "alightingStationName": "서대문구보훈회관",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-15T08:09:45.675Z"
+  },
+  "source": "odsay_direct"
+}
