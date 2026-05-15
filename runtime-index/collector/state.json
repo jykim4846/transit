@@ -46,5 +46,5 @@
   },
   "failedRouteNos": {},
   "lastRunAt": "2026-05-15T05:03:49.736Z",
-  "lastSource": "collector"
+  "lastSource": "runtime_refresh"
 }
