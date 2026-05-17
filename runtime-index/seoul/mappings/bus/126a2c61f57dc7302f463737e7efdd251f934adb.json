@@ -1,0 +1,19 @@
+{
+  "key": "126a2c61f57dc7302f463737e7efdd251f934adb",
+  "mapping": {
+    "routeNo": "721",
+    "routeId": "100100112",
+    "stationId": "112000106",
+    "stationSeq": 5,
+    "stationName": "DMC파크뷰자이.별동상가",
+    "alightingStationId": "113000420",
+    "alightingStationSeq": 13,
+    "alightingStationName": "신촌오거리.현대백화점",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-17T21:39:36.344Z"
+  },
+  "source": "odsay_direct"
+}
