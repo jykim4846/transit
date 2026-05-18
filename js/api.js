@@ -20,7 +20,7 @@ function dedupePathPoints(points) {
   return result;
 }
 
-function tagRoutePicks(result) {
+export function tagRoutePicks(result) {
   if (!result?.candidates?.length || !result.picks) return result;
   const fastestId = result.picks.fastestId;
   const fewestId = result.picks.fewestTransfersId;
