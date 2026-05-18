@@ -1,4 +1,5 @@
 const xlsx = require("node-xlsx");
+const { inflightCache } = require("./_index-store");
 
 const SEOUL_BUS_API_ROOT = process.env.SEOUL_BUS_API_ROOT || "http://ws.bus.go.kr/api/rest";
 const SEOUL_ROUTE_FILE_SEQ = process.env.SEOUL_ROUTE_FILE_SEQ || "48";
@@ -16,6 +17,7 @@ let routeWorkbookCache = {
 const realtimeCache = new Map();
 const REALTIME_CACHE_TTL_MS = 30 * 1000;
 const REALTIME_CACHE_MAX = 100;
+const realtimeInflight = inflightCache();
 
 function realtimeCacheGet(key) {
   const entry = realtimeCache.get(key);
@@ -33,6 +35,10 @@ function realtimeCacheSet(key, value) {
     for (const [k, v] of realtimeCache) {
       if (now > v.expiresAt) realtimeCache.delete(k);
     }
+    if (realtimeCache.size >= REALTIME_CACHE_MAX) {
+      const oldest = realtimeCache.keys().next().value;
+      if (oldest !== undefined) realtimeCache.delete(oldest);
+    }
   }
   realtimeCache.set(key, { value, expiresAt: Date.now() + REALTIME_CACHE_TTL_MS });
 }
@@ -49,18 +55,8 @@ function getSeoulBusApiKey() {
 }
 
 function inspectSeoulBusApiKey() {
-  const raw = process.env.SEOUL_BUS_API_KEY || "";
-  const normalized = getSeoulBusApiKey() || "";
   return {
-    configured: Boolean(raw),
-    rawLength: raw.length,
-    normalizedLength: normalized.length,
-    rawContainsPercent: raw.includes("%"),
-    rawContainsPlus: raw.includes("+"),
-    normalizedContainsPlus: normalized.includes("+"),
-    normalizedPreview: normalized
-      ? `${normalized.slice(0, 4)}...${normalized.slice(-4)}`
-      : null,
+    configured: Boolean(process.env.SEOUL_BUS_API_KEY),
     apiRoot: SEOUL_BUS_API_ROOT
   };
 }
@@ -307,26 +303,34 @@ async function getArrivalByRoute(stationId, routeId, stationSeq) {
   const cacheKey = `arrival:${stationId}:${routeId}:${stationSeq}`;
   const cached = realtimeCacheGet(cacheKey);
   if (cached !== undefined) return cached;
-  const body = await fetchSeoulBus("/arrive/getArrInfoByRoute", {
-    stId: stationId,
-    busRouteId: routeId,
-    ord: stationSeq
+  return realtimeInflight.getOrStart(cacheKey, async () => {
+    const fresh = realtimeCacheGet(cacheKey);
+    if (fresh !== undefined) return fresh;
+    const body = await fetchSeoulBus("/arrive/getArrInfoByRoute", {
+      stId: stationId,
+      busRouteId: routeId,
+      ord: stationSeq
+    });
+    const result = normalizeList(body.itemList).map(normalizeArrival).filter((item) => item.routeId);
+    realtimeCacheSet(cacheKey, result);
+    return result;
   });
-  const result = normalizeList(body.itemList).map(normalizeArrival).filter((item) => item.routeId);
-  realtimeCacheSet(cacheKey, result);
-  return result;
 }
 
 async function getBusPositionsByRoute(routeId) {
   const cacheKey = `buspos:${routeId}`;
   const cached = realtimeCacheGet(cacheKey);
   if (cached !== undefined) return cached;
-  const body = await fetchSeoulBus("/buspos/getBusPosByRtid", {
-    busRouteId: routeId
+  return realtimeInflight.getOrStart(cacheKey, async () => {
+    const fresh = realtimeCacheGet(cacheKey);
+    if (fresh !== undefined) return fresh;
+    const body = await fetchSeoulBus("/buspos/getBusPosByRtid", {
+      busRouteId: routeId
+    });
+    const result = normalizeList(body.itemList).map(normalizeVehiclePosition).filter((item) => item.vehicleId && item.isRunning);
+    realtimeCacheSet(cacheKey, result);
+    return result;
   });
-  const result = normalizeList(body.itemList).map(normalizeVehiclePosition).filter((item) => item.vehicleId && item.isRunning);
-  realtimeCacheSet(cacheKey, result);
-  return result;
 }
 
 module.exports = {

@@ -171,9 +171,26 @@ async function updateJson(filePath, fallbackValue, updater) {
   return next;
 }
 
+function inflightCache() {
+  const map = new Map();
+  return {
+    async getOrStart(key, factory) {
+      if (map.has(key)) return map.get(key).promise;
+      const promise = Promise.resolve().then(factory).finally(() => {
+        const entry = map.get(key);
+        if (entry && entry.promise === promise) map.delete(key);
+      });
+      map.set(key, { promise });
+      return promise;
+    },
+    size() { return map.size; }
+  };
+}
+
 module.exports = {
   getDriverName,
   readJson,
   writeJson,
-  updateJson
+  updateJson,
+  inflightCache
 };

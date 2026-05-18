@@ -46,6 +46,19 @@ function busMappingPath(key) {
   return `seoul/mappings/bus/${key}.json`;
 }
 
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function next() {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await worker(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, next));
+  return results;
+}
+
 function distanceMeters(fromX, fromY, toX, toY) {
   const toRadians = (value) => (Number(value) * Math.PI) / 180;
   const earthRadiusMeters = 6371000;
@@ -174,11 +187,15 @@ function buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY) {
   const midSeq = Math.ceil(totalSeq / 2);
   const boardStops = stops.filter((stop) => {
     const key = normalizeNameKey(stop.name);
-    return key === boardKey || key.includes(boardKey) || boardKey.includes(key);
+    if (key === boardKey) return true;
+    if (key.length < 3 || boardKey.length < 3) return false;
+    return key.includes(boardKey) || boardKey.includes(key);
   });
   const alightStops = stops.filter((stop) => {
     const key = normalizeNameKey(stop.name);
-    return key === alightKey || key.includes(alightKey) || alightKey.includes(key);
+    if (key === alightKey) return true;
+    if (key.length < 3 || alightKey.length < 3) return false;
+    return key.includes(alightKey) || alightKey.includes(key);
   });
 
   const pairs = [];
@@ -236,18 +253,19 @@ async function resolveBusMapping(candidate, fromX, fromY, toX, toY) {
           createdAt: new Date().toISOString()
         };
         // Fire-and-forget persistence so the response isn't blocked on GitHub PUT.
-        writeJson(busMappingPath(key), { key, mapping, source: "odsay_direct" }).catch(() => {});
+        writeJson(busMappingPath(key), { key, mapping, source: "odsay_direct" })
+          .catch((err) => console.warn("[mapping-index] odsay_direct cache write failed:", err.message));
         return mapping;
       }
     }
   }
 
   const routes = await getOrFetchRoutes(candidate.routeNo);
-  const scored = [];
-  for (const route of routes) {
+  const perRouteCandidates = await mapWithConcurrency(routes, 4, async (route) => {
     const stops = await getOrFetchStops(route.routeId);
-    scored.push(...buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY));
-  }
+    return buildRouteCandidates(route, stops, candidate, fromX, fromY, toX, toY);
+  });
+  const scored = perRouteCandidates.flat();
 
   scored.sort((a, b) => a.score - b.score);
   const best = scored[0];
