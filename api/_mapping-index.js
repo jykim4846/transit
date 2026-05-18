@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { readJson, updateJson, writeJson, getDriverName } = require("./_index-store");
 const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, getBusPositionsByRoute, downloadRouteWorkbookRows, getWorkbookRowsIfCached } = require("./_seoul-bus");
+const { distanceMeters } = require("./_geo");
 
 const STATE_PATH = "collector/state.json";
 
@@ -57,17 +58,6 @@ async function mapWithConcurrency(items, limit, worker) {
   }
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, next));
   return results;
-}
-
-function distanceMeters(fromX, fromY, toX, toY) {
-  const toRadians = (value) => (Number(value) * Math.PI) / 180;
-  const earthRadiusMeters = 6371000;
-  const dLat = toRadians(Number(toY) - Number(fromY));
-  const dLon = toRadians(Number(toX) - Number(fromX));
-  const lat1 = toRadians(fromY);
-  const lat2 = toRadians(toY);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 async function getOrFetchRoutes(routeNo) {
