@@ -1,0 +1,19 @@
+{
+  "key": "576192b993e22b01fbcebb903921dde89c6577bc",
+  "mapping": {
+    "routeNo": "7016",
+    "routeId": "100100447",
+    "stationId": "113000066",
+    "stationSeq": 14,
+    "stationName": "중동초등학교",
+    "alightingStationId": "113000042",
+    "alightingStationSeq": 31,
+    "alightingStationName": "마포역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T00:21:36.184Z"
+  },
+  "source": "odsay_direct"
+}
