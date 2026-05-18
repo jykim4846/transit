@@ -1,0 +1,19 @@
+{
+  "key": "710df1a499a9daa05084649ee08cb4f8e49f748c",
+  "mapping": {
+    "routeNo": "7013B",
+    "routeId": "100100448",
+    "stationId": "113000441",
+    "stationSeq": 10,
+    "stationName": "가좌행복주택.건영월드컵아파트",
+    "alightingStationId": "113900102",
+    "alightingStationSeq": 32,
+    "alightingStationName": "성지빌딩",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T00:21:10.190Z"
+  },
+  "source": "odsay_direct"
+}
