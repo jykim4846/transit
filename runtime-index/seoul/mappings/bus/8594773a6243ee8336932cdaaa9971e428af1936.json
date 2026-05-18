@@ -1,0 +1,19 @@
+{
+  "key": "8594773a6243ee8336932cdaaa9971e428af1936",
+  "mapping": {
+    "routeNo": "7016",
+    "routeId": "100100447",
+    "stationId": "113000214",
+    "stationSeq": 77,
+    "stationName": "강변한신코아",
+    "alightingStationId": "113000415",
+    "alightingStationSeq": 86,
+    "alightingStationName": "동교동삼거리",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T10:15:54.466Z"
+  },
+  "source": "odsay_direct"
+}
