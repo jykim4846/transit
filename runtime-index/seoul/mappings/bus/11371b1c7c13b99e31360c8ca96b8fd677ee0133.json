@@ -1,0 +1,19 @@
+{
+  "key": "11371b1c7c13b99e31360c8ca96b8fd677ee0133",
+  "mapping": {
+    "routeNo": "7613",
+    "routeId": "100100347",
+    "stationId": "112000027",
+    "stationSeq": 31,
+    "stationName": "연희104고지앞.궁동근린공원",
+    "alightingStationId": "113000002",
+    "alightingStationSeq": 42,
+    "alightingStationName": "마포역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T00:29:16.365Z"
+  },
+  "source": "odsay_direct"
+}
