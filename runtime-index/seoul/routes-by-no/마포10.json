@@ -1,0 +1,14 @@
+{
+  "routeNo": "마포10",
+  "collectedAt": "2026-05-18T10:13:33.003Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "113900008",
+      "routeNo": "마포10",
+      "routeType": "2",
+      "startName": "신촌전철역.그랜드마트",
+      "endName": "공덕전철역"
+    }
+  ]
+}
