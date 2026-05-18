@@ -3930,7 +3930,7 @@
 <script type="module">
   import { uid, nowStamp, escapeHtml, formatTime, relativeTime, minuteNumber, formatClock, formatCountdown } from "./js/util.js";
   import { STORAGE_KEY, LEGACY_STORAGE_KEY, ROUTE_CARD_COLLAPSED_KEY, ODSAY_BROWSER_KEY_STORAGE, KAKAO_MAP_KEY_STORAGE, AUTOCOMPLETE_MIN_LENGTH, ODSAY_API_ROOT, PRIORITY_META, priorityLabel } from "./js/constants.js";
-  import { state, persistRoutes } from "./js/state.js";
+  import { state, persistRoutes, persistBoardedTrip } from "./js/state.js";
   import { getBrowserOdsayKey, setBrowserOdsayKey, fetchJson, fetchOdsayDirect, searchStations, normalizeSegments, fetchRouteRecommendationDirect, tagRoutePicks } from "./js/api.js";
   import { setKakaoMapKey, getKakaoMapKey, resolveKakaoMapKey, loadKakaoMaps } from "./js/live-map-keys.js";
   import {
@@ -5105,6 +5105,7 @@
       remainingStops: target.remainingStops,
       etaMinutes: target.etaMinutes
     };
+    persistBoardedTrip();
     showToast(`${candidate.routeNo || "버스"} 탑승을 시작합니다`);
     renderRoutes();
   }
@@ -5113,6 +5114,7 @@
     if (!state.boardedTrip) return;
     const name = state.boardedTrip.alightingName;
     state.boardedTrip = null;
+    persistBoardedTrip();
     if (reason === "alighting") {
       showToast(name ? `${name} 도착! 하차 준비하세요` : "하차 정류장에 도착했어요");
     } else if (reason === "manual") {
@@ -5428,6 +5430,10 @@
   }
 
   function deleteRoute(routeId) {
+    if (state.boardedTrip?.routeId === routeId) {
+      state.boardedTrip = null;
+      persistBoardedTrip();
+    }
     state.routes = state.routes.filter((route) => route.id !== routeId);
     state.loadingRouteIds.delete(routeId);
     state.expandedRouteIds.delete(routeId);

@@ -3,6 +3,8 @@ export const LEGACY_STORAGE_KEY = "transit-routes";
 export const ROUTE_CARD_COLLAPSED_KEY = "transit-route-card-collapsed";
 export const ODSAY_BROWSER_KEY_STORAGE = "transit-odsay-browser-key";
 export const KAKAO_MAP_KEY_STORAGE = "transit-kakao-map-key";
+export const BOARDED_TRIP_STORAGE_KEY = "transit-boarded-trip";
+export const BOARDED_TRIP_MAX_AGE_MS = 3 * 60 * 60 * 1000; // 3 hours
 export const AUTOCOMPLETE_MIN_LENGTH = 2;
 export const ODSAY_API_ROOT = "https://api.odsay.com/v1/api";
 
