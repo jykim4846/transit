@@ -1,0 +1,19 @@
+{
+  "key": "734480cdfcfb4d03099c939732d441169bf6af84",
+  "mapping": {
+    "routeNo": "110B",
+    "routeId": "100100015",
+    "stationId": "113000135",
+    "stationSeq": 32,
+    "stationName": "연남동",
+    "alightingStationId": "113000089",
+    "alightingStationSeq": 41,
+    "alightingStationName": "공덕역1번출구",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T00:29:18.323Z"
+  },
+  "source": "odsay_direct"
+}
