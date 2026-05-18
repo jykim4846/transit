@@ -1,0 +1,19 @@
+{
+  "key": "4141e89a74a9cccf4924dd45fd97039585c821d8",
+  "mapping": {
+    "routeNo": "721",
+    "routeId": "100100112",
+    "stationId": "112000005",
+    "stationSeq": 8,
+    "stationName": "모래내시장.가좌역",
+    "alightingStationId": "113000420",
+    "alightingStationSeq": 13,
+    "alightingStationName": "신촌오거리.현대백화점",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-18T00:22:05.401Z"
+  },
+  "source": "odsay_direct"
+}
