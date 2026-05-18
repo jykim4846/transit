@@ -5413,17 +5413,36 @@
         `;
       }
       const previewVehicles = primary?.busApproachPreview?.vehicles || [];
+      if (!previewVehicles.length) return "";
       const nextCatchable = previewVehicles.find((v) => v.catchable !== false);
-      if (!nextCatchable) return "";
-      const etaText = nextCatchable.etaMinutes != null ? `${nextCatchable.etaMinutes}분 후 도착` : "곧 도착";
+      const offered = nextCatchable || previewVehicles[0];
+      const isCatchable = offered.catchable !== false;
+      const routeNo = primary?.routeNo || "버스";
+      const vehicleLabel = offered.label || "다음";
+      const vehicleKeyAttr = offered.key != null ? ` data-vehicle-key="${escapeHtml(String(offered.key))}"` : "";
+      if (isCatchable) {
+        const etaText = offered.etaMinutes != null ? `${offered.etaMinutes}분 후 도착` : "곧 도착";
+        return `
+          <div class="boarding-panel">
+            <div class="boarding-panel-info">
+              <span class="boarding-panel-tag">🚌 탑승 시작</span>
+              <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaText)}</strong>
+              <span>이 버스에 탑승하면 알려드릴게요</span>
+            </div>
+            <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
+          </div>
+        `;
+      }
+      const passedValue = offered.passedAgoMinutes ?? offered.etaMinutes;
+      const etaTextUncatchable = passedValue != null ? `${passedValue}분 전 통과` : "방금 통과";
       return `
         <div class="boarding-panel">
           <div class="boarding-panel-info">
-            <span class="boarding-panel-tag">🚌 탑승 시작</span>
-            <strong>${escapeHtml(primary?.routeNo || "버스")} · ${escapeHtml(nextCatchable.label || "다음")} ${escapeHtml(etaText)}</strong>
-            <span>이 버스에 탑승하면 알려드릴게요</span>
+            <span class="boarding-panel-tag">🚌 빨리 도착했나요?</span>
+            <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaTextUncatchable)}</strong>
+            <span>예상보다 빨리 도착했다면 이 버스를 선택하세요</span>
           </div>
-          <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}">이 버스 탑승</button>
+          <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
         </div>
       `;
     })();
@@ -5646,9 +5665,12 @@
     }, 60000);
   }
 
-  function startBoarding(routeId, candidate) {
+  function startBoarding(routeId, candidate, vehicleKey) {
     const vehicles = candidate?.busApproachPreview?.vehicles || [];
-    const target = vehicles.find((v) => v.catchable !== false) || vehicles[0];
+    const explicit = vehicleKey != null
+      ? vehicles.find((v) => String(v.key) === String(vehicleKey))
+      : null;
+    const target = explicit || vehicles.find((v) => v.catchable !== false) || vehicles[0];
     if (!target || !target.key) {
       showToast("탑승할 수 있는 버스가 없어요");
       return;
@@ -6558,7 +6580,8 @@
       if (action === "start-boarding") {
         const route = state.routes.find((r) => r.id === id);
         const candidate = route ? getSelectedCandidate(route) : null;
-        if (route && candidate) startBoarding(id, candidate);
+        const vehicleKey = event.target.closest("[data-vehicle-key]")?.dataset.vehicleKey;
+        if (route && candidate) startBoarding(id, candidate, vehicleKey);
       }
       if (action === "end-boarding") endBoarding("manual");
     });
