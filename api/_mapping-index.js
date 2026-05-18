@@ -8,7 +8,7 @@ function normalizeNameKey(value) {
   return String(value || "")
     .toLowerCase()
     .replace(/\([^)]*\)/g, "")
-    .replace(/역|정류장/g, "")
+    .replace(/(역|정류장)$/, "")
     .replace(/\s+/g, "")
     .trim();
 }
@@ -27,11 +27,19 @@ function mappingKey(candidate) {
 }
 
 function routeListPath(routeNo) {
-  return `seoul/routes-by-no/${normalizeRouteNo(routeNo)}.json`;
+  const norm = normalizeRouteNo(routeNo);
+  if (!/^[A-Z0-9-]{1,16}$/.test(norm)) {
+    throw new Error("invalid routeNo: " + String(norm).slice(0, 32));
+  }
+  return `seoul/routes-by-no/${norm}.json`;
 }
 
 function routeStopsPath(routeId) {
-  return `seoul/route-stops/${routeId}.json`;
+  const s = String(routeId == null ? "" : routeId);
+  if (!/^[A-Za-z0-9_-]{1,32}$/.test(s)) {
+    throw new Error("invalid routeId: " + s.slice(0, 32));
+  }
+  return `seoul/route-stops/${s}.json`;
 }
 
 function busMappingPath(key) {

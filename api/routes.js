@@ -954,6 +954,12 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
   }
 
+  const lonsInRange = [fromX, toX].every((value) => value >= 124 && value <= 132);
+  const latsInRange = [fromY, toY].every((value) => value >= 33 && value <= 43);
+  if (!lonsInRange || !latsInRange) {
+    return sendJson(res, 400, { error: "좌표 파라미터가 올바르지 않습니다" });
+  }
+
   try {
     if (priority === "overview") {
       const rawPaths = await collectTransitPaths(fromX, fromY, toX, toY, transportFilter);
@@ -987,14 +993,16 @@ module.exports = async function handler(req, res) {
         const enrichedDirect = await enrichCandidates(directBusCandidates, fromX, fromY, toX, toY);
         const sortedDirect = deduplicateCandidates(chooseRecommendation(enrichedDirect, priority)).slice(0, 4);
         const directRecommendation = sortedDirect[0];
-        return sendJson(res, 200, {
-          fetchedAt: new Date().toISOString(),
-          recommendedId: directRecommendation.id,
-          recommendation: directRecommendation,
-          candidates: sortedDirect,
-          mode: "direct_bus_eta",
-          indexStatus: includeIndexStatus ? await getCollectorStatus().catch(() => null) : undefined
-        });
+        if (directRecommendation) {
+          return sendJson(res, 200, {
+            fetchedAt: new Date().toISOString(),
+            recommendedId: directRecommendation.id,
+            recommendation: directRecommendation,
+            candidates: sortedDirect,
+            mode: "direct_bus_eta",
+            indexStatus: includeIndexStatus ? await getCollectorStatus().catch(() => null) : undefined
+          });
+        }
       }
     }
 

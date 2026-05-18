@@ -1,12 +1,6 @@
 const { sendJson } = require("../_odsay");
 const { enqueueRouteNos, collectRouteIndex } = require("../_mapping-index");
-
-function isAuthorized(req) {
-  const secret = process.env.INDEX_ADMIN_KEY || process.env.CRON_SECRET || null;
-  if (!secret) return true;
-  const auth = req.headers.authorization || "";
-  return auth === `Bearer ${secret}` || req.query.secret === secret;
-}
+const { isAuthorized } = require("../_auth");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET" && req.method !== "POST") {
@@ -17,10 +11,13 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 401, { error: "Unauthorized" });
   }
 
+  const ROUTE_NO_PATTERN = /^[A-Z0-9-]{1,16}$/;
   const seedRouteNos = String(req.query.seedRouteNos || "")
     .split(",")
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((item) => item.toUpperCase())
+    .filter((item) => ROUTE_NO_PATTERN.test(item));
   const limit = Math.max(1, Math.min(20, Number(req.query.limit || 6) || 6));
 
   try {

@@ -25,6 +25,17 @@ module.exports = async function handler(req, res) {
     return sendJson(res, 400, { error: "routeId와 boardingStationId가 필요합니다" });
   }
 
+  const ID_PATTERN = /^[A-Za-z0-9_-]{1,32}$/;
+  if (!ID_PATTERN.test(routeId)) {
+    return sendJson(res, 400, { error: "routeId 형식이 올바르지 않습니다" });
+  }
+  if (!ID_PATTERN.test(boardingStationId)) {
+    return sendJson(res, 400, { error: "boardingStationId 형식이 올바르지 않습니다" });
+  }
+  if (alightingStationId && !ID_PATTERN.test(alightingStationId)) {
+    return sendJson(res, 400, { error: "alightingStationId 형식이 올바르지 않습니다" });
+  }
+
   try {
     const result = await getLiveBusPreview({ routeId, boardingStationId, alightingStationId, walkMinutes });
     if (!result) {
