@@ -4276,13 +4276,6 @@
     return "첫 탑승 대기 " + recommendation.firstWaitMin + "분(" + source + ")과 환승 대기 추정 " + (recommendation.transferWaitMin || 0) + "분을 반영해 지금 출발 기준으로 정렬했습니다." + riskSuffix;
   }
 
-  function renderTransportSteps(steps) {
-    if (!steps?.length) return "";
-    return steps.map((step) => {
-      return '<span class="transport-step ' + escapeHtml(step.type) + '">' + escapeHtml(step.label) + "</span>";
-    }).join("");
-  }
-
   function iconSvg(name, size = 16) {
     const paths = {
       map: '<path d="M20 10c0 4.5-6 10-6 10S8 14.5 8 10a6 6 0 1 1 12 0Z"></path><circle cx="14" cy="10" r="2"></circle>',
@@ -5117,49 +5110,6 @@
     return null;
   }
 
-  function renderCompareCard(candidate, isRecommended) {
-    const riskLabel = candidateRiskLabel(candidate);
-    const cardClass = [
-      "compare-card",
-      isRecommended ? "recommended" : "",
-      candidate.transferRiskLevel === "high" ? "risk-high" : "",
-      candidate.transferRiskLevel === "medium" ? "risk-medium" : ""
-    ].filter(Boolean).join(" ");
-
-    return `
-      <div class="${cardClass}">
-        <div class="compare-flags">
-          ${isRecommended ? '<span class="compare-flag recommended">추천</span>' : ""}
-          ${riskLabel ? `<span class="compare-flag ${escapeHtml(candidate.transferRiskLevel)}">${escapeHtml(riskLabel)}</span>` : ""}
-        </div>
-        <div class="compare-card-top">
-          <div>
-            <strong>${escapeHtml(candidate.firstTransitLabel || "도보 중심")}</strong>
-            <div class="compare-subtitle">${escapeHtml(candidate.boardingApproachText || candidate.note)}</div>
-          </div>
-          <div class="compare-score">${escapeHtml(candidate.scoreDisplay)}</div>
-        </div>
-        <div class="compare-metrics">
-          <div class="compare-metric">
-            <span class="label">총 이동</span>
-            <span class="value">${escapeHtml(candidate.totalTimeText)}</span>
-          </div>
-          <div class="compare-metric">
-            <span class="label">첫 대기</span>
-            <span class="value">${escapeHtml(candidate.firstWaitText)}</span>
-          </div>
-          <div class="compare-metric">
-            <span class="label">환승</span>
-            <span class="value">${escapeHtml(candidate.transferCountText)}</span>
-          </div>
-        </div>
-        ${renderJourneyFlow(candidate.segments, { compact: true })}
-        ${candidate.busApproachPreview ? renderBusApproachPreview(candidate.busApproachPreview) : ""}
-        ${candidate.transferRiskText ? `<div class="compare-risk">${escapeHtml(candidate.transferRiskText)}</div>` : ""}
-      </div>
-    `;
-  }
-
   function getJourneyStepLabel(segment) {
     if (!segment) return "";
     if (segment.kind === "도보") return segment.time || "도보";
@@ -5228,67 +5178,6 @@
   }
 
 
-  function buildMetricSummary(recommendation) {
-    if (!recommendation) return "";
-    const total = Number(recommendation.journeyMinutes || recommendation.totalTime || 0);
-    const wait = recommendation.firstWaitSource !== "not_applicable" ? recommendation.firstWaitText : null;
-    const walk = Number(recommendation.walkMinutes || recommendation.initialWalkTime || 0);
-    const transferCount = Number(recommendation.transferCount || 0);
-    const pieces = [`총 ${total}분`];
-    pieces.push(wait ? `대기 ${wait}` : "대기 정보 없음");
-    pieces.push(`도보 ${walk}분`);
-    pieces.push(transferCount > 0 ? `환승 ${transferCount}회` : "환승 없음");
-    return pieces.join(" · ");
-  }
-
-  function renderBoardingAction(recommendation) {
-    if (!recommendation) return "";
-    const approach = recommendation.boardingApproachText || (recommendation.boardingStopName ? `${recommendation.boardingStopName} 정류장으로 이동` : "탑승 정류장으로 이동");
-    const walk = recommendation.initialWalkTime > 0 ? `도보 ${recommendation.initialWalkTime}분` : "바로 탑승";
-    return `
-      <div class="boarding-card">
-        <div class="boarding-title">먼저 할 일</div>
-        <div class="boarding-main">${escapeHtml(walk)} → ${escapeHtml(approach)}</div>
-        <span class="boarding-pill">${escapeHtml(recommendation.firstTransitLabel || "이동")}</span>
-      </div>
-    `;
-  }
-
-  function renderCompactDetails(recommendation) {
-    if (!recommendation?.segments?.length) return "";
-    return `
-      <details class="compact-details">
-        <summary>상세 경로 보기</summary>
-        ${renderSegments(recommendation.segments)}
-      </details>
-    `;
-  }
-
-  function renderArrivalHeadline(candidate) {
-    if (!candidate?.arriveAt) return "";
-    const departLabel = candidate.departAt ? formatClock(candidate.departAt) : formatClock(new Date().toISOString());
-    const arriveLabel = formatClock(candidate.arriveAt);
-    const countdown = formatCountdown(candidate.arriveAt);
-    const journey = candidate.journeyMinutes != null ? `${candidate.journeyMinutes}분 소요` : "";
-    const fb = candidate.fallbackPlan;
-    const fbAttrs = fb?.catchDeadline && fb?.arriveAt
-      ? ` data-fallback-arrive-at="${escapeHtml(fb.arriveAt)}" data-fallback-deadline="${escapeHtml(fb.catchDeadline)}" data-fallback-vehicle-at="${escapeHtml(fb.nextVehicleArriveAt || "")}"`
-      : "";
-    return `
-      <div class="arrival-headline" data-arrive-at="${escapeHtml(candidate.arriveAt)}"${fbAttrs}>
-        <div class="row-main">
-          <span class="depart"><span class="promoted-tag">놓침 후 대안</span>지금 ${escapeHtml(departLabel)}</span>
-          <span class="arrow"></span>
-          <span class="arrive" data-arrive-label>${escapeHtml(arriveLabel)} 도착</span>
-        </div>
-        <div class="row-sub">
-          <span data-journey-note>${escapeHtml(journey)}</span>
-          <span class="countdown ${escapeHtml(countdown.state)}" data-countdown-arrive>${escapeHtml(countdown.text)}</span>
-        </div>
-      </div>
-    `;
-  }
-
   function inferSegmentType(seg) {
     if (!seg) return "bus";
     if (seg.type === "walk" || seg.type === "bus" || seg.type === "subway" || seg.type === "wait") return seg.type;
@@ -5303,161 +5192,6 @@
     const raw = seg.minutes != null ? seg.minutes : (typeof seg.time === "string" ? parseInt(seg.time, 10) : seg.time);
     const n = Number(raw);
     return Number.isFinite(n) ? Math.max(0, n) : 0;
-  }
-
-  function renderJourneyLine(candidate, options = {}) {
-    const raw = (candidate?.segments || []).filter(Boolean).map((seg) => ({
-      ...seg,
-      type: inferSegmentType(seg),
-      minutes: segmentMinutes(seg)
-    }));
-    let segments = raw.filter((seg) => seg.minutes > 0 || seg.type !== "walk");
-    if (!segments.length) segments = raw;
-
-    const extraFirstWait = Math.max(0, Number(options.extraFirstWait) || 0);
-    const firstWait = Math.max(0, Number(candidate?.firstWaitMin) || 0) + extraFirstWait;
-    const transferWait = Math.max(0, Number(candidate?.transferWaitMin) || 0);
-    const transitCount = segments.filter((seg) => seg.type !== "walk").length;
-    const perTransfer = transitCount > 1 ? transferWait / (transitCount - 1) : 0;
-
-    if (!segments.length) {
-      const totalMin = Number(candidate?.journeyMinutes || candidate?.totalTime || 0) + firstWait;
-      if (totalMin <= 0) return "";
-      const mode = candidate?.mode === "subway" ? "subway" : candidate?.mode === "walk" ? "walk" : "bus";
-      const label = candidate?.firstTransitLabel
-        ? `${candidate.firstTransitLabel} ${Math.round(totalMin)}분`
-        : `${Math.round(totalMin)}분`;
-      return `
-        <div class="alt-line">
-          <div class="journey-line">
-            <span class="seg ${mode}" style="width:100%;" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
-          </div>
-        </div>
-      `;
-    }
-
-    const pieces = [];
-    if (firstWait > 0) {
-      pieces.push({ type: "wait", minutes: firstWait, label: "대기", text: `첫 탑승 대기 ${Math.round(firstWait)}분` });
-    }
-    let transitSeenIdx = 0;
-    segments.forEach((seg) => {
-      if (seg.type !== "walk") {
-        if (transitSeenIdx > 0 && perTransfer > 0) {
-          pieces.push({ type: "wait", minutes: perTransfer, label: "환승대기", text: `환승 대기 ${Math.round(perTransfer)}분 (추정)` });
-        }
-        transitSeenIdx += 1;
-      }
-      pieces.push(seg);
-    });
-
-    const total = pieces.reduce((sum, p) => sum + Math.max(0.5, Number(p.minutes) || 0), 0);
-    if (total <= 0) return "";
-
-    const html = pieces.map((p) => {
-      const minutes = Math.max(0.5, Number(p.minutes) || 0);
-      const pct = (minutes / total) * 100;
-      const type = p.type === "walk" ? "walk"
-        : p.type === "subway" ? "subway"
-        : p.type === "wait" ? "wait"
-        : "bus";
-      let inlineLabel = "";
-      if (p.type === "wait") {
-        if (pct >= 10) inlineLabel = escapeHtml(`${p.label} ${Math.round(minutes)}분`);
-      } else if (p.type === "walk") {
-        if (pct >= 16) inlineLabel = escapeHtml(`도보 ${Math.round(minutes)}분`);
-      } else {
-        if (pct >= 12) inlineLabel = escapeHtml(`${p.label || p.kind} 탑승 ${Math.round(minutes)}분`);
-      }
-      return `<span class="seg ${type}" style="width:${pct}%;" title="${escapeHtml(p.text || p.label || "")}">${inlineLabel}</span>`;
-    }).join("");
-
-    const firstTransit = segments.find((seg) => seg.type !== "walk");
-    const lastTransit = [...segments].reverse().find((seg) => seg.type !== "walk");
-    const boardName = firstTransit?.start || "";
-    const alightName = lastTransit?.end || "";
-    const caption = (boardName || alightName) ? `
-      <div class="journey-line-caption">
-        <span class="board">${escapeHtml(boardName ? `${boardName} 탑승` : "")}</span>
-        <span class="alight">${escapeHtml(alightName ? `${alightName} 하차` : "")}</span>
-      </div>
-    ` : "";
-
-    return `
-      <div class="alt-line">
-        <div class="journey-line">${html}</div>
-        ${caption}
-      </div>
-    `;
-  }
-
-  function estimateArriveMs(candidate, nowMs) {
-    if (candidate?.arriveAt) {
-      const ms = new Date(candidate.arriveAt).getTime();
-      if (Number.isFinite(ms)) return ms;
-    }
-    const journey = Number(candidate?.journeyMinutes || candidate?.totalTime || 0);
-    if (journey > 0) return nowMs + journey * 60 * 1000;
-    return null;
-  }
-
-  function renderAlternates(result) {
-    if (!result?.candidates?.length) return "";
-    const recommended = result.recommendation;
-    const nowMs = Date.now();
-    const recommendedArriveMs = estimateArriveMs(recommended, nowMs);
-    const alts = (result.candidates || []).filter((c) => c.id !== result.recommendedId);
-    const rows = [];
-
-    if (recommended?.fallbackPlan?.arriveAt) {
-      const fb = recommended.fallbackPlan;
-      const fbMs = new Date(fb.arriveAt).getTime();
-      const delta = recommendedArriveMs ? Math.max(0, Math.round((fbMs - recommendedArriveMs) / 60000)) : fb.extraWaitMin;
-      rows.push(`
-        <div class="alt-row fallback" data-fallback-row data-fallback-deadline="${escapeHtml(fb.catchDeadline || "")}">
-          <span class="alt-tag">놓치면</span>
-          <div>
-            <div class="alt-title">같은 ${escapeHtml(recommended.firstTransitLabel || "노선")} 다음 차</div>
-            <span class="alt-sub">다음 차 정류장 도착 ${escapeHtml(formatClock(fb.nextVehicleArriveAt))}</span>
-          </div>
-          <span class="alt-arrive">${escapeHtml(formatClock(fb.arriveAt))} 도착</span>
-          <span class="alt-delta">+${delta}분</span>
-          ${renderJourneyLine(recommended, { extraFirstWait: fb.extraWaitMin })}
-        </div>
-      `);
-    }
-
-    alts.slice(0, 3).forEach((c) => {
-      const arriveMs = estimateArriveMs(c, nowMs);
-      if (arriveMs == null) return;
-      const deltaMin = recommendedArriveMs
-        ? Math.max(0, Math.round((arriveMs - recommendedArriveMs) / 60000))
-        : null;
-      const deltaText = deltaMin != null ? (deltaMin === 0 ? "동일" : `+${deltaMin}분`) : "";
-      const transit = c.firstTransitLabel || "도보";
-      const sub = c.boardingApproachText || c.note || "";
-      const arriveLabel = c.arriveAt ? formatClock(c.arriveAt) : formatClock(new Date(arriveMs).toISOString());
-      rows.push(`
-        <div class="alt-row">
-          <span class="alt-tag">차선</span>
-          <div>
-            <div class="alt-title">${escapeHtml(transit)} · 환승 ${escapeHtml(c.transferCountText || "-")}</div>
-            <span class="alt-sub">${escapeHtml(sub)}</span>
-          </div>
-          <span class="alt-arrive">${escapeHtml(arriveLabel)} 도착</span>
-          <span class="alt-delta">${escapeHtml(deltaText)}</span>
-          ${renderJourneyLine(c)}
-        </div>
-      `);
-    });
-
-    if (!rows.length) return "";
-    return `
-      <div class="alt-board">
-        <div class="alt-head">놓쳤을 때 · 다른 루트</div>
-        <div class="alt-list">${rows.join("")}</div>
-      </div>
-    `;
   }
 
   function renderBusApproachPreview(preview) {
@@ -5479,6 +5213,8 @@
       return { vehicle, index, posClass: "after", label };
     });
 
+    const clampPercent = (raw) => Math.max(0, Math.min(100, Number(raw) || 0));
+
     const buses = classified.map(({ vehicle, index, posClass, label }) => {
       const bits = [`<strong>${escapeHtml(label)}</strong>`];
       if (vehicle.etaMinutes != null) {
@@ -5490,14 +5226,14 @@
       }
       bits.push(`<span>${escapeHtml(`${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`)}</span>`);
       return `
-        <div class="bus-line-bus ${posClass}" data-slot="${index}" style="left:${vehicle.progressPercent}%;">
+        <div class="bus-line-bus ${posClass}" data-slot="${index}" style="left:${clampPercent(vehicle.progressPercent)}%;">
           ${bits.join("")}
         </div>
       `;
     }).join("");
 
     const busMarkers = classified.map(({ vehicle, posClass }) => (
-      `<div class="bus-line-marker ${posClass}" style="left:${vehicle.progressPercent}%;"></div>`
+      `<div class="bus-line-marker ${posClass}" style="left:${clampPercent(vehicle.progressPercent)}%;"></div>`
     )).join("");
 
     const stops = preview.stops.map((stop) => `
@@ -6161,13 +5897,32 @@
     if (btn) btn.style.display = getBrowserOdsayKey() ? "none" : "";
   }
 
-  async function fetchJson(url) {
-    const response = await fetch(url, { cache: "no-store" });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(payload.error || "요청에 실패했습니다");
+  async function fetchJson(url, options = {}) {
+    const { signal: externalSignal, timeoutMs = 15000 } = options;
+    const controller = new AbortController();
+    const onExternalAbort = () => controller.abort();
+    if (externalSignal) {
+      if (externalSignal.aborted) controller.abort();
+      else externalSignal.addEventListener("abort", onExternalAbort, { once: true });
     }
-    return payload;
+    const timer = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+    try {
+      const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || "요청에 실패했습니다");
+      }
+      return payload;
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        if (externalSignal?.aborted) throw error;
+        throw new Error("요청 시간 초과");
+      }
+      throw error;
+    } finally {
+      if (timer) clearTimeout(timer);
+      if (externalSignal) externalSignal.removeEventListener("abort", onExternalAbort);
+    }
   }
 
   async function fetchJsonDirect(url) {
@@ -6193,40 +5948,51 @@
     return fetchJsonDirect(`${ODSAY_API_ROOT}/${endpoint}?${query.toString()}`);
   }
 
-  async function searchStations(query) {
-    const normalized = query.trim();
-    if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) {
-      return {
-        stations: [],
-        warnings: []
-      };
-    }
-    try {
-      const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
-      return {
-        stations: payload.stations || [],
-        warnings: payload.warnings || []
-      };
-    } catch (error) {
-      const fallbackPayload = await fetchOdsayDirect("searchStation", { stationName: normalized });
-      const stations = (fallbackPayload.result?.station || []).slice(0, 8).map((station) => ({
-        name: station.stationName || station.stationNameKor || "",
-        x: station.x,
-        y: station.y,
-        stationID: station.stationID || null,
-        kind: Number(station.stationType ?? 0) === 1 || Number(station.stationClass ?? 0) === 2 ? "지하철" : "버스",
-        detail: [
-          station.stationCityName,
-          station.stationDistrictName,
-          station.stationDongName
-        ].filter(Boolean).join(" · ")
-      })).filter((station) => station.name && station.x && station.y);
-      return {
-        stations,
-        warnings: ["서버 경로가 막혀 브라우저 직접 호출로 검색했습니다", error.message]
-      };
-    }
-  }
+  const searchStations = (() => {
+    let seq = 0;
+    // When a newer call has superseded this one we return a never-resolving
+    // Promise so callers (autocomplete dropdown) silently discard the result
+    // without surfacing a spurious error toast.
+    const stale = () => new Promise(() => {});
+    return async function searchStations(query) {
+      const normalized = query.trim();
+      if (normalized.length < AUTOCOMPLETE_MIN_LENGTH) {
+        return {
+          stations: [],
+          warnings: []
+        };
+      }
+      const mySeq = ++seq;
+      try {
+        const payload = await fetchJson("/api/stations?q=" + encodeURIComponent(normalized));
+        if (mySeq !== seq) return stale();
+        return {
+          stations: payload.stations || [],
+          warnings: payload.warnings || []
+        };
+      } catch (error) {
+        if (mySeq !== seq) return stale();
+        const fallbackPayload = await fetchOdsayDirect("searchStation", { stationName: normalized });
+        if (mySeq !== seq) return stale();
+        const stations = (fallbackPayload.result?.station || []).slice(0, 8).map((station) => ({
+          name: station.stationName || station.stationNameKor || "",
+          x: station.x,
+          y: station.y,
+          stationID: station.stationID || null,
+          kind: Number(station.stationType ?? 0) === 1 || Number(station.stationClass ?? 0) === 2 ? "지하철" : "버스",
+          detail: [
+            station.stationCityName,
+            station.stationDistrictName,
+            station.stationDongName
+          ].filter(Boolean).join(" · ")
+        })).filter((station) => station.name && station.x && station.y);
+        return {
+          stations,
+          warnings: ["서버 경로가 막혀 브라우저 직접 호출로 검색했습니다", error.message]
+        };
+      }
+    };
+  })();
 
   async function resolveStationByName(name) {
     const normalized = name.trim();
@@ -6592,7 +6358,8 @@
     const silent = Boolean(options.silent);
 
     state.loadingRouteIds.add(routeId);
-    renderRoutes();
+    const loadingCard = document.querySelector(`.route-card[data-route-id="${CSS.escape(routeId)}"]`);
+    if (loadingCard) loadingCard.classList.add("loading");
 
     try {
       const from = await resolveCurrentLocationFrom();
@@ -6620,7 +6387,6 @@
 
       state.routes = state.routes.map((item) => item.id === routeId ? nextRoute : item);
       persistRoutes();
-      renderRoutes();
       if (!silent) {
         showToast("추천을 새로 갱신했습니다");
       }
@@ -6628,7 +6394,6 @@
       if (!silent) {
         showToast(error.message || "추천 갱신에 실패했습니다");
       }
-      renderRoutes();
     } finally {
       state.loadingRouteIds.delete(routeId);
       renderRoutes();
@@ -6639,6 +6404,9 @@
     state.routes = state.routes.filter((route) => route.id !== routeId);
     state.loadingRouteIds.delete(routeId);
     state.expandedRouteIds.delete(routeId);
+    if (state.collapsedRouteIds.delete(routeId)) {
+      localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
+    }
     delete state.selectedCandidateIds[routeId];
     if (state.activeRouteId === routeId) state.activeRouteId = null;
     clearLiveMapTimer(routeId);
