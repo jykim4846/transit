@@ -314,7 +314,7 @@ export function renderBusApproachPreview(preview) {
   let laterCatchableCount = 0;
   const classified = vehicles.map((vehicle, index) => {
     if (vehicle.catchable === false) {
-      return { vehicle, index, posClass: "uncatchable", label: "놓침" };
+      return { vehicle, index, posClass: "uncatchable", label: "타기 어려움" };
     }
     if (index === firstCatchableIdx) {
       return { vehicle, index, posClass: "next", label: "다음" };
@@ -328,6 +328,9 @@ export function renderBusApproachPreview(preview) {
 
   const buses = classified.map(({ vehicle, index, posClass, label }) => {
     const bits = [`<strong>${escapeHtml(label)}</strong>`];
+    const availabilityClass = vehicle.catchable === false ? "uncatchable" : "catchable";
+    const availabilityText = vehicle.catchable === false ? "타기 어려움" : "탈 수 있음";
+    bits.push(`<span class="bus-availability-badge ${availabilityClass}">${availabilityText}</span>`);
     if (vehicle.etaMinutes != null) {
       const etaText = vehicle.catchable === false
         ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과`
@@ -358,7 +361,8 @@ export function renderBusApproachPreview(preview) {
     const eta = vehicle.etaMinutes != null
       ? (vehicle.catchable === false ? `${vehicle.passedAgoMinutes ?? vehicle.etaMinutes}분 전 통과` : `${vehicle.etaMinutes}분 후`)
       : `${vehicle.remainingStops}정거장 ${vehicle.catchable === false ? "뒤" : "전"}`;
-    return `${label} ${eta}`;
+    const availability = vehicle.catchable === false ? "타기 어려움" : "탈 수 있음";
+    return `${label} ${availability} ${eta}`;
   }).join(" · ");
 
   return `

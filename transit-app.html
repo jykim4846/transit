@@ -3022,6 +3022,30 @@
     color: var(--text-muted);
   }
 
+  .bus-availability-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+  .bus-availability-badge.catchable {
+    background: rgba(30, 122, 95, 0.16);
+    color: var(--accent-strong, #1e7a5f);
+  }
+  .bus-availability-badge.uncatchable {
+    background: rgba(197, 99, 31, 0.18);
+    color: var(--orange, #c5631f);
+  }
+  .boarding-panel span.bus-availability-badge {
+    font-size: 11px;
+    color: inherit;
+  }
+
   .boarding-panel strong {
     font-size: 14px;
     color: var(--text);
@@ -4818,6 +4842,7 @@
             <div class="boarding-panel-info">
               <span class="boarding-panel-tag">🚌 탑승 시작</span>
               <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaText)}</strong>
+              <span class="bus-availability-badge catchable">탈 수 있음</span>
               <span>이 버스에 탑승하면 알려드릴게요</span>
             </div>
             <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
@@ -4831,6 +4856,7 @@
           <div class="boarding-panel-info">
             <span class="boarding-panel-tag">🚌 빨리 도착했나요?</span>
             <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaTextUncatchable)}</strong>
+            <span class="bus-availability-badge uncatchable">타기 어려움</span>
             <span>예상보다 빨리 도착했다면 이 버스를 선택하세요</span>
           </div>
           <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
