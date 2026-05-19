@@ -1,0 +1,19 @@
+{
+  "key": "8035ce1dda0b64ed5d7ba9a460a9e50c774cc86d",
+  "mapping": {
+    "routeNo": "740",
+    "routeId": "100100537",
+    "stationId": "121000091",
+    "stationSeq": 54,
+    "stationName": "강남역9번출구",
+    "alightingStationId": "112000061",
+    "alightingStationSeq": 79,
+    "alightingStationName": "동교동삼거리연희동방면",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T09:33:49.195Z"
+  },
+  "source": "odsay_direct"
+}
