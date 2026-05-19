@@ -1,0 +1,19 @@
+{
+  "key": "1fd2a7ef4c0419ffe995fdbc43d81d2f12ed355d",
+  "mapping": {
+    "routeNo": "400",
+    "routeId": "100100596",
+    "stationId": "121000012",
+    "stationSeq": 12,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "102000098",
+    "alightingStationSeq": 20,
+    "alightingStationName": "이태원119안전센터",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T09:04:00.783Z"
+  },
+  "source": "odsay_direct"
+}
