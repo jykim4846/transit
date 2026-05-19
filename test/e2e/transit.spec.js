@@ -189,7 +189,7 @@ test("shows live-map reconnect control after repeated bus polling failures", asy
   await expect(page.getByRole("button", { name: "재연결" })).toBeVisible();
 });
 
-test("does not refresh route candidates while a boarded trip is active", async ({ page }) => {
+test("updates only user and boarded bus position while a boarded trip is active", async ({ page }) => {
   await installBrowserStubs(page);
   await page.route("**/api/bus-positions**", async (requestRoute) => {
     await requestRoute.fulfill({
@@ -200,6 +200,7 @@ test("does not refresh route candidates while a boarded trip is active", async (
   });
 
   let routeRefreshesAfterBoarding = 0;
+  let busPositionPolls = 0;
   await page.goto("/");
   await page.route("**/api/routes?**", async (requestRoute) => {
     routeRefreshesAfterBoarding += 1;
@@ -209,17 +210,32 @@ test("does not refresh route candidates while a boarded trip is active", async (
       body: JSON.stringify(route.lastResult)
     });
   });
+  await page.unroute("**/api/bus-positions**");
+  await page.route("**/api/bus-positions**", async (requestRoute) => {
+    busPositionPolls += 1;
+    await requestRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ preview: route.lastResult.candidates[0].busApproachPreview })
+    });
+  });
 
   await page.getByRole("button", { name: "이 버스 탑승" }).click();
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
   await page.getByRole("button", { name: "이동 트래킹 토글" }).click();
+  await page.getByRole("button", { name: "현재 위치로 재검색" }).click();
+  await expect(page.locator("#toast")).toContainText("탑승 중에는 내 위치와 탑승 버스 위치만 갱신해요");
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
     document.dispatchEvent(new Event("visibilitychange"));
+  });
+  const pollsWhenHidden = busPositionPolls;
+  await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
     document.dispatchEvent(new Event("visibilitychange"));
   });
 
   await expect.poll(() => routeRefreshesAfterBoarding).toBe(0);
+  await expect.poll(() => busPositionPolls).toBeGreaterThan(pollsWhenHidden);
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
 });

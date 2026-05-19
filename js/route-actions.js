@@ -121,8 +121,11 @@ export async function refreshRouteWithOptions(routeId, options = {}) {
   const route = state.routes.find((item) => item.id === routeId);
   if (!route || state.loadingRouteIds.has(routeId)) return;
   const silent = Boolean(options.silent);
-  if (silent && state.boardedTrip?.routeId === routeId) {
-    recordTelemetry("route_refresh_skipped", { reason: "boarding_active" });
+  if (state.boardedTrip?.routeId === routeId) {
+    recordTelemetry("route_refresh_skipped", { reason: silent ? "boarding_active_silent" : "boarding_active_manual" });
+    if (!silent) {
+      showToast("탑승 중에는 내 위치와 탑승 버스 위치만 갱신해요");
+    }
     return;
   }
 

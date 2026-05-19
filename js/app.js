@@ -1,6 +1,6 @@
 import { escapeHtml } from "./util.js";
 import { state } from "./state.js";
-import { configureLiveMapRuntime, initLiveTransitMaps, retryLiveMap, stopUserLocationWatch, teardownLiveMaps, startUserLocationWatch } from "./live-map.js";
+import { configureLiveMapRuntime, initLiveTransitMaps, pauseLiveMapPolling, resumeLiveMapPolling, retryLiveMap, stopUserLocationWatch, teardownLiveMaps, startUserLocationWatch } from "./live-map.js";
 import { renderEmptyCard, renderRouteCard } from "./route-card.js";
 import {
   configureLocationUi,
@@ -228,11 +228,13 @@ function bindStaticEvents() {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       stopUserLocationWatch();
+      pauseLiveMapPolling();
       return;
     }
     if (state.trackingActive) {
       startUserLocationWatch({ requestIfPrompt: false });
     }
+    resumeLiveMapPolling();
     updatePermissionNotice();
   });
 }

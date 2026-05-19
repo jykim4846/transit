@@ -597,6 +597,18 @@ function stopBusPolling(routeId) {
   if (entry) entry.pollStopped = true;
 }
 
+export function pauseLiveMapPolling() {
+  Object.keys(state.liveMaps).forEach(stopBusPolling);
+}
+
+export function resumeLiveMapPolling() {
+  Object.keys(state.liveMaps).forEach((routeId) => {
+    const route = state.routes.find((item) => item.id === routeId);
+    const candidate = route ? getSelectedCandidate(route) : null;
+    startBusPolling(routeId, candidate);
+  });
+}
+
 export function retryLiveMap(routeId) {
   const route = state.routes.find((item) => item.id === routeId);
   const candidate = route ? getSelectedCandidate(route) : null;

@@ -36,8 +36,11 @@ export async function toggleTracking() {
   setTrackingButton(true);
   await startUserLocationWatch({ requestIfPrompt: true });
   showToast("이동 트래킹을 시작합니다");
-  triggerActiveRefresh({ silent: true });
+  if (!state.boardedTrip) {
+    triggerActiveRefresh({ silent: true });
+  }
   state.trackingTimer = setInterval(() => {
+    if (state.boardedTrip) return;
     triggerActiveRefresh({ silent: true });
   }, 60000);
 }
