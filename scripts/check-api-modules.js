@@ -7,6 +7,7 @@
   "../api/bus-positions",
   "../api/index/status",
   "../api/index/collect",
+  "../api/telemetry",
   "../api/config"
 ].forEach((modulePath) => require(modulePath));
 

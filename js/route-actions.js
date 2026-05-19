@@ -5,6 +5,7 @@ import { fetchJson, searchStations, fetchRouteRecommendationDirect, tagRoutePick
 import { clearLiveMapTimer } from "./live-map.js";
 import { canRequestGeolocation } from "./location-permission.js";
 import { clearLocationPreview, updateLocationPreview, updateMapPickButtons, closeMapPicker } from "./location-ui.js";
+import { recordTelemetry } from "./telemetry.js";
 
 let renderRoutes = () => {};
 let showToast = () => {};
@@ -43,6 +44,7 @@ export function startBoarding(routeId, candidate, vehicleKey) {
     etaMinutes: target.etaMinutes
   };
   persistBoardedTrip();
+  recordTelemetry("boarding_start", { source: "route_card" });
   showToast(`${candidate.routeNo || "버스"} 탑승을 시작합니다`);
   renderRoutes();
 }
@@ -52,6 +54,7 @@ export function endBoarding(reason = "manual") {
   const name = state.boardedTrip.alightingName;
   state.boardedTrip = null;
   persistBoardedTrip();
+  recordTelemetry("boarding_end", { reason });
   if (reason === "alighting") {
     showToast(name ? `${name} 도착! 하차 준비하세요` : "하차 정류장에 도착했어요");
   } else if (reason === "manual") {
@@ -118,6 +121,10 @@ export async function refreshRouteWithOptions(routeId, options = {}) {
   const route = state.routes.find((item) => item.id === routeId);
   if (!route || state.loadingRouteIds.has(routeId)) return;
   const silent = Boolean(options.silent);
+  if (silent && state.boardedTrip?.routeId === routeId) {
+    recordTelemetry("route_refresh_skipped", { reason: "boarding_active" });
+    return;
+  }
 
   state.loadingRouteIds.add(routeId);
   const loadingCard = document.querySelector(`.route-card[data-route-id="${CSS.escape(routeId)}"]`);
@@ -149,10 +156,15 @@ export async function refreshRouteWithOptions(routeId, options = {}) {
 
     state.routes = state.routes.map((item) => item.id === routeId ? nextRoute : item);
     persistRoutes();
+    recordTelemetry("route_refresh_success", { source: silent ? "silent" : "manual" });
     if (!silent) {
       showToast("추천을 새로 갱신했습니다");
     }
   } catch (error) {
+    recordTelemetry("route_refresh_failure", {
+      source: silent ? "silent" : "manual",
+      reason: error?.name || "error"
+    });
     if (!silent) {
       showToast(error.message || "추천 갱신에 실패했습니다");
     }

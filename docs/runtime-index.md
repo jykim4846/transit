@@ -38,3 +38,6 @@ message keeps the `Update runtime index:` prefix.
   - `STATIONS_RATE_LIMIT_PER_MINUTE`
   - `BUS_POSITIONS_RATE_LIMIT_PER_MINUTE`
 - Set `APP_BASE_URL` in production to reject cross-origin browser calls.
+- `api/telemetry.js` accepts privacy-minimal client events and emits structured
+  `transit_telemetry` log lines. `GET /api/telemetry` is admin-only and returns
+  the current server instance's in-memory aggregate snapshot.

@@ -72,6 +72,23 @@ async function installBrowserStubs(page, routes = [route]) {
     localStorage.setItem("transit-routes-v2", JSON.stringify(seedRoutes));
     localStorage.setItem("transit-kakao-map-key", "e2e-map-key");
     window.__TRANSIT_E2E_FAST_POLL = true;
+    Object.defineProperty(navigator, "geolocation", {
+      configurable: true,
+      value: {
+        getCurrentPosition: (success) => success({ coords: { latitude: 37.4979, longitude: 127.0276 } }),
+        watchPosition: (success) => {
+          success({ coords: { latitude: 37.4979, longitude: 127.0276 } });
+          return 1;
+        },
+        clearWatch: () => {}
+      }
+    });
+    Object.defineProperty(navigator, "permissions", {
+      configurable: true,
+      value: {
+        query: async () => ({ state: "prompt", onchange: null })
+      }
+    });
     class LatLng {
       constructor(lat, lng) {
         this.lat = lat;
@@ -170,4 +187,39 @@ test("shows live-map reconnect control after repeated bus polling failures", asy
   await expect.poll(async () => page.evaluate(() => window.__TRANSIT_E2E_POLL_FAILURES || 0)).toBeGreaterThanOrEqual(1);
   await expect(page.locator("[data-live-map-status]")).toContainText("실시간 위치 연결이 불안정해요");
   await expect(page.getByRole("button", { name: "재연결" })).toBeVisible();
+});
+
+test("does not refresh route candidates while a boarded trip is active", async ({ page }) => {
+  await installBrowserStubs(page);
+  await page.route("**/api/bus-positions**", async (requestRoute) => {
+    await requestRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ preview: route.lastResult.candidates[0].busApproachPreview })
+    });
+  });
+
+  let routeRefreshesAfterBoarding = 0;
+  await page.goto("/");
+  await page.route("**/api/routes?**", async (requestRoute) => {
+    routeRefreshesAfterBoarding += 1;
+    await requestRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(route.lastResult)
+    });
+  });
+
+  await page.getByRole("button", { name: "이 버스 탑승" }).click();
+  await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
+  await page.getByRole("button", { name: "이동 트래킹 토글" }).click();
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+
+  await expect.poll(() => routeRefreshesAfterBoarding).toBe(0);
+  await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
 });

@@ -3,6 +3,7 @@ import { state, persistBoardedTrip } from "./state.js";
 import { loadKakaoMaps } from "./live-map-keys.js";
 import { canRequestGeolocation } from "./location-permission.js";
 import { inferSegmentType, updateBoardingPanelDOM } from "./render.js";
+import { recordTelemetry } from "./telemetry.js";
 
 const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
 const BUS_POLL_BASE_DELAY_MS = 20000;
@@ -553,12 +554,14 @@ function startBusPolling(routeId, candidate, options = {}) {
     if (!current) return;
     current.pollFailures = (current.pollFailures || 0) + 1;
     if (isE2EFastPoll()) window.__TRANSIT_E2E_POLL_FAILURES = current.pollFailures;
+    recordTelemetry("bus_poll_failure", { count: current.pollFailures });
     const failureThreshold = isE2EFastPoll() ? 1 : 3;
     if (current.pollFailures >= failureThreshold) {
       const last = current.lastPollSuccessAt
         ? `마지막 연결 ${new Date(current.lastPollSuccessAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`
         : "최근 위치 유지 중";
       setLiveMapStatus(current, `실시간 위치 연결이 불안정해요 · ${last}`, { retryRouteId: routeId });
+      recordTelemetry("live_map_unstable", { count: current.pollFailures }, { onceKey: routeId });
     }
   };
   const poll = async () => {
@@ -573,6 +576,7 @@ function startBusPolling(routeId, candidate, options = {}) {
       const data = await response.json();
       entry.pollFailures = 0;
       entry.lastPollSuccessAt = Date.now();
+      recordTelemetry("bus_poll_success", { status: response.status });
       setLiveMapStatus(entry, "");
       updateLiveVehicles(routeId, data?.preview);
     } catch {
@@ -597,6 +601,7 @@ export function retryLiveMap(routeId) {
   const route = state.routes.find((item) => item.id === routeId);
   const candidate = route ? getSelectedCandidate(route) : null;
   const entry = state.liveMaps[routeId];
+  recordTelemetry("live_map_retry", { source: "status_chip" });
   if (entry) setLiveMapStatus(entry, "실시간 위치를 다시 연결하고 있어요");
   startBusPolling(routeId, candidate, { resetFailures: true });
 }

@@ -32,6 +32,7 @@ import { configureRouteNavigation, bindRouteTabs, bindRouteSwipe } from "./route
 import { getCommuteContext, isCommutePinned, getOrderedRoutes } from "./commute.js";
 import { configureRouteSelection, getSelectedCandidate, selectCandidate } from "./route-selection.js";
 import { getGeolocationPermissionState } from "./location-permission.js";
+import { recordTelemetry } from "./telemetry.js";
 
 function updateClock() {
   const now = new Date();
@@ -159,6 +160,7 @@ async function updatePermissionNotice() {
   if (!notice) return;
   const permissionState = await getGeolocationPermissionState();
   const copy = permissionCopy(permissionState || state.locationPermissionState);
+  recordTelemetry("permission_state", { state: permissionState || state.locationPermissionState || "unknown" }, { onceKey: "permission" });
   if (!copy) {
     notice.hidden = true;
     notice.textContent = "";
@@ -250,3 +252,6 @@ renderRoutes();
 maybeInitialAutoRefresh();
 startCountdowns();
 updatePermissionNotice();
+if (state.boardedTrip) {
+  recordTelemetry("boarding_resume", { source: "storage" }, { onceKey: "boarded-trip" });
+}
