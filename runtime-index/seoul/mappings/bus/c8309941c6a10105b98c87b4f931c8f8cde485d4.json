@@ -1,0 +1,18 @@
+{
+  "key": "c8309941c6a10105b98c87b4f931c8f8cde485d4",
+  "mapping": {
+    "routeNo": "7016",
+    "routeId": "100100447",
+    "stationId": "113000421",
+    "stationSeq": 22,
+    "stationName": "동교동삼거리",
+    "alightingStationId": "113000042",
+    "alightingStationSeq": 31,
+    "alightingStationName": "마포역",
+    "confidence": "high",
+    "score": 200,
+    "version": 2,
+    "createdAt": "2026-05-19T00:27:33.839Z"
+  },
+  "source": "runtime_resolve"
+}
