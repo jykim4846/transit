@@ -1,0 +1,19 @@
+{
+  "key": "ef49437cbeeb63a33e951072aafbda30b0b326fa",
+  "mapping": {
+    "routeNo": "7013A",
+    "routeId": "100100449",
+    "stationId": "113000441",
+    "stationSeq": 10,
+    "stationName": "가좌행복주택.건영월드컵아파트",
+    "alightingStationId": "113900093",
+    "alightingStationSeq": 30,
+    "alightingStationName": "마포전철역",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T00:02:28.497Z"
+  },
+  "source": "odsay_direct"
+}
