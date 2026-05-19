@@ -150,6 +150,10 @@ async function writeJsonManyFs(entries) {
 }
 
 async function writeJsonManyGithub(entries) {
+  return writeJsonManyGithubAttempt(entries, 0);
+}
+
+async function writeJsonManyGithubAttempt(entries, attempt) {
   const github = getGithubConfig();
   const refUrl = `https://api.github.com/repos/${normalizeRepoPath(github.repo)}/git/ref/heads/${encodeURIComponent(github.branch)}`;
   const headers = {
@@ -228,6 +232,10 @@ async function writeJsonManyGithub(entries) {
   });
   if (!updateRefResponse.ok) {
     const text = await updateRefResponse.text();
+    if ((updateRefResponse.status === 409 || updateRefResponse.status === 422) && attempt < 2) {
+      await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
+      return writeJsonManyGithubAttempt(entries, attempt + 1);
+    }
     throw new Error(`GitHub ref 업데이트 실패 (${updateRefResponse.status}): ${text}`);
   }
 

@@ -31,13 +31,19 @@ test("rate limiter prunes expired buckets when the cache grows large", () => {
   assert.ok(_test.buckets.has("stations:5.6.7.8"));
 });
 
-test("origin guard is permissive until APP_BASE_URL is configured", () => {
+test("origin guard is permissive in development until APP_BASE_URL is configured", () => {
   const previous = process.env.APP_BASE_URL;
   const previousProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   const previousPreview = process.env.VERCEL_URL;
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousVercel = process.env.VERCEL;
+  const previousAppEnv = process.env.APP_ENV;
   delete process.env.APP_BASE_URL;
   delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
   delete process.env.VERCEL_URL;
+  delete process.env.NODE_ENV;
+  delete process.env.VERCEL;
+  delete process.env.APP_ENV;
 
   assert.equal(isAllowedOrigin(req({ origin: "https://example.com" })), true);
 
@@ -51,4 +57,33 @@ test("origin guard is permissive until APP_BASE_URL is configured", () => {
   else process.env.VERCEL_PROJECT_PRODUCTION_URL = previousProduction;
   if (previousPreview == null) delete process.env.VERCEL_URL;
   else process.env.VERCEL_URL = previousPreview;
+  if (previousNodeEnv == null) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = previousNodeEnv;
+  if (previousVercel == null) delete process.env.VERCEL;
+  else process.env.VERCEL = previousVercel;
+  if (previousAppEnv == null) delete process.env.APP_ENV;
+  else process.env.APP_ENV = previousAppEnv;
+});
+
+test("origin guard fails closed in production when no allowlist is configured", () => {
+  const previous = process.env.APP_BASE_URL;
+  const previousProduction = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const previousPreview = process.env.VERCEL_URL;
+  const previousNodeEnv = process.env.NODE_ENV;
+  delete process.env.APP_BASE_URL;
+  delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  delete process.env.VERCEL_URL;
+  process.env.NODE_ENV = "production";
+
+  assert.equal(isAllowedOrigin(req({ origin: "https://example.com" })), false);
+  assert.equal(isAllowedOrigin(req()), true);
+
+  if (previous == null) delete process.env.APP_BASE_URL;
+  else process.env.APP_BASE_URL = previous;
+  if (previousProduction == null) delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  else process.env.VERCEL_PROJECT_PRODUCTION_URL = previousProduction;
+  if (previousPreview == null) delete process.env.VERCEL_URL;
+  else process.env.VERCEL_URL = previousPreview;
+  if (previousNodeEnv == null) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = previousNodeEnv;
 });

@@ -3,4 +3,5 @@
 .DS_Store
 .env
 .runtime-index/
+.playwright-mcp/
 node_modules/

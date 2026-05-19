@@ -43,6 +43,22 @@ function loadBoardedTrip() {
   return parsed;
 }
 
+function parseJsonStorage(key, fallback) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+}
+
+function loadCollapsedRouteIds() {
+  const parsed = parseJsonStorage(ROUTE_CARD_COLLAPSED_KEY, []);
+  return new Set(Array.isArray(parsed) ? parsed : []);
+}
+
 function migrateAndLoadRoutes() {
   const current = localStorage.getItem(STORAGE_KEY);
   if (current) {
@@ -67,7 +83,7 @@ function migrateAndLoadRoutes() {
 
 export const state = {
   routes: migrateAndLoadRoutes(),
-  collapsedRouteIds: new Set(JSON.parse(localStorage.getItem(ROUTE_CARD_COLLAPSED_KEY) || "[]")),
+  collapsedRouteIds: loadCollapsedRouteIds(),
   loadingRouteIds: new Set(),
   expandedRouteIds: new Set(),
   selectedCandidateIds: {},

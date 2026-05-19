@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { startUserLocationWatch } from "./live-map.js";
+import { startUserLocationWatch, stopUserLocationWatch } from "./live-map.js";
 
 let triggerActiveRefresh = async () => {};
 let showToast = () => {};
@@ -23,6 +23,7 @@ export async function toggleTracking() {
     if (state.trackingTimer) clearInterval(state.trackingTimer);
     state.trackingTimer = null;
     state.trackingActive = false;
+    stopUserLocationWatch();
     setTrackingButton(false);
     showToast("이동 트래킹을 끕니다");
     return;

@@ -256,6 +256,13 @@ export async function startUserLocationWatch(options = {}) {
   return true;
 }
 
+export function stopUserLocationWatch() {
+  if (state.locationWatchId == null || !navigator.geolocation) return false;
+  navigator.geolocation.clearWatch(state.locationWatchId);
+  state.locationWatchId = null;
+  return true;
+}
+
 function overlayContent(html, className = "") {
   const el = document.createElement("div");
   el.className = className;
@@ -485,6 +492,23 @@ function vehiclesForMap(preview, routeId) {
   return vehicles;
 }
 
+function setLiveMapStatus(entry, message) {
+  const container = entry?.container;
+  if (!container) return;
+  let chip = container.querySelector("[data-live-map-status]");
+  if (!message) {
+    chip?.remove();
+    return;
+  }
+  if (!chip) {
+    chip = document.createElement("div");
+    chip.className = "live-map-status-chip";
+    chip.dataset.liveMapStatus = "true";
+    container.appendChild(chip);
+  }
+  chip.textContent = message;
+}
+
 function startBusPolling(routeId, candidate) {
   stopBusPolling(routeId);
   if (!candidate?.busRouteId || !candidate?.boardingStationId) return;
@@ -500,10 +524,19 @@ function startBusPolling(routeId, candidate) {
     if (!entry?.map) return;
     try {
       const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) return;
+      if (!response.ok) {
+        entry.pollFailures = (entry.pollFailures || 0) + 1;
+        if (entry.pollFailures >= 3) setLiveMapStatus(entry, "실시간 위치 연결이 불안정해요");
+        return;
+      }
       const data = await response.json();
+      entry.pollFailures = 0;
+      setLiveMapStatus(entry, "");
       updateLiveVehicles(routeId, data?.preview);
-    } catch {}
+    } catch {
+      entry.pollFailures = (entry.pollFailures || 0) + 1;
+      if (entry.pollFailures >= 3) setLiveMapStatus(entry, "실시간 위치 연결이 불안정해요");
+    }
   };
   state.liveMaps[routeId].pollTimer = setInterval(poll, 20000);
   poll();

@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test"
+    "check:js": "node scripts/check-js-modules.js",
+    "check:api": "node scripts/check-api-modules.js",
+    "test": "node --test",
+    "verify": "npm run check:js && npm run check:api && npm test"
   },
   "repository": {
     "type": "git",

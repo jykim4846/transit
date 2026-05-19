@@ -24,8 +24,14 @@ function isAllowedOrigin(req) {
   if (!origin) return true;
 
   const allowed = allowedOrigins();
-  if (!allowed.length) return true;
+  if (!allowed.length) return !isProductionRuntime();
   return allowed.includes(origin);
+}
+
+function isProductionRuntime() {
+  return process.env.NODE_ENV === "production"
+    || Boolean(process.env.VERCEL)
+    || process.env.APP_ENV === "production";
 }
 
 function checkRateLimit(req, options = {}) {
@@ -85,6 +91,7 @@ module.exports = {
   _test: {
     buckets,
     allowedOrigins,
-    cleanupExpiredBuckets
+    cleanupExpiredBuckets,
+    isProductionRuntime
   }
 };
