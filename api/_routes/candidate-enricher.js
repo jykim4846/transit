@@ -72,7 +72,13 @@ async function maybeEnrichBusCandidate(candidate, fromX, fromY, toX, toY) {
       fallbackPlan,
       note: candidate.transferRiskText ? `${baseNote} ${candidate.transferRiskText}` : baseNote
     };
-  } catch {
+  } catch (error) {
+    console.warn("[routes] bus candidate enrichment failed:", {
+      routeNo: candidate.routeNo,
+      boardingStopName: candidate.boardingStopName,
+      alightingStopName: candidate.alightingStopName,
+      error: error.message || String(error)
+    });
     return candidate;
   }
 }

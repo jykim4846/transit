@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { readJson, updateJson, writeJson, getDriverName } = require("./_index-store");
+const { readJson, updateJson, writeJson, writeJsonMany, getDriverName } = require("./_index-store");
 const { searchRoutesByNumber, getStopsByRoute, getArrivalByRoute, getBusPositionsByRoute, downloadRouteWorkbookRows, getWorkbookRowsIfCached } = require("./_seoul-bus");
 const { distanceMeters } = require("./_geo");
 
@@ -319,6 +319,7 @@ async function collectRouteIndex(limit = 6) {
   const batch = queue.splice(0, limit);
   const processed = [];
   const failed = [];
+  const writes = [];
 
   let workbookRows = null;
   if (batch.length) {
@@ -360,20 +361,26 @@ async function collectRouteIndex(limit = 6) {
           }])
       ).values()];
 
-      await writeJson(routeListPath(routeNo), {
-        routeNo,
-        collectedAt: new Date().toISOString(),
-        routes
+      writes.push({
+        filePath: routeListPath(routeNo),
+        value: {
+          routeNo,
+          collectedAt: new Date().toISOString(),
+          routes
+        }
       });
       for (const route of routes) {
         const stops = workbookRows
           .filter((row) => String(row.routeId) === String(route.routeId))
           .sort((a, b) => a.seq - b.seq);
-        await writeJson(routeStopsPath(route.routeId), {
-          routeId: route.routeId,
-          routeNo: route.routeNo,
-          collectedAt: new Date().toISOString(),
-          stops
+        writes.push({
+          filePath: routeStopsPath(route.routeId),
+          value: {
+            routeId: route.routeId,
+            routeNo: route.routeNo,
+            collectedAt: new Date().toISOString(),
+            stops
+          }
         });
       }
       processed.push(routeNo);
@@ -398,7 +405,7 @@ async function collectRouteIndex(limit = 6) {
     lastSource: "collector"
   };
 
-  await writeJson(STATE_PATH, nextState);
+  await writeJsonMany([...writes, { filePath: STATE_PATH, value: nextState }]);
   return {
     driver: getDriverName(),
     processed,
@@ -524,6 +531,21 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
 
   const boardingSeq = Number(mapping.stationSeq);
   const alightingSeq = Number(mapping.alightingStationSeq);
+  const riding = (Number.isFinite(alightingSeq) && alightingSeq > boardingSeq)
+    ? vehicles
+        .map((vehicle) => {
+          const progressSeq = getVehicleProgressSeq(vehicle, stopSeqByStationId);
+          if (!Number.isFinite(progressSeq)) return null;
+          if (progressSeq < boardingSeq || progressSeq > alightingSeq) return null;
+          return {
+            ...vehicle,
+            progressSeq,
+            remainingSeq: alightingSeq - progressSeq
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.remainingSeq - b.remainingSeq)
+    : [];
   const ridingStops = (Number.isFinite(alightingSeq) && alightingSeq > boardingSeq)
     ? stops
         .filter((stop) => stop.seq >= boardingSeq && stop.seq <= alightingSeq)
@@ -576,6 +598,23 @@ async function getBusApproachPreview(mapping, stopWindow = 10) {
         gpsLat: Number.isFinite(lat) ? lat : null,
         gpsLng: Number.isFinite(lng) ? lng : null,
         dataTime: vehicle.dataTime || null
+      };
+    }),
+    ridingVehicles: riding.map((vehicle) => {
+      const lat = Number(vehicle.gpsY);
+      const lng = Number(vehicle.gpsX);
+      return {
+        key: vehicle.vehicleId,
+        label: "탑승 중",
+        plateNoMasked: maskPlateNo(vehicle.plateNo),
+        remainingStops: Math.max(0, Math.ceil(vehicle.remainingSeq)),
+        nextStopName: stops.find((stop) => String(stop.stationId) === String(vehicle.nextStationId))?.name || "",
+        progressSeq: vehicle.progressSeq,
+        gpsLat: Number.isFinite(lat) ? lat : null,
+        gpsLng: Number.isFinite(lng) ? lng : null,
+        dataTime: vehicle.dataTime || null,
+        catchable: true,
+        riding: true
       };
     })
   };
@@ -646,5 +685,12 @@ module.exports = {
   getBusApproachPreview,
   decorateVehiclesWithArrival,
   getLiveBusPreview,
-  normalizeRouteNo
+  normalizeRouteNo,
+  _test: {
+    normalizeNameKey,
+    routeListPath,
+    routeStopsPath,
+    mappingKey,
+    decorateVehiclesWithArrival
+  }
 };

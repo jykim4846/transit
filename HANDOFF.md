@@ -2,6 +2,8 @@
 
 > 이전 어시스턴트(Claude)가 2026-05-18~19 세션에서 진행한 작업과 사용자와 논의한 내용 정리. GPT가 이어받아 작업할 수 있게 컨텍스트, 변경 이력, 남은 과제를 한 곳에.
 
+> 2026-05-19 GPT continuation: 아래 원문 중 "P0: SPA 모듈화 마무리"와 "P1: GitHub Contents API → Git Trees API 배치 커밋"은 완료됨. 현재 프론트엔드는 `transit-app.html`의 단일 ESM entrypoint(`js/app.js`)와 domain modules(`js/*.js`)로 동작하며, 런타임 인덱스는 GitHub Git Data API batch commit을 사용한다. 최신 구조는 `docs/frontend-architecture.md`와 `docs/runtime-index.md`를 기준으로 볼 것.
+
 ---
 
 ## 1. 프로젝트 한눈에
@@ -69,7 +71,7 @@
      - `overview.js` (35), `direct-bus-eta.js` (31), `path-type.js` (42) — 분기별 핸들러
    - 라이브 스모크 테스트 통과: 3개 분기 모두 동일 `recommendedId`/`scoreValue` 반환
 
-### SPA 모듈화 5단계 — Phase 5 (5a~5f-keys 완료, **5f-rest, 5g 미완**)
+### SPA 모듈화 5단계 — Phase 5 (이력: 5a~5f-keys, 이후 GPT continuation에서 전체 완료)
 6. **`3f819a6` Extract pure helpers into js/util.js as the first ESM module**
    - `<script>` → `<script type="module">`
    - `js/util.js`: `uid`, `nowStamp`, `escapeHtml`, `formatTime`, `relativeTime`, `minuteNumber`, `formatClock`, `formatCountdown`
@@ -82,11 +84,11 @@
 9. **`2043200` Extract network layer into js/api.js`**
    - `fetchJson`(Phase 2 AbortController 유지), `fetchOdsayDirect`, `searchStations`(Phase 2 seq race guard 유지), `normalizeSegments`, `fetchRouteRecommendationDirect`
    - ODSAY browser key 보조: `getBrowserOdsayKey`/`setBrowserOdsayKey`
-   - 내부 helpers 9개도 동행(일부는 인라인에도 일시 중복 — 5f에서 정리 예정)
+   - 내부 helpers 9개도 동행(당시 일부 인라인 중복이 있었으나 이후 모듈화 완료)
 10. **`f1253d3` Extract pure HTML renderers into js/render.js`**
     - `describeRecommendation`, `iconSvg`, candidate-tone 헬퍼들, fast-flow 헬퍼, segment 헬퍼, `renderJourneyFlow`/`renderSegments`/`renderFastFlow`/`renderFastCandidate`/`renderCandidate`/`renderBusApproachPreview`/`updateBoardingPanelDOM`
     - `tagRoutePicks` canonical은 `api.js`(`export` 키워드 추가), `render.js`는 import
-    - **`renderRoutes`, `renderRouteCard`, `renderRouteTabs`는 의도적으로 인라인 유지** — `teardownLiveMaps`/`initLiveTransitMaps`/state-mutating ordering helpers와 얽혀서 5f에서 함께 처리해야 안전
+   - 당시 `renderRoutes`, `renderRouteCard`, `renderRouteTabs`는 안전상 HTML 안에 남겼음. 이후 `route-card.js`와 `app.js` orchestration으로 분리 완료
 11. **`f259319` Extract Kakao Maps SDK loader into js/live-map-keys.js`**
     - `setKakaoMapKey`/`getKakaoMapKey`/`resolveKakaoMapKey`/`loadKakaoMaps` 4개만 추출 (격리도 높음)
     - `resolveKakaoMapKey`는 native `fetch("/api/config")` 직접 호출 — `api.js` 의존 없음
@@ -146,8 +148,16 @@ transit-app/
 │   ├── state.js                  # state 싱귤레톤 + boardedTrip persistence
 │   ├── api.js                    # 네트워크 레이어
 │   ├── render.js                 # 순수 HTML 렌더러
-│   └── live-map-keys.js          # Kakao SDK 로더
-├── transit-app.html              # 7062 → 5831줄 (인라인 script type=module)
+│   ├── live-map-keys.js          # Kakao SDK 로더
+│   ├── live-map.js               # Kakao 라이브 맵 런타임
+│   ├── location-ui.js            # Leaflet/자동완성/지도 선택
+│   ├── route-actions.js          # 루트 저장/삭제/새로고침/탑승
+│   ├── route-card.js             # 루트 카드 렌더러
+│   ├── route-navigation.js       # 탭/스와이프 내비게이션
+│   ├── route-selection.js        # 후보 선택
+│   ├── commute.js                # 출퇴근 pinned ordering
+│   └── app.js                    # ESM entrypoint + 앱 조립
+├── transit-app.html              # 정적 shell + <script type="module" src="./js/app.js">
 ├── dev-server.js                 # 로컬 Vercel 어댑터
 ├── runtime-index/                # GitHub-backed JSON 캐시
 ├── vercel.json                   # cron + 빌드 스킵 규칙
@@ -164,10 +174,10 @@ transit-app/
 
 ---
 
-## 5. 다음에 해야 할 작업 — 우선순위 순
+## 5. 완료된 후속 작업 — 이전 우선순위 기준
 
-### 🔴 P0: SPA 모듈화 마무리 (Phase 5f-rest, 5g)
-`transit-app.html` 5831줄이 아직 monolithic. 남은 인라인 코드:
+### ✅ P0: SPA 모듈화 마무리 (Phase 5f-rest, 5g)
+완료됨. `transit-app.html`의 인라인 앱 로직은 제거됐고, 런타임은 `js/app.js` entrypoint와 domain modules로 분리됨. 과거 남은 인라인 코드 목록:
 - **Kakao 라이브 맵 런타임** (~25개 함수, ~1000줄)
   - 좌표 수학: `toPathPoint`, `dedupePathPoints`, `interpolatePoint`, `pointAtSeq`, `toLatLngPoint`, `easeInOutCubic`
   - 버스 세그먼트: `getFirstBusSegment`, `getBoardingSeq`, `getBoardingStopPoint`, `getApproachStopPoints`, `getRealtimeBusPoints`
@@ -176,7 +186,7 @@ transit-app/
   - 위치 watch: `startUserLocationWatch`
 - **렌더링 + 이벤트 와이어링** (renderRoutes/renderRouteCard/renderRouteTabs/bindStaticEvents/bindRouteTabs/bindRouteSwipe/init)
 
-**권장 분할**:
+**적용된 분할**:
 - `js/live-map.js` — 위 Kakao 런타임 + 위치 watch
 - `js/app.js` — init + DOM 이벤트 바인딩 + 모달 + 자동완성
 - 그러면 `transit-app.html`의 인라인 `<script>`가 `<script type="module" src="./js/app.js"></script>` 한 줄로 끝남
@@ -186,16 +196,15 @@ transit-app/
 - 실제 라이브 맵 렌더링까지 검증하려면 Playwright로 (1) 루트 추가 (2) 새로고침해서 활성 루트의 맵이 뜨는지 확인 필요. 빈 상태에서는 라이브 맵 코드 경로가 안 타짐
 - 한 번에 다 빼지 말고 sub-phase로(예: `live-map-math.js` 좌표 헬퍼 먼저 → `live-map.js` 런타임)
 
-### 🟡 P1: 아키텍처 개선(원래 audit 결과)
-- **GitHub Contents API → Git Trees API 배치 커밋**: 현재 cron 1회에 100+ 커밋. Git Trees API로 1 commit/run으로 축소(`_index-store.js:103-145` rewrite)
-- **CORS Origin 화이트리스트**: `/api/*` 모두 무방비. Vercel `headers` 또는 핸들러 레벨에서 `APP_BASE_URL`만 허용
-- **Vercel Edge Middleware로 IP 토큰버킷**: `/api/routes`, `/api/stations`, `/api/bus-positions`에 30/분 정도. ODSAY 유료 쿼터 보호
-- `routes.js` 옵저버빌리티: `maybeEnrichBusCandidate`의 `catch {}` (현 `api/_routes/candidate-enricher.js` 어딘가) — 실패 카운터 또는 로그
+### ✅ P1: 아키텍처 개선(원래 audit 결과)
+- **GitHub Contents API → Git Trees API 배치 커밋**: 완료. `_index-store.js`가 `writeJsonMany`로 tree/commit/ref 업데이트를 묶어 처리.
+- **CORS Origin 화이트리스트**: 완료. `APP_BASE_URL`/Vercel URL 기반 origin guard를 public API에 적용.
+- **IP 토큰버킷**: 완료. `/api/routes`, `/api/stations`, `/api/bus-positions`에 in-memory rate limit 적용.
+- `routes.js` 옵저버빌리티: 완료. candidate enrich 실패를 `console.warn`으로 남김.
 
-### 🟢 P2: 코드 정리
-- `tagRoutePicks`/`toPathPoint`/`dedupePathPoints` 중복: api.js와 인라인에 둘 다 있음 — 5f에서 흡수
-- `state.lastCommutePhase` write-only(어디서도 read 안 됨)
-- `state.autocompleteSelection.from` 잔재 — 출발지가 항상 현 위치라 미사용
+### ✅ P2: 코드 정리
+- 인라인 앱 로직 제거로 `tagRoutePicks`/`toPathPoint`/`dedupePathPoints` 중복을 정리.
+- `state.autocompleteSelection.from` 제거.
 
 ---
 
@@ -203,7 +212,7 @@ transit-app/
 
 ### 캐시 3계층
 - **read**: `memCache`(5min TTL, max 200, per-instance) → GitHub Contents API(토큰 있을 때) → 로컬 FS(`.runtime-index/`) → null
-- **write**: driver write → memCache set. GitHub은 GET sha → PUT
+- **write**: driver write → memCache set. GitHub 단건은 Contents API, 배치 컬렉터는 Git Data API tree/commit/ref 업데이트
 - **invalidation**: 시간 only (5min mem, 30s realtime, 10min XLSX workbook). 명시 purge 없음. 매핑이 영구 stale될 가능성 있지만 실제로는 거의 변화 없음
 
 ### 자가 치유 인덱스
@@ -259,7 +268,7 @@ transit-app/
 - `dev-server.js`는 require 캐시 모듈별로 hot-reload하지만 `js/*.js`는 정적 파일 서빙 → 변경 시 브라우저 새로고침 필요
 - `state.js`가 모듈 init 시점에 `localStorage`를 읽음 → SSR 환경에선 깨짐 (현재 SSR 안 함, 영향 없음)
 - `boardedTrip` TTL 3h는 출퇴근 1회분 기준. 장거리 통근/지방 출장에서는 부족할 수 있음 — 사용자 패턴 보고 조정
-- 매 cron 실행이 GitHub Contents API 호출 폭증 — 5,000 req/h 한도 근접 가능. Git Trees API 마이그레이션이 P1
+- 매 cron 실행은 Git Data API 배치 커밋을 사용한다. 단건 request-time 캐시 write는 여전히 Contents API 경로를 사용한다
 - `priority=overview` 분기에서 `enqueueRouteNos` 호출이 routes 안에 있어서 ODSAY 매번 쓰는 priority(`fastest`/`fewest_transfers`/`best_eta` 별도 path-type)와 패턴 다름 — 변경 시 분기별로 검증 필요
 
 ---
@@ -268,8 +277,8 @@ transit-app/
 
 1. 보안/정확성 CRITICAL은 다 막았고 push 됐다 (`origin/main` HEAD = `c96968b`).
 2. 사용자가 두 번 보고한 UX 버그(빨리 도착해서 잡은 버스/탑승 상태 손실)도 해결.
-3. 코드 구조: routes.js 1031줄 분할 완료, SPA는 7062→5831줄로 6개 ESM 모듈 추출 — **라이브 맵과 init 로직만 인라인 남음**(P0).
+3. 코드 구조: routes.js 1031줄 분할 완료, SPA 앱 로직은 `js/app.js`와 `js/*.js` domain modules로 분리 완료.
 4. 사용자 액션 필요: `INDEX_ADMIN_KEY` 로테이션(필수). ODSAY/Kakao 키 점검(권장).
-5. 다음 작업 1순위: `js/live-map.js` + `js/app.js` 분리해서 인라인 `<script>` 비우기. 위험 큼 — sub-phase로 쪼개고 Playwright 실제 라이브 맵 렌더링까지 확인.
+5. 다음 작업은 새 기능/실사용 QA 기준으로 정하면 된다. 기존 P0/P1 구조 개선 항목은 완료됨.
 
 Good luck. 🚌

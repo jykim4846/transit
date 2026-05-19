@@ -144,6 +144,96 @@ async function writeJsonGithub(filePath, value) {
   return value;
 }
 
+async function writeJsonManyFs(entries) {
+  await Promise.all(entries.map(({ filePath, value }) => writeJsonFs(filePath, value)));
+  return entries.map((entry) => entry.value);
+}
+
+async function writeJsonManyGithub(entries) {
+  const github = getGithubConfig();
+  const refUrl = `https://api.github.com/repos/${normalizeRepoPath(github.repo)}/git/ref/heads/${encodeURIComponent(github.branch)}`;
+  const headers = {
+    Accept: "application/vnd.github+json",
+    Authorization: `Bearer ${github.token}`,
+    "User-Agent": "transit-app-index/1.0",
+    "Content-Type": "application/json"
+  };
+
+  const refResponse = await fetch(refUrl, { headers, cache: "no-store" });
+  if (!refResponse.ok) {
+    throw new Error(`GitHub ref 읽기 실패 (${refResponse.status})`);
+  }
+  const ref = await refResponse.json();
+  const parentSha = ref.object?.sha;
+  if (!parentSha) {
+    throw new Error("GitHub ref 응답에 parent sha가 없습니다");
+  }
+
+  const commitResponse = await fetch(`https://api.github.com/repos/${normalizeRepoPath(github.repo)}/git/commits/${parentSha}`, {
+    headers,
+    cache: "no-store"
+  });
+  if (!commitResponse.ok) {
+    throw new Error(`GitHub commit 읽기 실패 (${commitResponse.status})`);
+  }
+  const parentCommit = await commitResponse.json();
+  const baseTreeSha = parentCommit.tree?.sha;
+  if (!baseTreeSha) {
+    throw new Error("GitHub commit 응답에 tree sha가 없습니다");
+  }
+
+  const tree = entries.map(({ filePath, value }) => ({
+    path: withPrefix(filePath),
+    mode: "100644",
+    type: "blob",
+    content: JSON.stringify(value, null, 2)
+  }));
+
+  const treeResponse = await fetch(`https://api.github.com/repos/${normalizeRepoPath(github.repo)}/git/trees`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree
+    })
+  });
+  if (!treeResponse.ok) {
+    const text = await treeResponse.text();
+    throw new Error(`GitHub tree 생성 실패 (${treeResponse.status}): ${text}`);
+  }
+  const nextTree = await treeResponse.json();
+
+  const commitCreateResponse = await fetch(`https://api.github.com/repos/${normalizeRepoPath(github.repo)}/git/commits`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      message: `Update runtime index: batch ${entries.length} files`,
+      tree: nextTree.sha,
+      parents: [parentSha]
+    })
+  });
+  if (!commitCreateResponse.ok) {
+    const text = await commitCreateResponse.text();
+    throw new Error(`GitHub batch commit 생성 실패 (${commitCreateResponse.status}): ${text}`);
+  }
+  const nextCommit = await commitCreateResponse.json();
+
+  const updateRefResponse = await fetch(refUrl, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      sha: nextCommit.sha,
+      force: false
+    })
+  });
+  if (!updateRefResponse.ok) {
+    const text = await updateRefResponse.text();
+    throw new Error(`GitHub ref 업데이트 실패 (${updateRefResponse.status}): ${text}`);
+  }
+
+  return entries.map((entry) => entry.value);
+}
+
 async function readJson(filePath, fallback = null) {
   const mem = memCacheGet(filePath);
   if (mem !== undefined) return mem;
@@ -162,6 +252,19 @@ async function writeJson(filePath, value) {
     : await writeJsonFs(filePath, value);
   memCacheSet(filePath, result);
   return result;
+}
+
+async function writeJsonMany(entries) {
+  const normalized = entries
+    .filter((entry) => entry && entry.filePath)
+    .map((entry) => ({ filePath: entry.filePath, value: entry.value }));
+  if (!normalized.length) return [];
+
+  const results = getGithubConfig()
+    ? await writeJsonManyGithub(normalized)
+    : await writeJsonManyFs(normalized);
+  normalized.forEach(({ filePath, value }) => memCacheSet(filePath, value));
+  return results;
 }
 
 async function updateJson(filePath, fallbackValue, updater) {
@@ -191,6 +294,7 @@ module.exports = {
   getDriverName,
   readJson,
   writeJson,
+  writeJsonMany,
   updateJson,
   inflightCache
 };

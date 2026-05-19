@@ -1,4 +1,5 @@
 const { fetchOdsay, sendJson } = require("./_odsay");
+const { guardPublicApi } = require("./_public-api-guard");
 const PLACE_SEARCH_URL = "https://nominatim.openstreetmap.org/search";
 
 function roundedKey(x, y) {
@@ -60,6 +61,13 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Method Not Allowed" });
   }
+
+  const blocked = guardPublicApi(req, res, sendJson, {
+    scope: "stations",
+    limit: Number(process.env.STATIONS_RATE_LIMIT_PER_MINUTE || 60),
+    windowMs: 60 * 1000
+  });
+  if (blocked) return blocked;
 
   const q = String(req.query.q || "").trim();
   if (q.length < 2) {

@@ -1,4 +1,5 @@
 const { sendJson } = require("./_odsay");
+const { guardPublicApi } = require("./_public-api-guard");
 const { toNumber } = require("./_routes/_common");
 const { handleOverview } = require("./_routes/overview");
 const { handleDirectBusEta } = require("./_routes/direct-bus-eta");
@@ -8,6 +9,13 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Method Not Allowed" });
   }
+
+  const blocked = guardPublicApi(req, res, sendJson, {
+    scope: "routes",
+    limit: Number(process.env.ROUTES_RATE_LIMIT_PER_MINUTE || 30),
+    windowMs: 60 * 1000
+  });
+  if (blocked) return blocked;
 
   const fromX = toNumber(req.query.fromX);
   const fromY = toNumber(req.query.fromY);

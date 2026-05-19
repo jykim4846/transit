@@ -82,9 +82,9 @@ export const state = {
   liveMapTimers: {},
   userLocation: null,
   locationWatchId: null,
+  locationPermissionState: null,
   mapPickerTarget: null,
   autocompleteSelection: {
-    from: null,
     to: null
   }
 };

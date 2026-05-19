@@ -1,4 +1,5 @@
 const { sendJson } = require("./_odsay");
+const { guardPublicApi } = require("./_public-api-guard");
 const { getLiveBusPreview } = require("./_mapping-index");
 const { getSeoulBusApiKey } = require("./_seoul-bus");
 
@@ -11,6 +12,13 @@ module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
     return sendJson(res, 405, { error: "Method Not Allowed" });
   }
+
+  const blocked = guardPublicApi(req, res, sendJson, {
+    scope: "bus-positions",
+    limit: Number(process.env.BUS_POSITIONS_RATE_LIMIT_PER_MINUTE || 90),
+    windowMs: 60 * 1000
+  });
+  if (blocked) return blocked;
 
   if (!getSeoulBusApiKey()) {
     return sendJson(res, 503, { error: "SEOUL_BUS_API_KEY 환경변수가 설정되지 않았습니다" });

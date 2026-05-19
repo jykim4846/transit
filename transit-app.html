@@ -3763,6 +3763,612 @@
   .kakao-stop-dot.boarding {
     border-color: rgba(249, 208, 216, 0.8);
   }
+
+  /* ---- 2026 cute redesign layer ---- */
+  :root {
+    --bg: #fff6fb;
+    --bg-strong: #fff0f7;
+    --paper: rgba(255, 255, 255, 0.78);
+    --paper-strong: rgba(255, 255, 255, 0.94);
+    --line: rgba(126, 86, 109, 0.14);
+    --text: #3b2b35;
+    --text-muted: #8b7180;
+    --accent: #76d9c2;
+    --accent-strong: #2fae91;
+    --accent-soft: rgba(118, 217, 194, 0.22);
+    --orange: #ffb45f;
+    --orange-soft: rgba(255, 180, 95, 0.22);
+    --blue: #6aa7ff;
+    --blue-soft: rgba(106, 167, 255, 0.2);
+    --danger: #ff6f91;
+    --pastel-pink: #ffe0ef;
+    --pastel-pink-strong: #ffb7d3;
+    --pastel-sky: #dceeff;
+    --pastel-sky-strong: #a9d4ff;
+    --pastel-yellow: #fff1a8;
+    --pastel-mint: #d7f7e9;
+    --pastel-lavender: #eadcff;
+    --cheek-pink: #ff9fbd;
+    --shadow: 0 18px 50px rgba(107, 75, 96, 0.16);
+  }
+
+  html,
+  body {
+    background: #fff6fb;
+  }
+
+  body {
+    background:
+      linear-gradient(120deg, rgba(255, 255, 255, 0.36) 0 14%, transparent 14% 28%, rgba(255, 255, 255, 0.26) 28% 42%, transparent 42% 100%),
+      radial-gradient(circle at 14% 8%, rgba(255, 183, 211, 0.54), transparent 24%),
+      radial-gradient(circle at 92% 12%, rgba(169, 212, 255, 0.58), transparent 24%),
+      radial-gradient(circle at 12% 90%, rgba(215, 247, 233, 0.72), transparent 28%),
+      radial-gradient(circle at 90% 82%, rgba(255, 241, 168, 0.56), transparent 26%),
+      linear-gradient(180deg, #fff8fc 0%, #fdf8ff 48%, #f3fbff 100%);
+  }
+
+  .fast-shell {
+    width: min(520px, calc(100vw - 18px));
+    padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+
+  .fast-phone {
+    min-height: calc(100dvh - 24px);
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    border-radius: 38px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 247, 253, 0.78)),
+      repeating-linear-gradient(135deg, rgba(255, 183, 211, 0.13) 0 10px, rgba(255, 255, 255, 0) 10px 22px);
+    box-shadow:
+      0 28px 70px rgba(118, 78, 103, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .fast-phone::before {
+    right: -54px;
+    top: -50px;
+    width: 176px;
+    height: 176px;
+    background:
+      radial-gradient(circle at 38% 38%, rgba(255, 255, 255, 0.9) 0 8px, transparent 9px),
+      radial-gradient(circle at 60% 46%, rgba(255, 255, 255, 0.72) 0 5px, transparent 6px),
+      linear-gradient(135deg, rgba(255, 183, 211, 0.62), rgba(234, 220, 255, 0.56));
+    opacity: 1;
+  }
+
+  .fast-phone::after {
+    left: -64px;
+    top: auto;
+    bottom: 72px;
+    width: 150px;
+    height: 150px;
+    background:
+      radial-gradient(circle at 55% 32%, rgba(255, 255, 255, 0.92) 0 7px, transparent 8px),
+      linear-gradient(135deg, rgba(215, 247, 233, 0.68), rgba(169, 212, 255, 0.48));
+    opacity: 1;
+  }
+
+  .fast-header {
+    align-items: center;
+    margin: -4px -2px 0;
+    padding: 4px 2px 18px;
+  }
+
+  .fast-header::before {
+    content: "오늘의 버스 친구";
+    position: absolute;
+    right: 72px;
+    top: 10px;
+    padding: 5px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.66);
+    color: #b27890;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    box-shadow: 0 8px 18px rgba(107, 75, 96, 0.09);
+  }
+
+  .fast-header::after {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff9fbd, #ffd36e, #76d9c2, #6aa7ff, #b89cff);
+    opacity: 0.75;
+  }
+
+  .fast-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .brand-mascot {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #fff, #ffe7f2);
+    box-shadow: 0 10px 24px rgba(255, 111, 145, 0.2), inset 0 1px 0 #fff;
+    animation: cute-float 3.2s ease-in-out infinite;
+  }
+
+  .brand-mascot::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    margin: 28px 0 0 31px;
+    border-radius: 999px;
+    background: #fff1a8;
+    box-shadow: 0 0 0 5px rgba(255, 241, 168, 0.34);
+  }
+
+  .brand-mascot svg {
+    width: 40px;
+    height: 34px;
+    filter: drop-shadow(0 6px 8px rgba(106, 167, 255, 0.24));
+  }
+
+  .fast-brand strong {
+    font-size: 27px;
+    color: #3b2b35;
+    background: linear-gradient(90deg, #3b2b35 0%, #ff6f91 44%, #2fae91 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .fast-brand span {
+    color: #a06f86;
+    font-size: 11px;
+  }
+
+  .live-badge {
+    border: 1px solid rgba(255, 159, 189, 0.35);
+    background: rgba(255, 255, 255, 0.76);
+    color: #ff6f91;
+    box-shadow: 0 10px 24px rgba(255, 159, 189, 0.15);
+  }
+
+  .live-badge::before {
+    background: #ff9fbd;
+    box-shadow: 0 0 0 5px rgba(255, 159, 189, 0.18);
+  }
+
+  .fast-actions {
+    position: sticky;
+    top: calc(8px + env(safe-area-inset-top, 0px));
+    z-index: 20;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 8px;
+    margin: 4px -2px 16px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 12px 30px rgba(107, 75, 96, 0.12);
+    backdrop-filter: blur(20px);
+  }
+
+  .fast-actions .btn {
+    min-height: 42px;
+    border-radius: 18px;
+    box-shadow: none;
+  }
+
+  .fast-actions .btn-primary,
+  #add-route-btn {
+    background: linear-gradient(135deg, #ff7aa2 0%, #ffb45f 100%);
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(97, 46, 71, 0.14);
+    box-shadow: 0 10px 22px rgba(255, 111, 145, 0.28);
+  }
+
+  #add-route-btn::after {
+    display: none;
+  }
+
+  .fast-actions .btn-secondary {
+    border-color: rgba(126, 86, 109, 0.1);
+    background: rgba(255, 255, 255, 0.78);
+    color: #6e5966;
+  }
+
+  #tracking-toggle-btn[aria-pressed="true"] {
+    background: linear-gradient(135deg, #76d9c2, #6aa7ff);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 9px 18px rgba(47, 174, 145, 0.24);
+  }
+
+  .route-tabs {
+    gap: 8px;
+    margin: 4px 0 14px;
+    padding: 3px;
+  }
+
+  .route-tab {
+    border: 1px solid rgba(255, 255, 255, 0.78);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #8b7180;
+    box-shadow: 0 7px 18px rgba(107, 75, 96, 0.08);
+  }
+
+  .route-tab.active {
+    background: linear-gradient(135deg, #76d9c2, #6aa7ff);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 11px 24px rgba(106, 167, 255, 0.26);
+  }
+
+  .route-card.fast-card {
+    border-radius: 30px;
+  }
+
+  .fast-trip-panel,
+  .fast-candidate,
+  .fast-detail {
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 253, 0.82));
+    box-shadow:
+      0 18px 42px rgba(107, 75, 96, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  }
+
+  .route-list > .empty-state {
+    min-height: 238px;
+    justify-content: center;
+    margin-top: 2px;
+    padding: 34px 26px;
+  }
+
+  .empty-state-illust {
+    transform: scale(1.2);
+  }
+
+  .empty-state strong {
+    color: #513845;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .empty-state p,
+  .empty-state {
+    color: #8b7180;
+  }
+
+  .route-list > .empty-state::before,
+  .route-list > .empty-state::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .route-list > .empty-state {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .route-list > .empty-state::before {
+    width: 78px;
+    height: 78px;
+    left: -22px;
+    top: -18px;
+    background: rgba(255, 183, 211, 0.38);
+  }
+
+  .route-list > .empty-state::after {
+    width: 92px;
+    height: 92px;
+    right: -30px;
+    bottom: -34px;
+    background: rgba(118, 217, 194, 0.28);
+  }
+
+  .fast-trip-panel {
+    position: relative;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .fast-trip-panel::before {
+    content: "";
+    position: absolute;
+    right: -26px;
+    top: -24px;
+    width: 96px;
+    height: 96px;
+    border-radius: 32px;
+    background:
+      radial-gradient(circle at 32% 32%, rgba(255, 255, 255, 0.72) 0 8px, transparent 9px),
+      linear-gradient(135deg, rgba(255, 183, 211, 0.56), rgba(255, 241, 168, 0.52));
+    transform: rotate(18deg);
+    pointer-events: none;
+  }
+
+  .fast-trip-head,
+  .fast-metrics,
+  .fast-next-action,
+  .fast-flow,
+  .boarding-panel,
+  .fast-note {
+    position: relative;
+    z-index: 1;
+  }
+
+  .fast-trip-title strong {
+    font-size: 15px;
+    color: #513845;
+  }
+
+  .fast-icon-btn {
+    border-color: rgba(126, 86, 109, 0.1);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .fast-metrics {
+    gap: 9px;
+  }
+
+  .fast-metric {
+    min-height: 82px;
+    border: 1px solid rgba(255, 255, 255, 0.74);
+    border-radius: 22px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .fast-metric.arrive {
+    background: linear-gradient(145deg, #e4f2ff, #fff);
+  }
+
+  .fast-metric.transfer {
+    background: linear-gradient(145deg, #fff1ca, #fff);
+  }
+
+  .fast-metric.walk {
+    background: linear-gradient(145deg, #def8ec, #fff);
+  }
+
+  .fast-metric strong {
+    font-size: 29px;
+  }
+
+  .fast-next-action {
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.25), transparent 22%),
+      linear-gradient(135deg, #ff7aa2 0%, #ffb45f 46%, #76d9c2 100%);
+    box-shadow: 0 16px 32px rgba(255, 111, 145, 0.26);
+  }
+
+  .fast-next-row span {
+    opacity: 0.9;
+  }
+
+  .live-map {
+    border: 2px solid rgba(255, 255, 255, 0.88);
+    border-radius: 28px;
+    background:
+      linear-gradient(135deg, rgba(255, 224, 239, 0.8), rgba(220, 238, 255, 0.88)),
+      #fff;
+    box-shadow:
+      0 14px 34px rgba(107, 75, 96, 0.13),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .fast-flow-head,
+  .fast-flow-status,
+  .fast-flow-timeline {
+    border-color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.76);
+    box-shadow: 0 10px 22px rgba(107, 75, 96, 0.1);
+  }
+
+  .fast-flow-live,
+  .fast-flow-eta {
+    border-color: transparent;
+    background: linear-gradient(135deg, rgba(118, 217, 194, 0.26), rgba(106, 167, 255, 0.2));
+  }
+
+  .fast-flow-vehicle {
+    width: 38px;
+    height: 34px;
+    border: 3px solid #fff;
+    border-radius: 15px 15px 12px 12px;
+    background:
+      radial-gradient(circle at 12px 13px, #31536b 0 2px, transparent 3px),
+      radial-gradient(circle at 26px 13px, #31536b 0 2px, transparent 3px),
+      radial-gradient(ellipse at 10px 18px, rgba(255, 159, 189, 0.75) 0 4px, transparent 5px),
+      radial-gradient(ellipse at 28px 18px, rgba(255, 159, 189, 0.75) 0 4px, transparent 5px),
+      linear-gradient(145deg, #8cc6ff, #6aa7ff);
+    color: transparent;
+    box-shadow: 0 12px 24px rgba(106, 167, 255, 0.34);
+  }
+
+  .fast-flow-vehicle::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: -5px;
+    height: 8px;
+    background:
+      radial-gradient(circle at 0 50%, #3b2b35 0 3px, transparent 4px),
+      radial-gradient(circle at 100% 50%, #3b2b35 0 3px, transparent 4px);
+  }
+
+  .kakao-bus-overlay {
+    border-color: #fff;
+    background:
+      radial-gradient(ellipse 4px 5px at 16px 17px, #31536b 0%, #31536b 60%, transparent 70%),
+      radial-gradient(ellipse 4px 5px at 43px 17px, #31536b 0%, #31536b 60%, transparent 70%),
+      radial-gradient(circle at 18px 14px, rgba(255,255,255,0.9) 0 1.2px, transparent 2px),
+      radial-gradient(circle at 45px 14px, rgba(255,255,255,0.9) 0 1.2px, transparent 2px),
+      radial-gradient(ellipse at 12px 25px, rgba(255, 159, 189, 0.72) 0 5px, transparent 6px),
+      radial-gradient(ellipse at 47px 25px, rgba(255, 159, 189, 0.72) 0 5px, transparent 6px),
+      linear-gradient(160deg, #a9d4ff 0%, #6aa7ff 58%, #8fb5ff 100%);
+    box-shadow: 0 16px 30px rgba(106, 167, 255, 0.28), 0 0 0 9px rgba(220, 238, 255, 0.34);
+  }
+
+  .kakao-bus-overlay.boarded {
+    background:
+      radial-gradient(circle at 18px 32px, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 52px 32px, #fff 0 4px, transparent 5px),
+      radial-gradient(circle at 16px 24px, rgba(255, 255, 255, 0.95) 0 2px, transparent 3px),
+      radial-gradient(circle at 54px 24px, rgba(255, 255, 255, 0.95) 0 2px, transparent 3px),
+      linear-gradient(160deg, #ffb45f 0%, #ff7aa2 52%, #b89cff 100%);
+  }
+
+  .kakao-bus-label,
+  .kakao-bus-overlay .kakao-bus-label {
+    border: 1px solid rgba(255, 255, 255, 0.74);
+    background: rgba(59, 43, 53, 0.88);
+    box-shadow: 0 8px 18px rgba(59, 43, 53, 0.18);
+  }
+
+  .fast-candidate {
+    border-radius: 24px;
+  }
+
+  .fast-candidate:hover,
+  .fast-candidate:nth-child(even):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 38px rgba(107, 75, 96, 0.18);
+  }
+
+  .fast-candidate.active {
+    border-color: rgba(118, 217, 194, 0.7);
+    background:
+      linear-gradient(180deg, rgba(215, 247, 233, 0.62), rgba(255, 255, 255, 0.92));
+  }
+
+  .fast-candidate-tag {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+
+  .boarding-panel {
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 24px;
+    background: linear-gradient(135deg, #e4f2ff, #fff0f7);
+    box-shadow: 0 10px 24px rgba(107, 75, 96, 0.11);
+  }
+
+  .boarding-panel.boarded {
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    background:
+      radial-gradient(circle at 12% 16%, rgba(255, 255, 255, 0.55), transparent 20%),
+      linear-gradient(135deg, #fff1a8 0%, #ffb7d3 52%, #eadcff 100%);
+    box-shadow: 0 18px 38px rgba(255, 111, 145, 0.28), 0 0 0 6px rgba(255, 255, 255, 0.52);
+  }
+
+  .boarding-panel-btn.primary,
+  .boarding-panel-btn.end {
+    border-color: transparent;
+    background: linear-gradient(135deg, #ff7aa2, #ffb45f);
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(255, 111, 145, 0.24);
+  }
+
+  .bus-line-board {
+    border-color: rgba(255, 255, 255, 0.82);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 246, 251, 0.76));
+    box-shadow: 0 12px 28px rgba(107, 75, 96, 0.1);
+  }
+
+  .bus-line-bus {
+    border-color: #fff;
+    background: linear-gradient(145deg, #a9d4ff, #6aa7ff);
+    box-shadow: 0 10px 20px rgba(106, 167, 255, 0.25);
+  }
+
+  .bus-line-bus.next {
+    background: linear-gradient(145deg, #ffb7d3, #ff7aa2);
+  }
+
+  .empty-state {
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: 30px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 246, 251, 0.76));
+    box-shadow: 0 18px 42px rgba(107, 75, 96, 0.13);
+  }
+
+  .modal,
+  .map-picker-sheet {
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 30px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 247, 253, 0.94));
+    box-shadow: 0 28px 70px rgba(59, 43, 53, 0.22);
+  }
+
+  input[type="text"],
+  .option-card,
+  .place-preview,
+  .autocomplete-dropdown {
+    border-color: rgba(126, 86, 109, 0.14);
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .option-card.active,
+  .option-card:has(input:checked) {
+    border-color: rgba(255, 122, 162, 0.6);
+    background: linear-gradient(180deg, rgba(255, 224, 239, 0.8), rgba(255, 255, 255, 0.86));
+  }
+
+  .toast {
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    background: rgba(59, 43, 53, 0.9);
+    box-shadow: 0 18px 36px rgba(59, 43, 53, 0.22);
+  }
+
+  .fast-footer {
+    color: #9b7788;
+  }
+
+  @media (max-width: 420px) {
+    .fast-phone {
+      padding: 15px;
+      border-radius: 30px;
+    }
+
+    .fast-header::before {
+      display: none;
+    }
+
+    .fast-actions {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+    }
+
+    #key-settings-btn[hidden] {
+      display: none;
+    }
+
+    .fast-actions .btn-compact {
+      padding-left: 11px;
+      padding-right: 11px;
+    }
+
+    .fast-metrics {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .fast-metric {
+      padding: 11px 9px;
+    }
+
+    .fast-metric strong {
+      font-size: 25px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -3808,8 +4414,8 @@
             </svg>
           </span>
           <div>
-            <strong>transit</strong>
-            <span>soft live routing</span>
+            <strong>토닥버스</strong>
+            <span>오늘도 같이 가요</span>
           </div>
         </div>
         <div class="live-badge" id="clock">--:--</div>
@@ -3927,1937 +4533,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-  import { uid, nowStamp, escapeHtml, formatTime, relativeTime, minuteNumber, formatClock, formatCountdown } from "./js/util.js";
-  import { STORAGE_KEY, LEGACY_STORAGE_KEY, ROUTE_CARD_COLLAPSED_KEY, ODSAY_BROWSER_KEY_STORAGE, KAKAO_MAP_KEY_STORAGE, AUTOCOMPLETE_MIN_LENGTH, ODSAY_API_ROOT, PRIORITY_META, priorityLabel } from "./js/constants.js";
-  import { state, persistRoutes, persistBoardedTrip } from "./js/state.js";
-  import { getBrowserOdsayKey, setBrowserOdsayKey, fetchJson, fetchOdsayDirect, searchStations, normalizeSegments, fetchRouteRecommendationDirect, tagRoutePicks } from "./js/api.js";
-  import { setKakaoMapKey, getKakaoMapKey, resolveKakaoMapKey, loadKakaoMaps } from "./js/live-map-keys.js";
-  import {
-    describeRecommendation,
-    iconSvg,
-    getCandidateTone,
-    getCandidateTitle,
-    getFirstAction,
-    getFastFlowStops,
-    getFastFlowStatus,
-    inferSegmentType,
-    segmentMinutes,
-    getJourneyStepLabel,
-    candidateRiskLabel,
-    renderJourneyFlow,
-    renderSegments,
-    renderFastFlow,
-    renderFastCandidate,
-    renderCandidate,
-    renderBusApproachPreview,
-    updateBoardingPanelDOM
-  } from "./js/render.js";
-
-  function getSelectedCandidate(route) {
-    const result = route?.lastResult;
-    if (!result) return null;
-    const candidates = result.candidates || [];
-    const selectedId = state.selectedCandidateIds[route.id];
-    if (selectedId) {
-      const match = candidates.find((c) => c.id === selectedId);
-      if (match) return match;
-    }
-    return result.recommendation || candidates[0] || null;
-  }
-
-  function selectCandidate(routeId, candidateId) {
-    const route = state.routes.find((item) => item.id === routeId);
-    if (!route) return;
-    const candidates = route.lastResult?.candidates || [];
-    const exists = candidates.some((c) => c.id === candidateId);
-    if (!exists) return;
-    if (state.selectedCandidateIds[routeId] === candidateId) return;
-    state.selectedCandidateIds[routeId] = candidateId;
-    renderRoutes();
-  }
-
-  function clearLocationPreview(selectionKey) {
-    const mapId = "route-" + selectionKey + "-preview-map";
-    const labelId = "route-" + selectionKey + "-preview-label";
-    const mapEl = document.getElementById(mapId);
-    const labelEl = document.getElementById(labelId);
-    if (!mapEl || !labelEl) return;
-
-    const existing = state.previewMaps[selectionKey];
-    if (existing?.map) {
-      existing.map.remove();
-    }
-    delete state.previewMaps[selectionKey];
-
-    mapEl.classList.add("empty");
-    mapEl.innerHTML = "검색 결과를 선택하면 지도로 위치를 확인할 수 있습니다.";
-    labelEl.textContent = "위치를 선택하면 이곳에 지도가 보입니다.";
-  }
-
-  function updateLocationPreview(selectionKey, location) {
-    const mapId = "route-" + selectionKey + "-preview-map";
-    const labelId = "route-" + selectionKey + "-preview-label";
-    const mapEl = document.getElementById(mapId);
-    const labelEl = document.getElementById(labelId);
-    if (!mapEl || !labelEl) return;
-
-    if (!location || location.x == null || location.y == null) {
-      clearLocationPreview(selectionKey);
-      return;
-    }
-
-    mapEl.classList.remove("empty");
-    labelEl.textContent = [location.kind, location.detail].filter(Boolean).join(" · ") || location.name;
-
-    const lat = Number(location.y);
-    const lng = Number(location.x);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      clearLocationPreview(selectionKey);
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      let preview = state.previewMaps[selectionKey];
-      if (!preview) {
-        mapEl.innerHTML = "";
-        if (typeof L === "undefined") {
-          mapEl.classList.add("empty");
-          mapEl.textContent = `${location?.name || "선택한 위치"} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-          return;
-        }
-        const map = L.map(mapId, {
-          zoomControl: false,
-          attributionControl: false,
-          dragging: false,
-          scrollWheelZoom: false,
-          doubleClickZoom: false,
-          touchZoom: false,
-          keyboard: false
-        });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19
-        }).addTo(map);
-        const marker = L.circleMarker([lat, lng], {
-          radius: 8,
-          color: "#165c47",
-          weight: 2,
-          fillColor: "#1e7a5f",
-          fillOpacity: 0.9
-        }).addTo(map);
-        preview = { map, marker };
-        state.previewMaps[selectionKey] = preview;
-      } else {
-        preview.marker.setLatLng([lat, lng]);
-      }
-
-      preview.map.getContainer().style.cursor = "default";
-      preview.map.setView([lat, lng], 15);
-      preview.map.invalidateSize();
-    });
-  }
-
-  function clearAutocompletePreview(selectionKey) {
-    const previewId = "route-" + selectionKey + "-dropdown-preview";
-    const previewEl = document.getElementById(previewId);
-    if (!previewEl) return;
-
-    const existing = state.previewMaps["dropdown-" + selectionKey];
-    if (existing?.map) {
-      existing.map.remove();
-    }
-    delete state.previewMaps["dropdown-" + selectionKey];
-
-    previewEl.classList.add("empty");
-    previewEl.innerHTML = "목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다.";
-  }
-
-  function updateAutocompletePreview(selectionKey, location) {
-    const previewId = "route-" + selectionKey + "-dropdown-preview";
-    const previewEl = document.getElementById(previewId);
-    if (!previewEl) return;
-
-    if (!location || location.x == null || location.y == null) {
-      clearAutocompletePreview(selectionKey);
-      return;
-    }
-
-    previewEl.classList.remove("empty");
-
-    const lat = Number(location.y);
-    const lng = Number(location.x);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-      clearAutocompletePreview(selectionKey);
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      let preview = state.previewMaps["dropdown-" + selectionKey];
-      if (!preview) {
-        previewEl.innerHTML = "";
-        if (typeof L === "undefined") {
-          previewEl.classList.add("empty");
-          previewEl.textContent = `${location.name} (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-          return;
-        }
-        const map = L.map(previewId, {
-          zoomControl: false,
-          attributionControl: false,
-          dragging: false,
-          scrollWheelZoom: false,
-          doubleClickZoom: false,
-          touchZoom: false,
-          keyboard: false
-        });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19
-        }).addTo(map);
-        const marker = L.circleMarker([lat, lng], {
-          radius: 8,
-          color: "#1c5bb7",
-          weight: 2,
-          fillColor: "#3c7ad1",
-          fillOpacity: 0.9
-        }).addTo(map);
-        preview = { map, marker };
-        state.previewMaps["dropdown-" + selectionKey] = preview;
-      } else {
-        preview.marker.setLatLng([lat, lng]);
-      }
-
-      preview.map.setView([lat, lng], 15);
-      preview.map.invalidateSize();
-    });
-  }
-
-  function updateClock() {
-    const now = new Date();
-    document.getElementById("clock").textContent = now.toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-    const phase = getCommuteContext(now)?.phase || null;
-    if (state.routes.length > 0 && phase !== state.lastCommutePhase) {
-      renderRoutes();
-    }
-  }
-
-  function toLatLngPoint(location) {
-    const lat = Number(location?.y ?? location?.lat);
-    const lng = Number(location?.x ?? location?.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    return { lat, lng };
-  }
-
-  function toPathPoint(value) {
-    const lat = Number(value?.lat ?? value?.y);
-    const lng = Number(value?.lng ?? value?.x);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-    return { lat, lng };
-  }
-
-  function dedupePathPoints(points) {
-    const result = [];
-    points.filter(Boolean).forEach((point) => {
-      const prev = result[result.length - 1];
-      if (prev && Math.abs(prev.lat - point.lat) < 0.000001 && Math.abs(prev.lng - point.lng) < 0.000001) return;
-      result.push(point);
-    });
-    return result;
-  }
-
-  function interpolatePoint(a, b, ratio) {
-    return {
-      lat: a.lat + (b.lat - a.lat) * ratio,
-      lng: a.lng + (b.lng - a.lng) * ratio
-    };
-  }
-
-  function pointAtSeq(stops, seq) {
-    const sorted = stops
-      .map((stop) => ({ ...stop, point: toPathPoint(stop), seq: Number(stop.seq) }))
-      .filter((stop) => stop.point && Number.isFinite(stop.seq))
-      .sort((a, b) => a.seq - b.seq);
-    if (!sorted.length || !Number.isFinite(Number(seq))) return sorted[0]?.point || null;
-    const target = Number(seq);
-    let prev = sorted[0];
-    let next = sorted[sorted.length - 1];
-    for (let index = 0; index < sorted.length; index += 1) {
-      if (sorted[index].seq <= target) prev = sorted[index];
-      if (sorted[index].seq >= target) {
-        next = sorted[index];
-        break;
-      }
-    }
-    if (!prev || !next || prev.seq === next.seq) return (next || prev)?.point || null;
-    return interpolatePoint(prev.point, next.point, (target - prev.seq) / (next.seq - prev.seq));
-  }
-
-  function getFirstBusSegment(candidate) {
-    return (candidate?.segments || []).find((segment) => inferSegmentType(segment) === "bus") || null;
-  }
-
-  function getBoardingSeq(preview) {
-    const explicitSeq = Number(preview?.boardingStationSeq);
-    if (Number.isFinite(explicitSeq)) return explicitSeq;
-    const boardingStop = (preview?.stops || []).find((stop) => stop.isBoarding);
-    const inferredSeq = Number(boardingStop?.seq);
-    return Number.isFinite(inferredSeq) ? inferredSeq : null;
-  }
-
-  function getBoardingStopPoint(candidate, origin) {
-    const stops = candidate?.busApproachPreview?.stops || [];
-    const boarding = stops.find((stop) => stop.isBoarding)
-      || stops.find((stop) => Number(stop.seq) === Number(candidate?.busApproachPreview?.boardingStationSeq))
-      || stops[stops.length - 1];
-    const previewPoint = toPathPoint(boarding);
-    if (previewPoint) return previewPoint;
-
-    const firstBus = getFirstBusSegment(candidate);
-    const segmentPoint = toPathPoint(firstBus?.pathPoints?.[0]);
-    if (segmentPoint) return segmentPoint;
-
-    return origin;
-  }
-
-  function getApproachStopPoints(candidate) {
-    const preview = candidate?.busApproachPreview;
-    const stops = preview?.stops || [];
-    const boardingSeq = getBoardingSeq(preview);
-    const sortedStops = stops
-      .filter((stop) => toPathPoint(stop))
-      .sort((a, b) => Number(a.seq) - Number(b.seq));
-    let boardingIndex = sortedStops.findIndex((stop) => stop.isBoarding);
-    if (boardingIndex < 0) {
-      boardingIndex = sortedStops.findIndex((stop) => Number(stop.seq) === boardingSeq);
-    }
-    const approachStops = Number.isFinite(boardingSeq)
-      ? sortedStops.filter((stop) => Number(stop.seq) <= boardingSeq)
-      : (boardingIndex >= 0 ? sortedStops.slice(0, boardingIndex + 1) : []);
-    return dedupePathPoints(approachStops.map(toPathPoint));
-  }
-
-  function getRealtimeBusPoints(candidate) {
-    const preview = candidate?.busApproachPreview;
-    const boardingSeq = getBoardingSeq(preview);
-    if (!preview?.stops?.length || !preview?.vehicles?.length) return [];
-    return preview.vehicles
-      .filter((vehicle) => boardingSeq == null || Number(vehicle.progressSeq) < boardingSeq)
-      .slice(0, 3)
-      .map((vehicle, index) => ({
-        index,
-        label: vehicle.label || (index === 0 ? "다음" : `${index + 1}번째`),
-        remainingStops: vehicle.remainingStops,
-        etaMinutes: vehicle.etaMinutes,
-        point: pointAtSeq(preview.stops, vehicle.progressSeq)
-      }))
-      .filter((bus) => bus.point);
-  }
-
-  function buildLiveTransitPoints(route, candidate) {
-    const origin = toLatLngPoint(route?.from) || { lat: 37.4979, lng: 127.0276 };
-    const destination = toLatLngPoint(route?.to) || null;
-    const user = state.userLocation || origin;
-    const hasBusLeg = (candidate?.segments || []).some((segment) => inferSegmentType(segment) === "bus");
-    const boarding = getBoardingStopPoint(candidate, origin);
-    const approachPoints = getApproachStopPoints(candidate);
-    const approachingBuses = getRealtimeBusPoints(candidate);
-    if (!hasBusLeg) {
-      return {
-        canRenderMap: false,
-        fallbackReason: "no_bus",
-        fallbackMessage: "실시간 차량 추적 없음",
-        origin,
-        destination,
-        user,
-        boardingStop: boarding,
-        busPoints: [],
-        approachPolylinePoints: []
-      };
-    }
-    if (approachPoints.length < 2) {
-      return {
-        canRenderMap: false,
-        fallbackReason: "no_approach",
-        fallbackMessage: "실시간 차량 방향 정보를 확인 중이에요",
-        origin,
-        destination,
-        user,
-        boardingStop: boarding,
-        busPoints: [],
-        approachPolylinePoints: []
-      };
-    }
-    return {
-      canRenderMap: true,
-      origin,
-      destination,
-      user,
-      boardingStop: boarding,
-      busPoints: approachingBuses,
-      approachPolylinePoints: approachPoints
-    };
-  }
-
-  function renderLiveMapFallback(container, route, candidate, reason) {
-    const fallback = container.querySelector("[data-live-map-fallback]");
-    if (!fallback) return;
-    const canvas = container.querySelector(".live-map-canvas");
-    if (canvas) canvas.style.display = "none";
-    fallback.classList.toggle("no-bus", reason === "no_bus");
-    fallback.style.display = "grid";
-
-    const boardingName = candidate?.boardingStopName || "탑승 정류장 정보 없음";
-    const alightingName = candidate?.alightingStopName || "도착 정류장 정보 없음";
-    const transit = candidate?.firstTransitLabel || "이동";
-    const totalMin = minuteNumber(candidate?.journeyMinutes || candidate?.scoreDisplay || candidate?.totalTime);
-    const segmentLine = (candidate?.segments || [])
-      .filter((segment) => segment && (segment.kind === "버스" || segment.kind === "지하철" || (segment.kind === "도보" && minuteNumber(segment.time) > 0)))
-      .slice(0, 4)
-      .map((segment) => `${segment.label || segment.kind} ${segment.time || ""}`.trim())
-      .join(" · ");
-
-    if (reason === "no_bus") {
-      fallback.innerHTML = `
-        <strong>${escapeHtml(transit)} 중심 경로 · 실시간 차량 추적 없음</strong>
-        <span>${escapeHtml(route.from?.name || "출발지")} → ${escapeHtml(route.to?.name || "도착지")} · 총 ${escapeHtml(totalMin || "--")}분</span>
-        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
-        <span>지하철·도보 중심이라 지도 위에 실시간 버스를 표시하지 않습니다.</span>
-      `;
-    } else if (reason === "timeout" || reason === "error") {
-      fallback.innerHTML = `
-        <strong>실시간 차량 위치를 불러오지 못했어요</strong>
-        <span>경로 정보는 계속 볼 수 있어요 · ${escapeHtml(boardingName)} → ${escapeHtml(alightingName)}</span>
-        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
-        <span>잠시 후 "실시간으로 다시 계산"을 눌러 새로 가져와 보세요.</span>
-      `;
-    } else {
-      fallback.innerHTML = `
-        <strong>이 노선은 실시간 위치 정보가 없어요</strong>
-        <span>${escapeHtml(boardingName)} → ${escapeHtml(alightingName)} · 노선 매핑이 수집되면 자동으로 표시됩니다.</span>
-        ${segmentLine ? `<span>${escapeHtml(segmentLine)}</span>` : ""}
-        <span>경로 정보는 계속 사용할 수 있어요.</span>
-      `;
-    }
-  }
-
-  function clearLiveMapTimer(routeId) {
-    const timer = state.liveMapTimers[routeId];
-    if (timer) {
-      clearTimeout(timer);
-      delete state.liveMapTimers[routeId];
-    }
-  }
-
-  function startUserLocationWatch() {
-    if (state.locationWatchId != null || !navigator.geolocation) return;
-    state.locationWatchId = navigator.geolocation.watchPosition(
-      (position) => {
-        state.userLocation = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-        Object.values(state.liveMaps).forEach((entry) => {
-          if (!entry?.maps || !entry.userOverlay) return;
-          entry.userOverlay.setPosition(new entry.maps.LatLng(state.userLocation.lat, state.userLocation.lng));
-        });
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 15000, timeout: 8000 }
-    );
-  }
-
-  function overlayContent(html, className = "") {
-    const el = document.createElement("div");
-    el.className = className;
-    el.innerHTML = html;
-    return el;
-  }
-
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
-  const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
-
-  async function initLiveTransitMaps() {
-    const containers = Array.from(document.querySelectorAll("[data-live-map]"));
-    if (!containers.length) return;
-
-    containers.forEach((container) => {
-      const routeId = container.dataset.routeId;
-      if (!routeId) return;
-      const route = state.routes.find((item) => item.id === routeId);
-      const candidate = route ? getSelectedCandidate(route) : null;
-      const points = candidate ? buildLiveTransitPoints(route, candidate) : null;
-
-      if (!points || !points.canRenderMap) {
-        renderLiveMapFallback(container, route, candidate, points?.fallbackReason || "no_approach");
-        return;
-      }
-
-      clearLiveMapTimer(routeId);
-      state.liveMapTimers[routeId] = setTimeout(() => {
-        if (state.liveMaps[routeId]) return;
-        renderLiveMapFallback(container, route, candidate, "timeout");
-      }, LIVE_MAP_LOAD_TIMEOUT_MS);
-    });
-
-    let maps;
-    try {
-      maps = await loadKakaoMaps();
-    } catch (_) {
-      containers.forEach((container) => {
-        const routeId = container.dataset.routeId;
-        clearLiveMapTimer(routeId);
-        const route = state.routes.find((item) => item.id === routeId);
-        const candidate = route ? getSelectedCandidate(route) : null;
-        renderLiveMapFallback(container, route, candidate, "error");
-      });
-      return;
-    }
-    startUserLocationWatch();
-
-    containers.forEach((container) => {
-      const routeId = container.dataset.routeId;
-      if (!routeId || state.liveMaps[routeId]) return;
-      const canvas = container.querySelector(".live-map-canvas");
-      const fallback = container.querySelector("[data-live-map-fallback]");
-      const route = state.routes.find((item) => item.id === routeId);
-      if (!canvas || !route) {
-        clearLiveMapTimer(routeId);
-        return;
-      }
-
-      const candidate = getSelectedCandidate(route);
-      const points = candidate ? buildLiveTransitPoints(route, candidate) : null;
-      if (!points || !points.canRenderMap) {
-        clearLiveMapTimer(routeId);
-        renderLiveMapFallback(container, route, candidate, points?.fallbackReason || "no_approach");
-        return;
-      }
-      clearLiveMapTimer(routeId);
-      canvas.style.display = "";
-      const map = new maps.Map(canvas, {
-        center: new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
-        level: 5
-      });
-      const approachPath = points.approachPolylinePoints.map((point) => new maps.LatLng(point.lat, point.lng));
-      const approachPolyline = new maps.Polyline({
-        path: approachPath,
-        strokeWeight: 7,
-        strokeColor: "#2563eb",
-        strokeOpacity: 0.74,
-        strokeStyle: "solid"
-      });
-      approachPolyline.setMap(map);
-
-      const ridingStops = candidate?.busApproachPreview?.ridingStops || [];
-      const ridingPathPoints = ridingStops
-        .map((stop) => ({ lat: Number(stop.lat), lng: Number(stop.lng) }))
-        .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
-      let ridingPolyline = null;
-      if (ridingPathPoints.length >= 2) {
-        ridingPolyline = new maps.Polyline({
-          path: ridingPathPoints.map((p) => new maps.LatLng(p.lat, p.lng)),
-          strokeWeight: 7,
-          strokeColor: "#16a34a",
-          strokeOpacity: 0.82,
-          strokeStyle: "solid"
-        });
-        ridingPolyline.setMap(map);
-      }
-
-      const previewStops = candidate?.busApproachPreview?.stops || [];
-      const stopsForMarkers = new Map();
-      [...previewStops, ...ridingStops].forEach((stop) => {
-        const lat = Number(stop.lat);
-        const lng = Number(stop.lng);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-        const key = String(stop.stationId || `${lat},${lng}`);
-        if (!stopsForMarkers.has(key)) stopsForMarkers.set(key, { ...stop, lat, lng });
-      });
-      const stopOverlays = Array.from(stopsForMarkers.values()).map((stop) => {
-        const cls = stop.isBoarding ? "kakao-stop-dot boarding"
-          : stop.isAlighting ? "kakao-stop-dot alighting"
-          : "kakao-stop-dot";
-        const overlay = new maps.CustomOverlay({
-          position: new maps.LatLng(stop.lat, stop.lng),
-          content: overlayContent("", cls),
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          zIndex: stop.isBoarding ? 3 : stop.isAlighting ? 3 : 2
-        });
-        overlay.setMap(map);
-        return overlay;
-      });
-
-      const userOverlay = new maps.CustomOverlay({
-        position: new maps.LatLng(points.user.lat, points.user.lng),
-        content: overlayContent("", "kakao-dot-overlay"),
-        xAnchor: 0.5,
-        yAnchor: 0.5
-      });
-      userOverlay.setMap(map);
-
-      const initialVehicles = candidate?.busApproachPreview?.vehicles || [];
-      const busOverlays = initialVehicles.map((vehicle, index) => {
-        const pos = vehicleLatLng(vehicle, previewStops) || points.boardingStop;
-        const boarded = isBoardedVehicle(vehicle, route.id);
-        const className = vehicleClassFor(vehicle, index, route.id);
-        const overlay = new maps.CustomOverlay({
-          position: new maps.LatLng(pos.lat, pos.lng),
-          content: overlayContent(busLabelHtml(vehicle, boarded), className),
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          zIndex: boarded ? 100 : 10 - index
-        });
-        overlay.setMap(map);
-        return { key: vehicle.key, index, overlay, position: { ...pos } };
-      });
-
-      const bounds = new maps.LatLngBounds();
-      [
-        ...approachPath,
-        ...ridingPathPoints.map((p) => new maps.LatLng(p.lat, p.lng)),
-        new maps.LatLng(points.user.lat, points.user.lng),
-        ...busOverlays.map((b) => new maps.LatLng(b.position.lat, b.position.lng))
-      ].forEach((point) => bounds.extend(point));
-      map.setBounds(bounds, 24, 24, 24, 24);
-      if (fallback) fallback.style.display = "none";
-
-      const entry = {
-        maps, map, container, userOverlay, stopOverlays, busOverlays,
-        approachPolyline, ridingPolyline,
-        previewStops, animationFrame: null, pollTimer: null
-      };
-      state.liveMaps[routeId] = entry;
-      startBusPolling(routeId, candidate);
-    });
-  }
-
-  function vehicleLatLng(vehicle, stops) {
-    if (vehicle?.gpsLat != null && vehicle?.gpsLng != null) {
-      const lat = Number(vehicle.gpsLat);
-      const lng = Number(vehicle.gpsLng);
-      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
-    }
-    return pointAtSeq(stops || [], vehicle?.progressSeq);
-  }
-
-  function busLabelHtml(vehicle, isBoarded = false) {
-    const parts = [];
-    if (isBoarded) {
-      parts.push("🎒 탑승 중");
-    } else {
-      parts.push(escapeHtml(vehicle.label || "다음"));
-    }
-    if (vehicle.catchable === false) {
-      parts.push(`${escapeHtml(vehicle.remainingStops || 0)}정거장 뒤`);
-    } else {
-      parts.push(`${escapeHtml(vehicle.remainingStops || 0)}정거장 전`);
-    }
-    if (vehicle.etaMinutes != null) {
-      parts.push(vehicle.catchable === false
-        ? `${escapeHtml(vehicle.passedAgoMinutes ?? vehicle.etaMinutes)}분 전 통과`
-        : `${escapeHtml(vehicle.etaMinutes)}분 후`);
-    }
-    return `<span class="kakao-bus-label${isBoarded ? " boarded" : ""}">${parts.join(" · ")}</span>`;
-  }
-
-  function isBoardedVehicle(vehicle, routeId) {
-    const trip = state.boardedTrip;
-    return Boolean(trip && trip.routeId === routeId && String(vehicle.key) === String(trip.vehicleKey));
-  }
-
-  function startBusPolling(routeId, candidate) {
-    stopBusPolling(routeId);
-    if (!candidate?.busRouteId || !candidate?.boardingStationId) return;
-    const params = new URLSearchParams({
-      routeId: String(candidate.busRouteId),
-      boardingStationId: String(candidate.boardingStationId),
-      alightingStationId: candidate.alightingStationId ? String(candidate.alightingStationId) : "",
-      walkMinutes: String(candidate.initialWalkTime || 0)
-    });
-    const url = `/api/bus-positions?${params.toString()}`;
-    const poll = async () => {
-      const entry = state.liveMaps[routeId];
-      if (!entry?.map) return;
-      try {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) return;
-        const data = await response.json();
-        updateLiveVehicles(routeId, data?.preview);
-      } catch {}
-    };
-    state.liveMaps[routeId].pollTimer = setInterval(poll, 20000);
-  }
-
-  function stopBusPolling(routeId) {
-    const entry = state.liveMaps[routeId];
-    if (entry?.pollTimer) {
-      clearInterval(entry.pollTimer);
-      entry.pollTimer = null;
-    }
-  }
-
-  function tweenOverlayPosition(maps, overlay, fromPos, toPos, durationMs = 700) {
-    const startMs = performance.now();
-    const step = (now) => {
-      const ratio = Math.min(1, (now - startMs) / durationMs);
-      const eased = easeInOutCubic(ratio);
-      const lat = fromPos.lat + (toPos.lat - fromPos.lat) * eased;
-      const lng = fromPos.lng + (toPos.lng - fromPos.lng) * eased;
-      overlay.setPosition(new maps.LatLng(lat, lng));
-      if (ratio < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
-  function vehicleClassFor(vehicle, index, routeId) {
-    const trip = state.boardedTrip;
-    const isBoarded = trip?.routeId === routeId && String(vehicle.key) === String(trip.vehicleKey);
-    const dimmed = trip?.routeId === routeId && !isBoarded;
-    return [
-      "kakao-bus-overlay",
-      index > 0 ? "secondary" : "",
-      isBoarded ? "boarded" : "",
-      dimmed ? "dimmed" : ""
-    ].filter(Boolean).join(" ");
-  }
-
-  function updateLiveVehicles(routeId, preview) {
-    const entry = state.liveMaps[routeId];
-    if (!entry || !preview?.vehicles) return;
-    const vehicles = preview.vehicles;
-    const stops = preview.stops || entry.previewStops || [];
-    const nextOverlays = [];
-    vehicles.forEach((vehicle, index) => {
-      const targetPos = vehicleLatLng(vehicle, stops);
-      if (!targetPos) return;
-      const boarded = isBoardedVehicle(vehicle, routeId);
-      const className = vehicleClassFor(vehicle, index, routeId);
-      const existing = entry.busOverlays.find((b) => b.key === vehicle.key);
-      if (existing) {
-        const content = existing.overlay.getContent();
-        content.className = className;
-        const labelEl = content.querySelector(".kakao-bus-label");
-        if (labelEl) labelEl.outerHTML = busLabelHtml(vehicle, boarded);
-        tweenOverlayPosition(entry.maps, existing.overlay, existing.position, targetPos);
-        existing.position = targetPos;
-        nextOverlays.push(existing);
-      } else {
-        const overlay = new entry.maps.CustomOverlay({
-          position: new entry.maps.LatLng(targetPos.lat, targetPos.lng),
-          content: overlayContent(busLabelHtml(vehicle, boarded), className),
-          xAnchor: 0.5,
-          yAnchor: 0.5,
-          zIndex: boarded ? 100 : 10 - index
-        });
-        overlay.setMap(entry.map);
-        nextOverlays.push({ key: vehicle.key, index, overlay, position: { ...targetPos } });
-      }
-    });
-    entry.busOverlays.forEach((bus) => {
-      if (!nextOverlays.find((next) => next.key === bus.key)) bus.overlay.setMap(null);
-    });
-    entry.busOverlays = nextOverlays;
-
-    const trip = state.boardedTrip;
-    if (trip?.routeId === routeId) {
-      const matched = vehicles.find((v) => String(v.key) === String(trip.vehicleKey));
-      if (matched) {
-        trip.remainingStops = Math.max(0, Number(matched.remainingStops || 0));
-        trip.etaMinutes = matched.etaMinutes;
-        trip.lastProgressSeq = Number(matched.progressSeq) || trip.lastProgressSeq;
-        updateBoardingPanelDOM(routeId, trip);
-        if (trip.alightingSeq != null && trip.lastProgressSeq >= trip.alightingSeq - 0.1) {
-          endBoarding("alighting");
-        }
-      } else if (trip.alightingSeq != null && trip.lastProgressSeq >= trip.alightingSeq - 1) {
-        endBoarding("alighting");
-      }
-    }
-  }
-
-  function renderEmptyCard() {
-    return `
-      <div class="empty-state">
-        <!-- 빈 상태 일러스트 — 버스 정류장에서 기다리는 캐릭터 -->
-        <div class="empty-state-illust" aria-hidden="true">
-          <svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- 하늘 배경 원 -->
-            <circle cx="55" cy="55" r="50" fill="#f0f8ff" opacity="0.6"/>
-            <!-- 구름 -->
-            <ellipse cx="28" cy="28" rx="12" ry="7" fill="white" opacity="0.9"/>
-            <ellipse cx="38" cy="25" rx="9" ry="6" fill="white" opacity="0.9"/>
-            <ellipse cx="22" cy="30" rx="7" ry="5" fill="white" opacity="0.8"/>
-            <!-- 땅 -->
-            <rect x="10" y="82" width="90" height="8" rx="4" fill="#c8e6c9" opacity="0.7"/>
-            <!-- 버스 정류장 기둥 -->
-            <rect x="52" y="40" width="5" height="44" rx="2" fill="#90a4ae"/>
-            <!-- 정류장 표지판 -->
-            <rect x="44" y="28" width="28" height="16" rx="5" fill="#1c5bb7"/>
-            <rect x="44" y="28" width="28" height="16" rx="5" fill="url(#stop-grad)"/>
-            <text x="58" y="39" text-anchor="middle" font-size="7" font-weight="700" fill="white" font-family="sans-serif">BUS</text>
-            <!-- 캐릭터 몸통 -->
-            <rect x="30" y="60" width="20" height="22" rx="7" fill="#fce4ec"/>
-            <rect x="30" y="60" width="20" height="22" rx="7" fill="url(#char-body-grad)"/>
-            <!-- 캐릭터 머리 -->
-            <ellipse cx="40" cy="54" rx="12" ry="11" fill="#ffe0b2"/>
-            <!-- 귀 -->
-            <ellipse cx="28" cy="53" rx="3.5" ry="4" fill="#ffe0b2"/>
-            <ellipse cx="28" cy="53" rx="2" ry="2.5" fill="#f8bbd9" opacity="0.8"/>
-            <ellipse cx="52" cy="53" rx="3.5" ry="4" fill="#ffe0b2"/>
-            <ellipse cx="52" cy="53" rx="2" ry="2.5" fill="#f8bbd9" opacity="0.8"/>
-            <!-- 머리카락 -->
-            <path d="M28 48 Q40 36 52 48" fill="#5d4037"/>
-            <ellipse cx="34" cy="44" rx="5" ry="4" fill="#5d4037"/>
-            <ellipse cx="46" cy="44" rx="5" ry="4" fill="#5d4037"/>
-            <!-- 눈 -->
-            <ellipse cx="35" cy="53" rx="2.5" ry="3" fill="#3e2723"/>
-            <ellipse cx="45" cy="53" rx="2.5" ry="3" fill="#3e2723"/>
-            <circle cx="36" cy="51.5" r="0.9" fill="white"/>
-            <circle cx="46" cy="51.5" r="0.9" fill="white"/>
-            <!-- 뺨 -->
-            <ellipse cx="30" cy="57" rx="3.5" ry="2" fill="#f8bbd9" opacity="0.75"/>
-            <ellipse cx="50" cy="57" rx="3.5" ry="2" fill="#f8bbd9" opacity="0.75"/>
-            <!-- 입 (씩 웃음) -->
-            <path d="M36 60 Q40 63 44 60" stroke="#5d4037" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-            <!-- 손 (흔드는 쪽) -->
-            <ellipse cx="70" cy="60" rx="6" ry="5" fill="#ffe0b2" class="empty-state-wave" style="transform-origin:70px 70px"/>
-            <ellipse cx="72" cy="57" rx="2" ry="2.5" fill="#ffe0b2"/>
-            <ellipse cx="75" cy="56" rx="2" ry="2.5" fill="#ffe0b2"/>
-            <ellipse cx="78" cy="57" rx="2" ry="2.5" fill="#ffe0b2"/>
-            <!-- 가방 -->
-            <rect x="22" y="68" width="10" height="13" rx="4" fill="#b3e5fc"/>
-            <rect x="24" y="66" width="6" height="4" rx="2" fill="#81d4fa"/>
-            <!-- 꽃 장식 -->
-            <circle cx="88" cy="36" r="5" fill="#fce4ec" opacity="0.9"/>
-            <circle cx="88" cy="36" r="2.5" fill="#f48fb1"/>
-            <circle cx="88" cy="28" r="3" fill="#fff9c4" opacity="0.9"/>
-            <circle cx="88" cy="28" r="1.5" fill="#fff176"/>
-            <defs>
-              <linearGradient id="stop-grad" x1="44" y1="28" x2="72" y2="44" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#1c5bb7"/>
-                <stop offset="100%" stop-color="#1565c0"/>
-              </linearGradient>
-              <linearGradient id="char-body-grad" x1="30" y1="60" x2="50" y2="82" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#f8bbd9"/>
-                <stop offset="100%" stop-color="#fce4ec"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <strong>루트를 저장해보세요!</strong>
-        자주 가는 버스 출퇴근 경로를 저장해두면<br>루트마다 추천 기준을 정해 한눈에 볼 수 있어요.
-      </div>
-    `;
-  }
-
-  function renderRouteCard(route, commuteCtx) {
-    const ctx = commuteCtx === undefined ? getCommuteContext() : commuteCtx;
-    const pinned = isCommutePinned(route, ctx);
-    const loading = state.loadingRouteIds.has(route.id);
-    const expanded = state.expandedRouteIds.has(route.id);
-    const result = route.lastResult;
-    const recommendation = result?.recommendation || null;
-    const fetchedAt = result?.fetchedAt || null;
-    const compareCandidates = result?.candidates || [];
-    const primary = getSelectedCandidate(route);
-    const selectedId = primary?.id || null;
-    const recommendedId = result?.recommendedId || null;
-    const isAlternateActive = Boolean(primary && recommendedId && primary.id !== recommendedId);
-    const totalMin = primary ? minuteNumber(primary.journeyMinutes || primary.scoreDisplay || primary.totalTime) : "--";
-    const transfer = primary ? Number(primary.transferCount || 0) : "--";
-    const walk = primary ? minuteNumber(primary.walkTime || primary.walkTimeText) : "--";
-    const note = primary
-      ? (primary.note || describeRecommendation(route, primary))
-      : "출발지와 도착지를 저장한 뒤 실시간으로 다시 계산하세요.";
-    const selectionBadge = isAlternateActive
-      ? `<div class="fast-selection-hint">선택한 대안 후보로 표시 중이에요${recommendation ? ` · 추천(${escapeHtml(getCandidateTitle(recommendation))})로 돌아가려면 추천 카드를 누르세요` : ""}</div>`
-      : "";
-    const tripStatus = getBoardingStatusForRoute(route.id);
-    const isBoardedHere = Boolean(tripStatus);
-    const boardingPanel = (() => {
-      if (isBoardedHere) {
-        const remain = Math.max(0, Number(tripStatus.remainingStops || 0));
-        const eta = tripStatus.etaMinutes;
-        return `
-          <div class="boarding-panel boarded" data-route-id="${escapeHtml(route.id)}">
-            <div class="boarding-panel-mascot" aria-hidden="true">
-              <svg width="52" height="48" viewBox="0 0 52 48" xmlns="http://www.w3.org/2000/svg">
-                <ellipse class="bm-shadow" cx="26" cy="42" rx="18" ry="3" fill="rgba(58, 44, 43, 0.16)"/>
-                <g class="bm-body">
-                  <rect x="6" y="8" width="40" height="28" rx="10" fill="#ffd6a0" stroke="#3a2c2b" stroke-width="2"/>
-                  <rect x="10" y="13" width="14" height="10" rx="3" fill="#fff8e7"/>
-                  <rect x="28" y="13" width="14" height="10" rx="3" fill="#fff8e7"/>
-                  <g class="bm-passenger">
-                    <circle cx="17" cy="18" r="2.6" fill="#3a2c2b"/>
-                    <rect x="15" y="19.5" width="4" height="3" rx="1" fill="#79cdb8"/>
-                    <path class="bm-arm" d="M19 19 L23 16" stroke="#3a2c2b" stroke-width="1.6" stroke-linecap="round"/>
-                  </g>
-                  <circle cx="16" cy="28" r="1.6" fill="#ff8aa6"/>
-                  <circle cx="36" cy="28" r="1.6" fill="#ff8aa6"/>
-                  <path d="M21 29 q5 3 10 0" stroke="#3a2c2b" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-                  <circle cx="20" cy="22" r="1.3" fill="#3a2c2b"/>
-                  <circle cx="32" cy="22" r="1.3" fill="#3a2c2b"/>
-                  <circle cx="20.5" cy="21.4" r="0.4" fill="#fff"/>
-                  <circle cx="32.5" cy="21.4" r="0.4" fill="#fff"/>
-                </g>
-                <g class="bm-wheels">
-                  <circle cx="14" cy="38" r="4" fill="#3a2c2b"/>
-                  <circle cx="38" cy="38" r="4" fill="#3a2c2b"/>
-                  <circle cx="14" cy="38" r="1.6" fill="#fff"/>
-                  <circle cx="38" cy="38" r="1.6" fill="#fff"/>
-                </g>
-                <g class="bm-sparkles">
-                  <text x="2" y="14" font-size="8" fill="#ffb479">✦</text>
-                  <text x="44" y="10" font-size="9" fill="#ff8aa6">✦</text>
-                  <text x="46" y="36" font-size="7" fill="#93bcff">✦</text>
-                </g>
-              </svg>
-            </div>
-            <div class="boarding-panel-info">
-              <span class="boarding-panel-tag">🎒 탑승 중</span>
-              <strong>${escapeHtml(tripStatus.alightingName || "하차 정류장")}까지 ${remain}정거장</strong>
-              ${eta != null ? `<span>약 ${escapeHtml(eta)}분 후 하차</span>` : '<span>버스 위치 추적 중…</span>'}
-            </div>
-            <button type="button" class="boarding-panel-btn end" data-action="end-boarding">하차</button>
-          </div>
-        `;
-      }
-      const previewVehicles = primary?.busApproachPreview?.vehicles || [];
-      if (!previewVehicles.length) return "";
-      const nextCatchable = previewVehicles.find((v) => v.catchable !== false);
-      const offered = nextCatchable || previewVehicles[0];
-      const isCatchable = offered.catchable !== false;
-      const routeNo = primary?.routeNo || "버스";
-      const vehicleLabel = offered.label || "다음";
-      const vehicleKeyAttr = offered.key != null ? ` data-vehicle-key="${escapeHtml(String(offered.key))}"` : "";
-      if (isCatchable) {
-        const etaText = offered.etaMinutes != null ? `${offered.etaMinutes}분 후 도착` : "곧 도착";
-        return `
-          <div class="boarding-panel">
-            <div class="boarding-panel-info">
-              <span class="boarding-panel-tag">🚌 탑승 시작</span>
-              <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaText)}</strong>
-              <span class="bus-availability-badge catchable">탈 수 있음</span>
-              <span>이 버스에 탑승하면 알려드릴게요</span>
-            </div>
-            <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
-          </div>
-        `;
-      }
-      const passedValue = offered.passedAgoMinutes ?? offered.etaMinutes;
-      const etaTextUncatchable = passedValue != null ? `${passedValue}분 전 통과` : "방금 통과";
-      return `
-        <div class="boarding-panel">
-          <div class="boarding-panel-info">
-            <span class="boarding-panel-tag">🚌 빨리 도착했나요?</span>
-            <strong>${escapeHtml(routeNo)} · ${escapeHtml(vehicleLabel)} ${escapeHtml(etaTextUncatchable)}</strong>
-            <span class="bus-availability-badge uncatchable">타기 어려움</span>
-            <span>예상보다 빨리 도착했다면 이 버스를 선택하세요</span>
-          </div>
-          <button type="button" class="boarding-panel-btn primary" data-action="start-boarding" data-id="${escapeHtml(route.id)}"${vehicleKeyAttr}>이 버스 탑승</button>
-        </div>
-      `;
-    })();
-    const detailsHtml = result ? `
-      <div class="detail-block">
-        <h3>${isAlternateActive ? "선택 후보 상세" : "추천 상세"}</h3>
-        ${renderSegments(primary?.segments)}
-      </div>
-      <div class="detail-block">
-        <h3>후보 메모</h3>
-        <div class="candidate-list">
-          ${compareCandidates.map((candidate) => renderCandidate(candidate, candidate.id === result.recommendedId)).join("")}
-        </div>
-      </div>
-    ` : `
-      <div class="detail-block">
-        <h3>다음 단계</h3>
-        <div class="empty-state">
-          <strong>루트는 저장되었지만 추천 데이터는 아직 없습니다</strong>
-          추천 갱신 버튼을 누르면 현재 기준으로 후보를 하나 골라 저장합니다.
-        </div>
-      </div>
-    `;
-
-    return `
-      <article class="route-card fast-card ${loading ? "loading" : ""} ${expanded ? "expanded" : ""} ${pinned ? "commute-pinned" : ""}">
-        <div class="route-main">
-          <section class="fast-trip-panel">
-            <div class="fast-trip-head">
-              <div class="fast-trip-title">
-                ${iconSvg("map", 16)}
-                <strong>${escapeHtml(route.from?.name || "출발지")} → ${escapeHtml(route.to?.name || "도착지")}</strong>
-              </div>
-              <div class="fast-trip-menu">
-                <button class="fast-icon-btn" data-action="edit" data-id="${escapeHtml(route.id)}" aria-label="편집">${iconSvg("edit", 15)}</button>
-                <button class="fast-icon-btn" data-action="delete" data-id="${escapeHtml(route.id)}" aria-label="삭제">${iconSvg("trash", 15)}</button>
-              </div>
-            </div>
-            ${primary ? renderFastFlow(primary, { routeId: route.id }) : ""}
-            <div class="fast-metrics">
-              <div class="fast-metric arrive">
-                <strong>${escapeHtml(totalMin)}</strong>
-                <span>도착 · 분</span>
-              </div>
-              <div class="fast-metric transfer">
-                <strong>${escapeHtml(transfer)}</strong>
-                <span>환승 · 회</span>
-              </div>
-              <div class="fast-metric walk">
-                <strong>${escapeHtml(walk)}</strong>
-                <span>도보 · 분</span>
-              </div>
-            </div>
-            <div class="fast-next-action">
-              <div class="label">먼저 할 일</div>
-              <div class="fast-next-row">
-                <strong>${escapeHtml(getFirstAction(primary))}</strong>
-                <span>→</span>
-              </div>
-            </div>
-            <div class="fast-note">${iconSvg("clock", 15)} <span>${escapeHtml(note)} · ${escapeHtml(relativeTime(fetchedAt))}</span></div>
-            ${selectionBadge}
-            ${boardingPanel}
-          </section>
-          <section class="fast-candidates">
-            ${compareCandidates.length ? compareCandidates.slice(0, 4).map((candidate, index) => renderFastCandidate(
-              candidate,
-              index,
-              candidate.id === result?.recommendedId,
-              { routeId: route.id, isSelected: candidate.id === selectedId }
-            )).join("") : ""}
-          </section>
-          <section class="fast-detail">
-            <button class="fast-detail-toggle" data-action="toggle" data-id="${escapeHtml(route.id)}">
-              <div>
-                <strong>상세 경로</strong>
-                <span>필요할 때만 펼쳐서 확인</span>
-              </div>
-              ${iconSvg("chevron", 20)}
-            </button>
-            <div class="route-details">${detailsHtml}</div>
-          </section>
-        </div>
-      </article>
-    `;
-  }
-
-  function getCommuteContext(date = new Date()) {
-    const hour = date.getHours();
-    if (hour >= 5 && hour < 12) return { phase: "morning", keyword: "출근", badge: "출근 시간" };
-    if (hour >= 16 && hour < 23) return { phase: "evening", keyword: "퇴근", badge: "퇴근 시간" };
-    return null;
-  }
-
-  function isCommutePinned(route, ctx) {
-    if (!ctx) return false;
-    return (route.label || "").includes(ctx.keyword);
-  }
-
-  function getOrderedRoutes() {
-    const ctx = getCommuteContext();
-    if (!ctx) return state.routes;
-    const pinned = [];
-    const rest = [];
-    for (const r of state.routes) {
-      if (isCommutePinned(r, ctx)) pinned.push(r);
-      else rest.push(r);
-    }
-    return pinned.length ? [...pinned, ...rest] : state.routes;
-  }
-
-  function teardownLiveMaps() {
-    Object.entries(state.liveMaps).forEach(([routeId, entry]) => {
-      if (entry?.animationFrame) cancelAnimationFrame(entry.animationFrame);
-      if (entry?.pollTimer) clearInterval(entry.pollTimer);
-      try {
-        entry?.approachPolyline?.setMap?.(null);
-        entry?.ridingPolyline?.setMap?.(null);
-        entry?.userOverlay?.setMap?.(null);
-        (entry?.stopOverlays || []).forEach((overlay) => { try { overlay?.setMap?.(null); } catch {} });
-        (entry?.busOverlays || []).forEach((bus) => { try { bus?.overlay?.setMap?.(null); } catch {} });
-      } catch {}
-    });
-    state.liveMaps = {};
-    Object.keys(state.liveMapTimers).forEach((routeId) => clearLiveMapTimer(routeId));
-  }
-
-  function renderRoutes() {
-    const list = document.getElementById("route-list");
-    const tabs = document.getElementById("route-tabs");
-    document.getElementById("route-count").textContent = state.routes.length + "개 루트";
-    if (state.routes.length === 0) {
-      list.innerHTML = renderEmptyCard();
-      if (tabs) tabs.innerHTML = "";
-      state.lastCommutePhase = getCommuteContext()?.phase || null;
-      teardownLiveMaps();
-      return;
-    }
-    const ctx = getCommuteContext();
-    teardownLiveMaps();
-    const orderedRoutes = getOrderedRoutes();
-    if (!orderedRoutes.find((route) => route.id === state.activeRouteId)) {
-      const pinned = orderedRoutes.find((route) => isCommutePinned(route, ctx));
-      state.activeRouteId = (pinned || orderedRoutes[0]).id;
-    }
-    list.innerHTML = orderedRoutes.map((route) => {
-      const html = renderRouteCard(route, ctx);
-      return html.replace('<article class="route-card', `<article data-route-id="${escapeHtml(route.id)}" class="route-card${route.id === state.activeRouteId ? " active" : ""}`);
-    }).join("");
-    renderRouteTabs(orderedRoutes);
-    requestAnimationFrame(initLiveTransitMaps);
-    state.lastCommutePhase = ctx?.phase || null;
-  }
-
-  function renderRouteTabs(routes) {
-    const tabs = document.getElementById("route-tabs");
-    if (!tabs) return;
-    if (!routes?.length) {
-      tabs.innerHTML = "";
-      return;
-    }
-    tabs.innerHTML = routes
-      .map((route) => `<button type="button" class="route-tab${route.id === state.activeRouteId ? " active" : ""}" data-route-tab="${escapeHtml(route.id)}">${escapeHtml(route.label || "루트")}</button>`)
-      .join("");
-  }
-
-  function setActiveRoute(routeId) {
-    if (!routeId || state.activeRouteId === routeId) return;
-    if (!state.routes.find((route) => route.id === routeId)) return;
-    state.activeRouteId = routeId;
-    renderRoutes();
-  }
-
-  async function triggerActiveRefresh(options = {}) {
-    const routeId = state.activeRouteId || (state.routes[0] && state.routes[0].id);
-    if (!routeId) {
-      if (!options.silent) showToast("새로고침할 루트가 없습니다");
-      return;
-    }
-    const btn = document.getElementById("header-refresh-btn");
-    if (btn) {
-      btn.classList.add("spinning");
-      btn.setAttribute("aria-busy", "true");
-    }
-    try {
-      await refreshRouteWithOptions(routeId, options);
-    } finally {
-      if (btn) {
-        btn.classList.remove("spinning");
-        btn.removeAttribute("aria-busy");
-      }
-    }
-  }
-
-  function setTrackingButton(active) {
-    const btn = document.getElementById("tracking-toggle-btn");
-    if (btn) btn.setAttribute("aria-pressed", active ? "true" : "false");
-  }
-
-  function toggleTracking() {
-    if (state.trackingActive) {
-      if (state.trackingTimer) clearInterval(state.trackingTimer);
-      state.trackingTimer = null;
-      state.trackingActive = false;
-      setTrackingButton(false);
-      showToast("이동 트래킹을 끕니다");
-      return;
-    }
-    if (!state.routes.length) {
-      showToast("저장된 루트가 없어요");
-      return;
-    }
-    state.trackingActive = true;
-    setTrackingButton(true);
-    startUserLocationWatch();
-    showToast("이동 트래킹을 시작합니다");
-    triggerActiveRefresh({ silent: true });
-    state.trackingTimer = setInterval(() => {
-      triggerActiveRefresh({ silent: true });
-    }, 60000);
-  }
-
-  function startBoarding(routeId, candidate, vehicleKey) {
-    const vehicles = candidate?.busApproachPreview?.vehicles || [];
-    const explicit = vehicleKey != null
-      ? vehicles.find((v) => String(v.key) === String(vehicleKey))
-      : null;
-    const target = explicit || vehicles.find((v) => v.catchable !== false) || vehicles[0];
-    if (!target || !target.key) {
-      showToast("탑승할 수 있는 버스가 없어요");
-      return;
-    }
-    state.boardedTrip = {
-      routeId,
-      candidateId: candidate.id,
-      vehicleKey: String(target.key),
-      vehicleLabel: target.label || "다음",
-      routeNo: candidate.routeNo,
-      startedAt: Date.now(),
-      alightingSeq: candidate.busApproachPreview?.alightingStationSeq || null,
-      alightingName: candidate.busApproachPreview?.alightingStopName || candidate.alightingStopName || null,
-      lastProgressSeq: Number(target.progressSeq) || 0,
-      remainingStops: target.remainingStops,
-      etaMinutes: target.etaMinutes
-    };
-    persistBoardedTrip();
-    showToast(`${candidate.routeNo || "버스"} 탑승을 시작합니다`);
-    renderRoutes();
-  }
-
-  function endBoarding(reason = "manual") {
-    if (!state.boardedTrip) return;
-    const name = state.boardedTrip.alightingName;
-    state.boardedTrip = null;
-    persistBoardedTrip();
-    if (reason === "alighting") {
-      showToast(name ? `${name} 도착! 하차 준비하세요` : "하차 정류장에 도착했어요");
-    } else if (reason === "manual") {
-      showToast("탑승을 종료했어요");
-    }
-    renderRoutes();
-  }
-
-  function getBoardingStatusForRoute(routeId) {
-    const trip = state.boardedTrip;
-    if (!trip || trip.routeId !== routeId) return null;
-    return trip;
-  }
-
-  function maybeInitialAutoRefresh() {
-    if (state.initialRefreshDone) return;
-    if (!state.routes.length) return;
-    state.initialRefreshDone = true;
-    triggerActiveRefresh({ silent: true });
-  }
-
-  function bindRouteTabs() {
-    const tabs = document.getElementById("route-tabs");
-    if (!tabs) return;
-    tabs.addEventListener("click", (event) => {
-      const target = event.target.closest("[data-route-tab]");
-      if (!target) return;
-      setActiveRoute(target.dataset.routeTab);
-    });
-  }
-
-  function shiftActiveRoute(direction) {
-    const routes = getOrderedRoutes();
-    if (routes.length < 2) return;
-    const currentIdx = routes.findIndex((route) => route.id === state.activeRouteId);
-    if (currentIdx < 0) return;
-    const nextIdx = direction > 0
-      ? Math.min(routes.length - 1, currentIdx + 1)
-      : Math.max(0, currentIdx - 1);
-    if (nextIdx !== currentIdx) setActiveRoute(routes[nextIdx].id);
-  }
-
-  function bindRouteSwipe() {
-    const list = document.getElementById("route-list");
-    if (!list) return;
-    const SWIPE_MIN_X = 45;
-    let startX = 0;
-    let startY = 0;
-    let tracking = false;
-    list.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      if (event.target.closest(".live-map, .fast-candidate, button, [data-action], a, input, textarea")) {
-        tracking = false;
-        return;
-      }
-      tracking = true;
-      startX = event.clientX;
-      startY = event.clientY;
-    }, { passive: true });
-    const finish = (event) => {
-      if (!tracking) return;
-      tracking = false;
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-      if (Math.abs(dx) < SWIPE_MIN_X || Math.abs(dx) <= Math.abs(dy)) return;
-      shiftActiveRoute(dx < 0 ? 1 : -1);
-    };
-    list.addEventListener("pointerup", finish, { passive: true });
-    list.addEventListener("pointercancel", () => { tracking = false; }, { passive: true });
-  }
-
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.add("show");
-    clearTimeout(showToast._timer);
-    showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
-  }
-
-  function updateMapPickButtons() {
-    ["from", "to"].forEach((selectionKey) => {
-      const button = document.getElementById(`route-${selectionKey}-map-pick-btn`);
-      if (!button) return;
-      const active = state.mapPickerTarget === selectionKey;
-      button.classList.toggle("active", active);
-      button.textContent = active ? "지도 열림" : "지도에서 찍기";
-    });
-  }
-
-  async function reverseGeocode(lat, lng) {
-    try {
-      const payload = await fetchJson(`/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}`);
-      return payload.location || null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function handleMapPick(selectionKey, lat, lng) {
-    const location = await reverseGeocode(lat, lng);
-    const fallbackName = selectionKey === "from" ? "지도 선택 출발지" : "지도 선택 도착지";
-    const picked = {
-      name: location?.name || fallbackName,
-      detail: location?.detail || `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-      kind: location?.kind || "지도 선택",
-      x: lng,
-      y: lat,
-      stationID: null
-    };
-
-    state.autocompleteSelection[selectionKey] = picked;
-    const input = document.getElementById(`route-${selectionKey}-input`);
-    if (input) input.value = picked.name;
-    closeMapPicker();
-    updateMapPickButtons();
-    updateLocationPreview(selectionKey, picked);
-    showToast(`${selectionKey === "from" ? "출발지" : "도착지"}를 지도에서 선택했습니다`);
-  }
-
-  function openMapPicker(selectionKey) {
-    state.mapPickerTarget = selectionKey;
-    updateMapPickButtons();
-    document.getElementById("map-picker-title").textContent = selectionKey === "from" ? "출발지를 지도에서 선택" : "도착지를 지도에서 선택";
-    document.getElementById("map-picker-subtitle").textContent = "큰 지도에서 정확한 위치를 누르면 즉시 저장됩니다.";
-    document.getElementById("map-picker-status").textContent = "핀을 찍을 지점을 찾은 뒤 지도를 한 번 눌러 선택하세요.";
-    document.getElementById("map-picker-overlay").classList.add("active");
-    renderMapPicker();
-  }
-
-  function closeMapPicker() {
-    const existing = state.previewMaps.mapPicker;
-    if (existing?.map) {
-      existing.map.remove();
-    }
-    delete state.previewMaps.mapPicker;
-    state.mapPickerTarget = null;
-    document.getElementById("map-picker-overlay").classList.remove("active");
-    updateMapPickButtons();
-  }
-
-  function renderMapPicker() {
-    const selectionKey = state.mapPickerTarget;
-    const mapEl = document.getElementById("map-picker-map");
-    if (!selectionKey || !mapEl) return;
-
-    const location = state.autocompleteSelection[selectionKey];
-    const lat = location?.y != null ? Number(location.y) : 37.5665;
-    const lng = location?.x != null ? Number(location.x) : 126.9780;
-    const zoom = location?.y != null && location?.x != null ? 16 : 13;
-
-    requestAnimationFrame(() => {
-      let preview = state.previewMaps.mapPicker;
-      if (!preview) {
-        mapEl.innerHTML = "";
-        if (typeof L === "undefined") {
-          mapEl.textContent = "지도를 불러오지 못했습니다.";
-          return;
-        }
-        const map = L.map("map-picker-map", {
-          zoomControl: true,
-          attributionControl: false,
-          dragging: true,
-          scrollWheelZoom: true,
-          doubleClickZoom: true,
-          touchZoom: true,
-          keyboard: false
-        });
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19
-        }).addTo(map);
-        let marker = null;
-        if (location?.x != null && location?.y != null) {
-          marker = L.marker([lat, lng]).addTo(map);
-        }
-        map.on("click", (event) => {
-          if (!state.mapPickerTarget) return;
-          handleMapPick(state.mapPickerTarget, event.latlng.lat, event.latlng.lng);
-        });
-        preview = { map, marker };
-        state.previewMaps.mapPicker = preview;
-      } else {
-        if (location?.x != null && location?.y != null) {
-          if (!preview.marker) {
-            preview.marker = L.marker([lat, lng]).addTo(preview.map);
-          } else {
-            preview.marker.setLatLng([lat, lng]);
-          }
-        }
-      }
-
-      preview.map.setView([lat, lng], zoom);
-      preview.map.invalidateSize();
-    });
-  }
-
-  function configureBrowserKey() {
-    const current = getBrowserOdsayKey();
-    const input = window.prompt(
-      "서버 호출이 막힐 때 브라우저에서 직접 ODsay를 호출할 키를 입력하세요. 비우고 저장하면 삭제됩니다.",
-      current
-    );
-    if (input === null) return;
-    setBrowserOdsayKey(input);
-    const kakaoInput = window.prompt(
-      "Kakao Maps JavaScript 키를 입력하세요. 비우고 저장하면 지도는 간이 live map으로 표시됩니다.",
-      getKakaoMapKey()
-    );
-    if (kakaoInput !== null) {
-      setKakaoMapKey(kakaoInput);
-      loadKakaoMaps.promise = null;
-      resolveKakaoMapKey.promise = null;
-      state.liveMaps = {};
-      requestAnimationFrame(initLiveTransitMaps);
-    }
-    updateOdsayKeyVisibility();
-    showToast(input.trim() || kakaoInput?.trim() ? "브라우저 키 설정을 저장했습니다" : "저장된 브라우저 키를 삭제했습니다");
-  }
-
-  function updateOdsayKeyVisibility() {
-    const btn = document.getElementById("key-settings-btn");
-    if (btn) btn.style.display = getBrowserOdsayKey() ? "none" : "";
-  }
-
-  async function resolveStationByName(name) {
-    const normalized = name.trim();
-    if (!normalized) throw new Error("역 이름이 비어 있습니다");
-    const result = await searchStations(normalized);
-    if (!result.stations.length) throw new Error('"' + normalized + '" 검색 결과가 없습니다');
-    return result.stations[0];
-  }
-
-  function buildRoutePayload(baseRoute, resolvedFrom, resolvedTo) {
-      return {
-        ...baseRoute,
-        from: resolvedFrom,
-        to: resolvedTo
-      };
-  }
-
-  async function refreshRoute(routeId) {
-    return refreshRouteWithOptions(routeId, {});
-  }
-
-  function getCurrentPositionAsync(options = { enableHighAccuracy: true, maximumAge: 15000, timeout: 8000 }) {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error("위치 정보를 사용할 수 없는 환경입니다"));
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (position) => resolve({ x: position.coords.longitude, y: position.coords.latitude }),
-        (error) => reject(new Error(error.message || "위치 정보를 가져오지 못했습니다")),
-        options
-      );
-    });
-  }
-
-  async function resolveCurrentLocationFrom() {
-    if (state.userLocation?.lat != null && state.userLocation?.lng != null) {
-      return { name: "현재 위치", isCurrentLocation: true, x: state.userLocation.lng, y: state.userLocation.lat, kind: "현재 위치" };
-    }
-    const coords = await getCurrentPositionAsync();
-    state.userLocation = { lat: coords.y, lng: coords.x };
-    return { name: "현재 위치", isCurrentLocation: true, x: coords.x, y: coords.y, kind: "현재 위치" };
-  }
-
-  async function refreshRouteWithOptions(routeId, options = {}) {
-    const route = state.routes.find((item) => item.id === routeId);
-    if (!route || state.loadingRouteIds.has(routeId)) return;
-    const silent = Boolean(options.silent);
-
-    state.loadingRouteIds.add(routeId);
-    const loadingCard = document.querySelector(`.route-card[data-route-id="${CSS.escape(routeId)}"]`);
-    if (loadingCard) loadingCard.classList.add("loading");
-
-    try {
-      const from = await resolveCurrentLocationFrom();
-      const to = route.to?.x != null && route.to?.y != null ? route.to : await resolveStationByName(route.to?.name || "");
-      const params = new URLSearchParams({
-        fromX: String(from.x),
-        fromY: String(from.y),
-        toX: String(to.x),
-        toY: String(to.y),
-        priority: "overview",
-        transportFilter: "bus"
-      });
-
-      let payload;
-      try {
-        payload = tagRoutePicks(await fetchJson("/api/routes?" + params.toString()));
-      } catch (error) {
-        payload = await fetchRouteRecommendationDirect(route, from, to);
-        if (!silent) {
-          showToast("서버 호출이 막혀 브라우저 직접 호출로 갱신했습니다");
-        }
-      }
-      const nextRoute = buildRoutePayload(route, from, to);
-      nextRoute.lastResult = payload;
-
-      state.routes = state.routes.map((item) => item.id === routeId ? nextRoute : item);
-      persistRoutes();
-      if (!silent) {
-        showToast("추천을 새로 갱신했습니다");
-      }
-    } catch (error) {
-      if (!silent) {
-        showToast(error.message || "추천 갱신에 실패했습니다");
-      }
-    } finally {
-      state.loadingRouteIds.delete(routeId);
-      renderRoutes();
-    }
-  }
-
-  function deleteRoute(routeId) {
-    if (state.boardedTrip?.routeId === routeId) {
-      state.boardedTrip = null;
-      persistBoardedTrip();
-    }
-    state.routes = state.routes.filter((route) => route.id !== routeId);
-    state.loadingRouteIds.delete(routeId);
-    state.expandedRouteIds.delete(routeId);
-    if (state.collapsedRouteIds.delete(routeId)) {
-      localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
-    }
-    delete state.selectedCandidateIds[routeId];
-    if (state.activeRouteId === routeId) state.activeRouteId = null;
-    clearLiveMapTimer(routeId);
-    persistRoutes();
-    renderRoutes();
-    showToast("루트를 삭제했습니다");
-  }
-
-  function openModal(routeId = null) {
-    state.modalRouteId = routeId;
-    state.mapPickerTarget = null;
-    const route = state.routes.find((item) => item.id === routeId) || null;
-
-    document.getElementById("modal-title").textContent = route ? "목적지 편집" : "새 목적지 추가";
-    document.getElementById("route-label-input").value = route?.label || "";
-    document.getElementById("route-to-input").value = route?.to?.name || "";
-
-    state.autocompleteSelection.from = null;
-    state.autocompleteSelection.to = route?.to?.x != null && route?.to?.y != null ? route.to : null;
-    updateMapPickButtons();
-    updateLocationPreview("to", state.autocompleteSelection.to);
-
-    setOptionGroupValue("priority", route?.priority || "fastest");
-
-    document.getElementById("modal-overlay").classList.add("active");
-  }
-
-  function closeModal() {
-    state.modalRouteId = null;
-    closeMapPicker();
-    state.autocompleteSelection.from = null;
-    state.autocompleteSelection.to = null;
-    updateMapPickButtons();
-    clearLocationPreview("to");
-    document.getElementById("route-to-dropdown").classList.remove("open");
-    document.getElementById("modal-overlay").classList.remove("active");
-  }
-
-  function setOptionGroupValue(group, value) {
-    document.querySelectorAll('[data-' + group + ']').forEach((card) => {
-      const active = card.dataset[group] === value;
-      card.classList.toggle("active", active);
-      const input = card.querySelector("input");
-      if (input) input.checked = active;
-    });
-  }
-
-  function getSelectedValue(name) {
-    return document.querySelector('input[name="' + name + '"]:checked')?.value;
-  }
-
-  async function saveRoute() {
-    const label = document.getElementById("route-label-input").value.trim() || "루트";
-    const toName = document.getElementById("route-to-input").value.trim();
-    const priority = getSelectedValue("priority") || "fastest";
-    const transportFilter = "bus";
-
-    if (!toName) {
-      showToast("목적지를 입력해주세요");
-      return;
-    }
-
-    const original = state.routes.find((item) => item.id === state.modalRouteId);
-
-    const from = { name: "현재 위치", isCurrentLocation: true, x: null, y: null, kind: "현재 위치" };
-
-    const to = state.autocompleteSelection.to && state.autocompleteSelection.to.name === toName
-      ? state.autocompleteSelection.to
-      : { name: toName, x: null, y: null };
-
-    const route = {
-      id: original?.id || uid(),
-      label,
-      from,
-      to,
-      priority,
-      transportFilter,
-      lastResult: original?.lastResult || null,
-      createdAt: original?.createdAt || nowStamp()
-    };
-
-    if (original) {
-      state.routes = state.routes.map((item) => item.id === route.id ? route : item);
-      showToast("루트 설정을 저장했습니다");
-    } else {
-      state.routes = [route, ...state.routes];
-      showToast("루트를 저장했습니다");
-    }
-
-    persistRoutes();
-    renderRoutes();
-    closeModal();
-  }
-
-  function toggleDetails(routeId) {
-    if (state.expandedRouteIds.has(routeId)) {
-      state.expandedRouteIds.delete(routeId);
-    } else {
-      state.expandedRouteIds.add(routeId);
-      state.collapsedRouteIds.delete(routeId);
-      localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
-    }
-    renderRoutes();
-  }
-
-  function toggleRouteCollapse(routeId) {
-    if (state.collapsedRouteIds.has(routeId)) {
-      state.collapsedRouteIds.delete(routeId);
-    } else {
-      state.collapsedRouteIds.add(routeId);
-      state.expandedRouteIds.delete(routeId);
-    }
-    localStorage.setItem(ROUTE_CARD_COLLAPSED_KEY, JSON.stringify([...state.collapsedRouteIds]));
-    renderRoutes();
-  }
-
-  function bindStaticEvents() {
-    document.getElementById("add-route-btn").addEventListener("click", () => openModal());
-    document.getElementById("key-settings-btn").addEventListener("click", configureBrowserKey);
-    document.getElementById("header-refresh-btn").addEventListener("click", () => triggerActiveRefresh({ silent: false }));
-    document.getElementById("tracking-toggle-btn").addEventListener("click", () => toggleTracking());
-    updateOdsayKeyVisibility();
-    document.getElementById("route-to-map-pick-btn").addEventListener("click", () => openMapPicker("to"));
-    document.getElementById("modal-close-btn").addEventListener("click", closeModal);
-    document.getElementById("modal-cancel-btn").addEventListener("click", closeModal);
-    document.getElementById("modal-save-btn").addEventListener("click", saveRoute);
-    document.getElementById("map-picker-close-btn").addEventListener("click", closeMapPicker);
-    document.getElementById("map-picker-cancel-btn").addEventListener("click", closeMapPicker);
-    document.getElementById("map-picker-overlay").addEventListener("click", (event) => {
-      if (event.target.id === "map-picker-overlay") closeMapPicker();
-    });
-    document.getElementById("modal-overlay").addEventListener("click", (event) => {
-      if (event.target.id === "modal-overlay") closeModal();
-    });
-
-    bindRouteTabs();
-    bindRouteSwipe();
-
-    document.getElementById("route-list").addEventListener("click", (event) => {
-      const target = event.target.closest("[data-action]");
-      if (!target) return;
-      const { action, id } = target.dataset;
-      if (action === "refresh") refreshRoute(id);
-      if (action === "collapse") toggleRouteCollapse(id);
-      if (action === "toggle") toggleDetails(id);
-      if (action === "edit") openModal(id);
-      if (action === "delete") deleteRoute(id);
-      if (action === "select-candidate") selectCandidate(id, target.dataset.candidateId);
-      if (action === "start-boarding") {
-        const route = state.routes.find((r) => r.id === id);
-        const candidate = route ? getSelectedCandidate(route) : null;
-        const vehicleKey = event.target.closest("[data-vehicle-key]")?.dataset.vehicleKey;
-        if (route && candidate) startBoarding(id, candidate, vehicleKey);
-      }
-      if (action === "end-boarding") endBoarding("manual");
-    });
-
-    document.querySelectorAll("#priority-options .option-card").forEach((card) => {
-      card.addEventListener("click", () => setOptionGroupValue("priority", card.dataset.priority));
-    });
-  }
-
-  function setupAutocomplete(inputId, dropdownId, selectionKey) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-    let currentItems = [];
-    let focusedIndex = -1;
-    let closeTimer = null;
-    let pointerInsideDropdown = false;
-
-    const renderDropdownShell = (previewContent, rightContent) => {
-      dropdown.innerHTML = `
-        <div class="autocomplete-panel">
-          <div class="autocomplete-preview${previewContent.empty ? " empty" : ""}" id="route-${selectionKey}-dropdown-preview">${previewContent.html}</div>
-          <div class="autocomplete-results">${rightContent}</div>
-        </div>
-      `;
-      dropdown.classList.add("open");
-    };
-
-    const renderDropdown = (items, loading = false, warnings = []) => {
-      currentItems = items;
-      focusedIndex = -1;
-      if (loading) {
-        renderDropdownShell(
-          { empty: true, html: "검색 중..." },
-          '<div class="autocomplete-empty">위치 후보를 불러오고 있습니다.</div>'
-        );
-        return;
-      }
-      if (!items.length) {
-        renderDropdownShell(
-          { empty: true, html: "검색 결과가 없어 위치를 미리 볼 수 없습니다." },
-          '<div class="autocomplete-empty">검색 결과 없음</div>' + (warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : "")
-        );
-        return;
-      }
-      const listHtml = items.map((station, index) => `
-        <div class="autocomplete-item ${index === 0 ? "focused" : ""}" data-index="${index}">
-          <span class="autocomplete-text">
-            <span class="autocomplete-name">${escapeHtml(station.name)}</span>
-            ${station.detail ? `<span class="autocomplete-detail">${escapeHtml(station.detail)}</span>` : ""}
-          </span>
-          <span class="autocomplete-meta">${escapeHtml(station.kind)}</span>
-        </div>
-      `).join("");
-
-      renderDropdownShell(
-        { empty: true, html: "목록에서 항목에 마우스를 올리거나 방향키로 이동하면 위치가 여기에 보입니다." },
-        `
-          <div class="autocomplete-results-head">
-            <strong>검색 결과</strong>
-            <span>${items.length}건</span>
-          </div>
-          <div class="autocomplete-scroll">${listHtml}</div>
-          ${warnings.length ? `<div class="autocomplete-warning">${escapeHtml(warnings.join(" / "))}</div>` : ""}
-        `
-      );
-      focusedIndex = 0;
-      updateAutocompletePreview(selectionKey, items[0]);
-    };
-
-    const closeDropdown = () => {
-      clearTimeout(closeTimer);
-      closeTimer = null;
-      dropdown.classList.remove("open");
-      focusedIndex = -1;
-      clearAutocompletePreview(selectionKey);
-    };
-
-    const scheduleCloseDropdown = () => {
-      clearTimeout(closeTimer);
-      closeTimer = setTimeout(() => {
-        if (pointerInsideDropdown) return;
-        closeDropdown();
-      }, 180);
-    };
-
-    const selectItem = (station) => {
-      state.mapPickerTarget = null;
-      updateMapPickButtons();
-      state.autocompleteSelection[selectionKey] = station;
-      input.value = station.name;
-      updateLocationPreview(selectionKey, station);
-      closeDropdown();
-    };
-
-    const debouncedSearch = debounce(async () => {
-      const value = input.value.trim();
-      if (value.length < AUTOCOMPLETE_MIN_LENGTH) {
-        closeDropdown();
-        return;
-      }
-      renderDropdown([], true);
-      try {
-        const result = await searchStations(value);
-        renderDropdown(result.stations, false, result.warnings);
-      } catch (error) {
-        renderDropdownShell(
-          { empty: true, html: "검색을 완료하지 못했습니다." },
-          '<div class="autocomplete-empty">' + escapeHtml(error.message || "검색 실패") + '</div>'
-        );
-      }
-    }, 320);
-
-    input.addEventListener("input", () => {
-      if (state.mapPickerTarget === selectionKey) {
-        state.mapPickerTarget = null;
-        updateMapPickButtons();
-      }
-      state.autocompleteSelection[selectionKey] = null;
-      clearLocationPreview(selectionKey);
-      debouncedSearch();
-    });
-
-    input.addEventListener("keydown", (event) => {
-      if (!dropdown.classList.contains("open")) return;
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        focusedIndex = Math.min(focusedIndex + 1, currentItems.length - 1);
-      } else if (event.key === "ArrowUp") {
-        event.preventDefault();
-        focusedIndex = Math.max(focusedIndex - 1, 0);
-      } else if (event.key === "Enter") {
-        if (focusedIndex >= 0 && currentItems[focusedIndex]) {
-          event.preventDefault();
-          selectItem(currentItems[focusedIndex]);
-        }
-      } else if (event.key === "Escape") {
-        closeDropdown();
-      } else {
-        return;
-      }
-
-      dropdown.querySelectorAll(".autocomplete-item").forEach((item, index) => {
-        item.classList.toggle("focused", index === focusedIndex);
-      });
-      if (focusedIndex >= 0 && currentItems[focusedIndex]) {
-        updateAutocompletePreview(selectionKey, currentItems[focusedIndex]);
-      }
-    });
-
-    dropdown.addEventListener("mousedown", (event) => {
-      const item = event.target.closest("[data-index]");
-      if (!item) return;
-      event.preventDefault();
-      selectItem(currentItems[Number(item.dataset.index)]);
-    });
-
-    dropdown.addEventListener("mousemove", (event) => {
-      const item = event.target.closest("[data-index]");
-      if (!item) return;
-      const index = Number(item.dataset.index);
-      if (!Number.isNaN(index) && currentItems[index]) {
-        focusedIndex = index;
-        dropdown.querySelectorAll(".autocomplete-item").forEach((node, nodeIndex) => {
-          node.classList.toggle("focused", nodeIndex === focusedIndex);
-        });
-        updateAutocompletePreview(selectionKey, currentItems[index]);
-      }
-    });
-
-    dropdown.addEventListener("mouseenter", () => {
-      pointerInsideDropdown = true;
-      clearTimeout(closeTimer);
-      closeTimer = null;
-    });
-
-    dropdown.addEventListener("mouseleave", () => {
-      pointerInsideDropdown = false;
-      if (document.activeElement !== input) {
-        scheduleCloseDropdown();
-      }
-    });
-
-    input.addEventListener("focus", () => {
-      clearTimeout(closeTimer);
-      closeTimer = null;
-    });
-
-    input.addEventListener("blur", () => {
-      scheduleCloseDropdown();
-    });
-  }
-
-  function debounce(fn, ms) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => fn(...args), ms);
-    };
-  }
-
-  if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone) {
-    document.body.classList.add("is-standalone");
-  }
-
-  localStorage.removeItem("transit-station-cache");
-  bindStaticEvents();
-  updateMapPickButtons();
-  setupAutocomplete("route-to-input", "route-to-dropdown", "to");
-  setOptionGroupValue("priority", "fastest");
-  updateClock();
-  setInterval(updateClock, 10000);
-  renderRoutes();
-  maybeInitialAutoRefresh();
-
-  function tickCountdowns() {
-    const nowMs = Date.now();
-
-    document.querySelectorAll("[data-arrive-at]").forEach((node) => {
-      if (!node.classList.contains("promoted")) {
-        const deadline = node.getAttribute("data-fallback-deadline");
-        const fbArrive = node.getAttribute("data-fallback-arrive-at");
-        if (deadline && fbArrive && new Date(deadline).getTime() <= nowMs) {
-          node.setAttribute("data-arrive-at", fbArrive);
-          node.classList.add("promoted");
-          const label = node.querySelector("[data-arrive-label]");
-          if (label) label.textContent = `${formatClock(fbArrive)} 도착`;
-          const note = node.querySelector("[data-journey-note]");
-          if (note) note.textContent = "첫 차 놓침 · 같은 노선 다음 차 기준";
-          document.querySelectorAll(`[data-fallback-row][data-fallback-deadline="${deadline}"]`).forEach((row) => {
-            row.classList.add("consumed");
-          });
-        }
-      }
-
-      const iso = node.getAttribute("data-arrive-at");
-      const cd = formatCountdown(iso, nowMs);
-      const badge = node.querySelector("[data-countdown-arrive]");
-      if (!badge) return;
-      badge.textContent = cd.text;
-      badge.classList.remove("urgent", "missed");
-      if (cd.state === "urgent") badge.classList.add("urgent");
-      if (cd.state === "missed") badge.classList.add("missed");
-    });
-
-    document.querySelectorAll("[data-countdown-eta]").forEach((node) => {
-      const iso = node.getAttribute("data-countdown-eta");
-      const target = new Date(iso).getTime();
-      if (Number.isNaN(target)) return;
-      const diffSec = Math.round((target - nowMs) / 1000);
-      const parent = node.closest(".bus-line-bus");
-      if (diffSec < 0) {
-        node.textContent = `${Math.max(1, Math.ceil(-diffSec / 60))}분 전 통과`;
-        if (parent) parent.classList.add("uncatchable");
-      } else if (diffSec < 60) {
-        node.textContent = `${diffSec}초 후`;
-      } else if (diffSec < 300) {
-        node.textContent = `${Math.floor(diffSec / 60)}분 ${diffSec % 60}초 후`;
-      } else {
-        node.textContent = `${Math.round(diffSec / 60)}분 후`;
-      }
-    });
-  }
-
-  tickCountdowns();
-  setInterval(tickCountdowns, 1000);
-</script>
+<script type="module" src="./js/app.js"></script>
 </body>
 </html>
