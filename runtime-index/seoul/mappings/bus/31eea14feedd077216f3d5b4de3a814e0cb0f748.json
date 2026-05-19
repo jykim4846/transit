@@ -1,0 +1,19 @@
+{
+  "key": "31eea14feedd077216f3d5b4de3a814e0cb0f748",
+  "mapping": {
+    "routeNo": "740",
+    "routeId": "100100537",
+    "stationId": "112000005",
+    "stationSeq": 11,
+    "stationName": "모래내시장.가좌역",
+    "alightingStationId": "113000089",
+    "alightingStationSeq": 23,
+    "alightingStationName": "공덕역1번출구",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T00:11:22.069Z"
+  },
+  "source": "odsay_direct"
+}
