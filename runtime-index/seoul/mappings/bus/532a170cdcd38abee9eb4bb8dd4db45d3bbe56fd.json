@@ -1,0 +1,19 @@
+{
+  "key": "532a170cdcd38abee9eb4bb8dd4db45d3bbe56fd",
+  "mapping": {
+    "routeNo": "140",
+    "routeId": "100100019",
+    "stationId": "121000012",
+    "stationSeq": 52,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "102000068",
+    "alightingStationSeq": 57,
+    "alightingStationName": "순천향대학병원",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T08:42:31.230Z"
+  },
+  "source": "odsay_direct"
+}
