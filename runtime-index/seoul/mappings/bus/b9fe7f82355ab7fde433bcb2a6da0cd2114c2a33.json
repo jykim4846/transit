@@ -1,0 +1,19 @@
+{
+  "key": "b9fe7f82355ab7fde433bcb2a6da0cd2114c2a33",
+  "mapping": {
+    "routeNo": "N75",
+    "routeId": "111000016",
+    "stationId": "121000012",
+    "stationSeq": 118,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "112000061",
+    "alightingStationSeq": 144,
+    "alightingStationName": "동교동삼거리연희동방면",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T08:42:29.121Z"
+  },
+  "source": "odsay_direct"
+}
