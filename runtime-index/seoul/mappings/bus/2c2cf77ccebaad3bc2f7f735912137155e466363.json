@@ -1,0 +1,19 @@
+{
+  "key": "2c2cf77ccebaad3bc2f7f735912137155e466363",
+  "mapping": {
+    "routeNo": "640",
+    "routeId": "100100093",
+    "stationId": "121000091",
+    "stationSeq": 41,
+    "stationName": "강남역9번출구",
+    "alightingStationId": "118000525",
+    "alightingStationSeq": 58,
+    "alightingStationName": "대방역6번출구",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T09:14:54.754Z"
+  },
+  "source": "odsay_direct"
+}
