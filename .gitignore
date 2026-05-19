@@ -4,4 +4,6 @@
 .env
 .runtime-index/
 .playwright-mcp/
+playwright-report/
+test-results/
 node_modules/

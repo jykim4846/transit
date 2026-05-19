@@ -8,6 +8,10 @@ const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
 const BUS_POLL_BASE_DELAY_MS = 20000;
 const BUS_POLL_MAX_DELAY_MS = 90000;
 
+function isE2EFastPoll() {
+  return Boolean(window.__TRANSIT_E2E_FAST_POLL);
+}
+
 let getSelectedCandidate = () => null;
 let endBoarding = () => {};
 
@@ -495,8 +499,11 @@ function vehiclesForMap(preview, routeId) {
 }
 
 function setLiveMapStatus(entry, message, options = {}) {
-  const container = entry?.container;
+  const container = entry?.container?.isConnected
+    ? entry.container
+    : (options.retryRouteId ? document.querySelector(`[data-live-map][data-route-id="${CSS.escape(options.retryRouteId)}"]`) : entry?.container);
   if (!container) return;
+  if (entry && entry.container !== container) entry.container = container;
   let chip = container.querySelector("[data-live-map-status]");
   if (!message) {
     chip?.remove();
@@ -515,6 +522,7 @@ function setLiveMapStatus(entry, message, options = {}) {
 }
 
 function nextPollDelay(failures) {
+  if (isE2EFastPoll()) return 50;
   const multiplier = Math.min(4, Math.max(0, failures));
   return Math.min(BUS_POLL_MAX_DELAY_MS, BUS_POLL_BASE_DELAY_MS * (2 ** multiplier));
 }
@@ -542,9 +550,11 @@ function startBusPolling(routeId, candidate, options = {}) {
   };
   const markFailure = () => {
     const current = state.liveMaps[routeId];
-    if (!current || current.pollVersion !== pollVersion) return;
+    if (!current) return;
     current.pollFailures = (current.pollFailures || 0) + 1;
-    if (current.pollFailures >= 3) {
+    if (isE2EFastPoll()) window.__TRANSIT_E2E_POLL_FAILURES = current.pollFailures;
+    const failureThreshold = isE2EFastPoll() ? 1 : 3;
+    if (current.pollFailures >= failureThreshold) {
       const last = current.lastPollSuccessAt
         ? `마지막 연결 ${new Date(current.lastPollSuccessAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`
         : "최근 위치 유지 중";

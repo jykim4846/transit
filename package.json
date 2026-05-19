@@ -7,8 +7,10 @@
     "check:js": "node scripts/check-js-modules.js",
     "check:api": "node scripts/check-api-modules.js",
     "check:browser": "node scripts/check-browser-regressions.js",
-    "test": "node --test",
+    "test:e2e": "playwright test",
+    "test": "node --test test/*.test.js",
     "verify": "npm run check:js && npm run check:api && npm run check:browser && npm test",
+    "verify:full": "npm run verify && npm run test:e2e",
     "smoke:prod": "node scripts/smoke-production.js"
   },
   "repository": {
@@ -21,5 +23,8 @@
   "type": "commonjs",
   "dependencies": {
     "node-xlsx": "^0.24.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
   }
 }
