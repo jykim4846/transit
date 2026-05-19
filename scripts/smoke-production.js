@@ -13,20 +13,26 @@ async function getJson(path) {
   return JSON.parse(text);
 }
 
+function assertIncludes(haystack, needle, label) {
+  if (!haystack.includes(needle)) {
+    throw new Error(`${label} did not include ${needle}`);
+  }
+}
+
 async function main() {
   const cacheKey = `v=${Date.now()}`;
   const html = await getText(`/?${cacheKey}`);
-  assert.match(html, /토닥버스/);
-  assert.match(html, /permission-notice/);
-  assert.match(html, /live-map-status-chip/);
+  assertIncludes(html, "토닥버스", "html");
+  assertIncludes(html, "permission-notice", "html");
+  assertIncludes(html, "live-map-status-chip", "html");
 
   const liveMap = await getText(`/js/live-map.js?${cacheKey}`);
-  assert.match(liveMap, /retryLiveMap/);
-  assert.match(liveMap, /BUS_POLL_MAX_DELAY_MS/);
+  assertIncludes(liveMap, "retryLiveMap", "live-map.js");
+  assertIncludes(liveMap, "BUS_POLL_MAX_DELAY_MS", "live-map.js");
 
   const app = await getText(`/js/app.js?${cacheKey}`);
-  assert.match(app, /visibilitychange/);
-  assert.match(app, /permission-notice/);
+  assertIncludes(app, "visibilitychange", "app.js");
+  assertIncludes(app, "permission-notice", "app.js");
 
   const stations = await getJson("/api/stations?q=%EA%B0%95%EB%82%A8%EC%97%AD");
   assert.equal(Array.isArray(stations.stations), true);
