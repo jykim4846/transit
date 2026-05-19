@@ -27,6 +27,15 @@ export function formatTime(dateLike) {
   });
 }
 
+export function formatShortTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 export function relativeTime(dateLike) {
   if (!dateLike) return "아직 추천을 가져오지 않았습니다";
   const diffMin = Math.max(0, Math.floor((Date.now() - new Date(dateLike).getTime()) / 60000));

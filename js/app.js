@@ -1,6 +1,6 @@
 import { escapeHtml } from "./util.js";
 import { state } from "./state.js";
-import { configureLiveMapRuntime, initLiveTransitMaps, stopUserLocationWatch, teardownLiveMaps, startUserLocationWatch } from "./live-map.js";
+import { configureLiveMapRuntime, initLiveTransitMaps, retryLiveMap, stopUserLocationWatch, teardownLiveMaps, startUserLocationWatch } from "./live-map.js";
 import { renderEmptyCard, renderRouteCard } from "./route-card.js";
 import {
   configureLocationUi,
@@ -31,6 +31,7 @@ import { configureSettingsUi, configureBrowserKey, updateOdsayKeyVisibility } fr
 import { configureRouteNavigation, bindRouteTabs, bindRouteSwipe } from "./route-navigation.js";
 import { getCommuteContext, isCommutePinned, getOrderedRoutes } from "./commute.js";
 import { configureRouteSelection, getSelectedCandidate, selectCandidate } from "./route-selection.js";
+import { getGeolocationPermissionState } from "./location-permission.js";
 
 function updateClock() {
   const now = new Date();
@@ -139,6 +140,36 @@ function showToast(message) {
   showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
+function permissionCopy(permissionState) {
+  if (permissionState === "granted") return null;
+  if (permissionState === "denied") {
+    return {
+      className: "blocked",
+      text: "위치 권한이 차단되어 있어요. 브라우저 주소창 또는 OS 설정에서 위치를 허용하면 현재 위치 재검색과 트래킹이 다시 작동합니다."
+    };
+  }
+  return {
+    className: "prompt",
+    text: "위치 권한은 브라우저가 저장합니다. 한 번 허용하면 보통 다시 묻지 않지만, 시크릿 모드나 권한 초기화 상태에서는 다시 요청될 수 있어요."
+  };
+}
+
+async function updatePermissionNotice() {
+  const notice = document.getElementById("permission-notice");
+  if (!notice) return;
+  const permissionState = await getGeolocationPermissionState();
+  const copy = permissionCopy(permissionState || state.locationPermissionState);
+  if (!copy) {
+    notice.hidden = true;
+    notice.textContent = "";
+    notice.className = "permission-notice";
+    return;
+  }
+  notice.hidden = false;
+  notice.className = `permission-notice ${copy.className}`;
+  notice.textContent = copy.text;
+}
+
 configureLocationUi({ showToast });
 configureRouteActions({ renderRoutes, showToast });
 configureTracking({ triggerActiveRefresh, showToast });
@@ -178,6 +209,7 @@ function bindStaticEvents() {
     if (action === "edit") openModal(id);
     if (action === "delete") deleteRoute(id);
     if (action === "select-candidate") selectCandidate(id, target.dataset.candidateId);
+    if (action === "retry-live-map") retryLiveMap(id);
     if (action === "start-boarding") {
       const route = state.routes.find((r) => r.id === id);
       const candidate = route ? getSelectedCandidate(route) : null;
@@ -199,6 +231,7 @@ function bindStaticEvents() {
     if (state.trackingActive) {
       startUserLocationWatch({ requestIfPrompt: false });
     }
+    updatePermissionNotice();
   });
 }
 
@@ -216,3 +249,4 @@ setInterval(updateClock, 10000);
 renderRoutes();
 maybeInitialAutoRefresh();
 startCountdowns();
+updatePermissionNotice();

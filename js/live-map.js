@@ -5,6 +5,8 @@ import { canRequestGeolocation } from "./location-permission.js";
 import { inferSegmentType, updateBoardingPanelDOM } from "./render.js";
 
 const LIVE_MAP_LOAD_TIMEOUT_MS = 5000;
+const BUS_POLL_BASE_DELAY_MS = 20000;
+const BUS_POLL_MAX_DELAY_MS = 90000;
 
 let getSelectedCandidate = () => null;
 let endBoarding = () => {};
@@ -492,7 +494,7 @@ function vehiclesForMap(preview, routeId) {
   return vehicles;
 }
 
-function setLiveMapStatus(entry, message) {
+function setLiveMapStatus(entry, message, options = {}) {
   const container = entry?.container;
   if (!container) return;
   let chip = container.querySelector("[data-live-map-status]");
@@ -506,12 +508,26 @@ function setLiveMapStatus(entry, message) {
     chip.dataset.liveMapStatus = "true";
     container.appendChild(chip);
   }
-  chip.textContent = message;
+  const retry = options.retryRouteId
+    ? ` <button type="button" data-action="retry-live-map" data-id="${escapeHtml(options.retryRouteId)}">재연결</button>`
+    : "";
+  chip.innerHTML = `${escapeHtml(message)}${retry}`;
 }
 
-function startBusPolling(routeId, candidate) {
+function nextPollDelay(failures) {
+  const multiplier = Math.min(4, Math.max(0, failures));
+  return Math.min(BUS_POLL_MAX_DELAY_MS, BUS_POLL_BASE_DELAY_MS * (2 ** multiplier));
+}
+
+function startBusPolling(routeId, candidate, options = {}) {
   stopBusPolling(routeId);
   if (!candidate?.busRouteId || !candidate?.boardingStationId) return;
+  const entry = state.liveMaps[routeId];
+  if (!entry) return;
+  entry.pollStopped = false;
+  entry.pollVersion = (entry.pollVersion || 0) + 1;
+  const pollVersion = entry.pollVersion;
+  if (options.resetFailures) entry.pollFailures = 0;
   const params = new URLSearchParams({
     routeId: String(candidate.busRouteId),
     boardingStationId: String(candidate.boardingStationId),
@@ -519,35 +535,60 @@ function startBusPolling(routeId, candidate) {
     walkMinutes: String(candidate.initialWalkTime || 0)
   });
   const url = `/api/bus-positions?${params.toString()}`;
+  const schedule = () => {
+    const current = state.liveMaps[routeId];
+    if (!current || current.pollStopped || current.pollVersion !== pollVersion) return;
+    current.pollTimer = setTimeout(poll, nextPollDelay(current.pollFailures || 0));
+  };
+  const markFailure = () => {
+    const current = state.liveMaps[routeId];
+    if (!current || current.pollVersion !== pollVersion) return;
+    current.pollFailures = (current.pollFailures || 0) + 1;
+    if (current.pollFailures >= 3) {
+      const last = current.lastPollSuccessAt
+        ? `마지막 연결 ${new Date(current.lastPollSuccessAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}`
+        : "최근 위치 유지 중";
+      setLiveMapStatus(current, `실시간 위치 연결이 불안정해요 · ${last}`, { retryRouteId: routeId });
+    }
+  };
   const poll = async () => {
     const entry = state.liveMaps[routeId];
     if (!entry?.map) return;
     try {
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) {
-        entry.pollFailures = (entry.pollFailures || 0) + 1;
-        if (entry.pollFailures >= 3) setLiveMapStatus(entry, "실시간 위치 연결이 불안정해요");
+        markFailure();
         return;
       }
       const data = await response.json();
       entry.pollFailures = 0;
+      entry.lastPollSuccessAt = Date.now();
       setLiveMapStatus(entry, "");
       updateLiveVehicles(routeId, data?.preview);
     } catch {
-      entry.pollFailures = (entry.pollFailures || 0) + 1;
-      if (entry.pollFailures >= 3) setLiveMapStatus(entry, "실시간 위치 연결이 불안정해요");
+      markFailure();
+    } finally {
+      schedule();
     }
   };
-  state.liveMaps[routeId].pollTimer = setInterval(poll, 20000);
   poll();
 }
 
 function stopBusPolling(routeId) {
   const entry = state.liveMaps[routeId];
   if (entry?.pollTimer) {
-    clearInterval(entry.pollTimer);
+    clearTimeout(entry.pollTimer);
     entry.pollTimer = null;
   }
+  if (entry) entry.pollStopped = true;
+}
+
+export function retryLiveMap(routeId) {
+  const route = state.routes.find((item) => item.id === routeId);
+  const candidate = route ? getSelectedCandidate(route) : null;
+  const entry = state.liveMaps[routeId];
+  if (entry) setLiveMapStatus(entry, "실시간 위치를 다시 연결하고 있어요");
+  startBusPolling(routeId, candidate, { resetFailures: true });
 }
 
 function tweenOverlayPosition(maps, overlay, fromPos, toPos, durationMs = 700) {
@@ -638,7 +679,7 @@ function updateLiveVehicles(routeId, preview) {
 export function teardownLiveMaps() {
   Object.values(state.liveMaps).forEach((entry) => {
     if (entry?.animationFrame) cancelAnimationFrame(entry.animationFrame);
-    if (entry?.pollTimer) clearInterval(entry.pollTimer);
+    if (entry?.pollTimer) clearTimeout(entry.pollTimer);
     try {
       entry?.approachPolyline?.setMap?.(null);
       entry?.ridingPolyline?.setMap?.(null);

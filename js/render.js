@@ -1,4 +1,5 @@
-import { escapeHtml, minuteNumber } from "./util.js";
+import { escapeHtml, minuteNumber, formatShortTime } from "./util.js";
+import { BOARDED_TRIP_MAX_AGE_MS } from "./constants.js";
 
 // ---- Pure data helpers used by renderers ----
 
@@ -385,11 +386,15 @@ export function renderBusApproachPreview(preview) {
 export function updateBoardingPanelDOM(routeId, trip) {
   const panel = document.querySelector(`.boarding-panel.boarded[data-route-id="${CSS.escape(routeId)}"]`);
   if (!panel) return;
+  const started = formatShortTime(trip.startedAt);
+  const expires = formatShortTime(Number(trip.startedAt) + BOARDED_TRIP_MAX_AGE_MS);
+  const tripMeta = [started ? `${started} 탑승 시작` : "", expires ? `${expires}까지 유지` : ""].filter(Boolean).join(" · ");
   panel.innerHTML = `
       <div class="boarding-panel-info">
         <span class="boarding-panel-tag">탑승 중 🚌</span>
         <strong>${escapeHtml(trip.alightingName || "하차 정류장")}까지 ${escapeHtml(trip.remainingStops ?? "-")}정거장</strong>
         ${trip.etaMinutes != null ? `<span>약 ${escapeHtml(trip.etaMinutes)}분 후 하차</span>` : ""}
+        ${tripMeta ? `<span class="boarding-panel-meta">${escapeHtml(tripMeta)}</span>` : ""}
       </div>
       <button type="button" class="boarding-panel-btn" data-action="end-boarding">하차했어요</button>
     `;

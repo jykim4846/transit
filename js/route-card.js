@@ -1,5 +1,6 @@
-import { escapeHtml, relativeTime, minuteNumber } from "./util.js";
+import { escapeHtml, relativeTime, minuteNumber, formatShortTime } from "./util.js";
 import { state } from "./state.js";
+import { BOARDED_TRIP_MAX_AGE_MS } from "./constants.js";
 import {
   describeRecommendation,
   iconSvg,
@@ -115,6 +116,9 @@ export function renderRouteCard(route, options = {}) {
     if (isBoardedHere) {
       const remain = Math.max(0, Number(tripStatus.remainingStops || 0));
       const eta = tripStatus.etaMinutes;
+      const started = formatShortTime(tripStatus.startedAt);
+      const expires = formatShortTime(Number(tripStatus.startedAt) + BOARDED_TRIP_MAX_AGE_MS);
+      const tripMeta = [started ? `${started} 탑승 시작` : "", expires ? `${expires}까지 유지` : ""].filter(Boolean).join(" · ");
       return `
         <div class="boarding-panel boarded" data-route-id="${escapeHtml(route.id)}">
           <div class="boarding-panel-mascot" aria-hidden="true">
@@ -154,6 +158,7 @@ export function renderRouteCard(route, options = {}) {
             <span class="boarding-panel-tag">🎒 탑승 중</span>
             <strong>${escapeHtml(tripStatus.alightingName || "하차 정류장")}까지 ${remain}정거장</strong>
             ${eta != null ? `<span>약 ${escapeHtml(eta)}분 후 하차</span>` : '<span>버스 위치 추적 중…</span>'}
+            ${tripMeta ? `<span class="boarding-panel-meta">${escapeHtml(tripMeta)}</span>` : ""}
           </div>
           <button type="button" class="boarding-panel-btn end" data-action="end-boarding">하차</button>
         </div>

@@ -2141,6 +2141,31 @@
     border-color: rgba(71, 57, 29, 0.22);
   }
 
+  .permission-notice {
+    margin: -4px 2px 14px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(126, 86, 109, 0.14);
+    background: rgba(255, 255, 255, 0.74);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.45;
+    box-shadow: 0 10px 22px rgba(107, 75, 96, 0.08);
+  }
+
+  .permission-notice.prompt {
+    border-color: rgba(37, 99, 235, 0.18);
+    background: rgba(239, 246, 255, 0.78);
+    color: #31588f;
+  }
+
+  .permission-notice.blocked {
+    border-color: rgba(197, 99, 31, 0.24);
+    background: rgba(255, 247, 237, 0.86);
+    color: #9a4e18;
+  }
+
   .route-list {
     gap: 16px;
   }
@@ -2418,6 +2443,18 @@
     letter-spacing: 0;
     box-shadow: 0 8px 18px rgba(59, 43, 53, 0.18);
     backdrop-filter: blur(10px);
+  }
+
+  .live-map-status-chip button {
+    margin-left: 8px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #3b2b35;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: 900;
+    cursor: pointer;
   }
 
   .kakao-bus-overlay {
@@ -3073,6 +3110,12 @@
   .boarding-panel span:not(.boarding-panel-tag) {
     font-size: 12px;
     color: var(--text-muted);
+  }
+
+  .boarding-panel .boarding-panel-meta {
+    color: var(--text-soft);
+    font-size: 11px;
+    font-weight: 700;
   }
 
   .boarding-panel-btn {
@@ -4452,6 +4495,7 @@
         <button class="btn btn-secondary btn-compact" id="tracking-toggle-btn" aria-label="이동 트래킹 토글" aria-pressed="false">트래킹</button>
         <button class="btn btn-secondary btn-compact" id="key-settings-btn" aria-label="키 설정" hidden>키</button>
       </div>
+      <div class="permission-notice" id="permission-notice" hidden></div>
       <section>
     <div class="route-tabs" id="route-tabs"></div>
     <div class="route-list" id="route-list"></div>

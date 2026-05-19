@@ -6,8 +6,10 @@
   "scripts": {
     "check:js": "node scripts/check-js-modules.js",
     "check:api": "node scripts/check-api-modules.js",
+    "check:browser": "node scripts/check-browser-regressions.js",
     "test": "node --test",
-    "verify": "npm run check:js && npm run check:api && npm test"
+    "verify": "npm run check:js && npm run check:api && npm run check:browser && npm test",
+    "smoke:prod": "node scripts/smoke-production.js"
   },
   "repository": {
     "type": "git",
