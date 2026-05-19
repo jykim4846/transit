@@ -1,0 +1,14 @@
+{
+  "routeNo": "5712",
+  "collectedAt": "2026-05-19T00:27:38.820Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100286",
+      "routeNo": "5712",
+      "routeType": "4",
+      "startName": "가산동기점",
+      "endName": "홍대입구역"
+    }
+  ]
+}
