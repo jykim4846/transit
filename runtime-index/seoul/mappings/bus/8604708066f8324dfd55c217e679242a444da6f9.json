@@ -1,0 +1,19 @@
+{
+  "key": "8604708066f8324dfd55c217e679242a444da6f9",
+  "mapping": {
+    "routeNo": "400",
+    "routeId": "100100596",
+    "stationId": "121000012",
+    "stationSeq": 12,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "102000100",
+    "alightingStationSeq": 19,
+    "alightingStationName": "한남동주민센터",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T09:29:27.066Z"
+  },
+  "source": "odsay_direct"
+}
