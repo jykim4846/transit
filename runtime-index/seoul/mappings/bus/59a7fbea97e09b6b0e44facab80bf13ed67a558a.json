@@ -1,0 +1,19 @@
+{
+  "key": "59a7fbea97e09b6b0e44facab80bf13ed67a558a",
+  "mapping": {
+    "routeNo": "110B",
+    "routeId": "100100015",
+    "stationId": "113000421",
+    "stationSeq": 33,
+    "stationName": "동교동삼거리",
+    "alightingStationId": "113000089",
+    "alightingStationSeq": 41,
+    "alightingStationName": "공덕역1번출구",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T00:27:36.990Z"
+  },
+  "source": "odsay_direct"
+}
