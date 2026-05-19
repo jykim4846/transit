@@ -1,0 +1,19 @@
+{
+  "key": "093649b07b87cc288daab65243777ca66802718f",
+  "mapping": {
+    "routeNo": "마포07",
+    "routeId": "113900010",
+    "stationId": "112900260",
+    "stationSeq": 17,
+    "stationName": "현대백화점",
+    "alightingStationId": "113900188",
+    "alightingStationSeq": 22,
+    "alightingStationName": "신촌이랜드청년주택",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T00:27:55.189Z"
+  },
+  "source": "odsay_direct"
+}
