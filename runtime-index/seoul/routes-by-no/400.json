@@ -1,0 +1,14 @@
+{
+  "routeNo": "400",
+  "collectedAt": "2026-05-19T08:42:31.875Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100596",
+      "routeNo": "400",
+      "routeType": "3",
+      "startName": "염곡동",
+      "endName": "시청"
+    }
+  ]
+}
