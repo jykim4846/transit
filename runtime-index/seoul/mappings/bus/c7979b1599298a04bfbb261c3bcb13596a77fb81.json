@@ -1,0 +1,19 @@
+{
+  "key": "c7979b1599298a04bfbb261c3bcb13596a77fb81",
+  "mapping": {
+    "routeNo": "604",
+    "routeId": "100100089",
+    "stationId": "113000421",
+    "stationSeq": 24,
+    "stationName": "동교동삼거리",
+    "alightingStationId": "113000061",
+    "alightingStationSeq": 33,
+    "alightingStationName": "서울대동창회관",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-19T00:27:53.808Z"
+  },
+  "source": "odsay_direct"
+}
