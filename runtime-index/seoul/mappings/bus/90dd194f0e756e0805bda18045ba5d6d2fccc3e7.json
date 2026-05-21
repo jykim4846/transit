@@ -1,0 +1,19 @@
+{
+  "key": "90dd194f0e756e0805bda18045ba5d6d2fccc3e7",
+  "mapping": {
+    "routeNo": "740",
+    "routeId": "100100537",
+    "stationId": "112000003",
+    "stationSeq": 10,
+    "stationName": "DMC래미안e.편한세상요진아파트",
+    "alightingStationId": "113000089",
+    "alightingStationSeq": 23,
+    "alightingStationName": "공덕역1번출구",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-21T23:57:29.375Z"
+  },
+  "source": "odsay_direct"
+}
