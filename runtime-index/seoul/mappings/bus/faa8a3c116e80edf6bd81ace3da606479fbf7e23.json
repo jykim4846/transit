@@ -1,0 +1,18 @@
+{
+  "key": "faa8a3c116e80edf6bd81ace3da606479fbf7e23",
+  "mapping": {
+    "routeNo": "7737",
+    "routeId": "100100363",
+    "stationId": "113000450",
+    "stationSeq": 9,
+    "stationName": "공항철도디지털미디어시티역",
+    "alightingStationId": "113000441",
+    "alightingStationSeq": 13,
+    "alightingStationName": "가좌행복주택.건영월드컵아파트",
+    "confidence": "low",
+    "score": 5714,
+    "version": 2,
+    "createdAt": "2026-05-25T23:00:31.048Z"
+  },
+  "source": "runtime_resolve"
+}
