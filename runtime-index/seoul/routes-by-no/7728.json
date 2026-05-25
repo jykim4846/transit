@@ -1,0 +1,14 @@
+{
+  "routeNo": "7728",
+  "collectedAt": "2026-05-25T23:00:29.600Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100359",
+      "routeNo": "7728",
+      "routeType": "4",
+      "startName": "대화동",
+      "endName": "신촌"
+    }
+  ]
+}
