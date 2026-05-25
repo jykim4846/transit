@@ -1,0 +1,19 @@
+{
+  "key": "769a68cbf6a804be11b6ca8feb3b304a2c2c9f59",
+  "mapping": {
+    "routeNo": "7738",
+    "routeId": "100100364",
+    "stationId": "111000007",
+    "stationSeq": 5,
+    "stationName": "디지털미디어시티역",
+    "alightingStationId": "112000158",
+    "alightingStationSeq": 8,
+    "alightingStationName": "DMC한양아파트",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-25T23:00:26.967Z"
+  },
+  "source": "odsay_direct"
+}
