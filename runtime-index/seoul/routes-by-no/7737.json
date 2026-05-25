@@ -1,0 +1,14 @@
+{
+  "routeNo": "7737",
+  "collectedAt": "2026-05-25T23:00:29.088Z",
+  "source": "seoul_api",
+  "routes": [
+    {
+      "routeId": "100100363",
+      "routeNo": "7737",
+      "routeType": "4",
+      "startName": "은평공영차고지",
+      "endName": "파크빌아파트"
+    }
+  ]
+}
