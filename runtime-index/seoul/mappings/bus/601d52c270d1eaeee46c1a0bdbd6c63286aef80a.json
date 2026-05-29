@@ -1,0 +1,19 @@
+{
+  "key": "601d52c270d1eaeee46c1a0bdbd6c63286aef80a",
+  "mapping": {
+    "routeNo": "421",
+    "routeId": "100100409",
+    "stationId": "121000012",
+    "stationSeq": 12,
+    "stationName": "지하철2호선강남역",
+    "alightingStationId": "102000090",
+    "alightingStationSeq": 26,
+    "alightingStationName": "전쟁기념관",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-05-29T05:07:15.239Z"
+  },
+  "source": "odsay_direct"
+}
