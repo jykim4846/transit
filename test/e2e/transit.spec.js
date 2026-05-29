@@ -67,17 +67,19 @@ const route = {
   }
 };
 
-async function installBrowserStubs(page, routes = [route]) {
-  await page.addInitScript((seedRoutes) => {
+async function installBrowserStubs(page, routes = [route], permissionState = "prompt") {
+  await page.addInitScript(({ seedRoutes, permissionState }) => {
     localStorage.setItem("transit-routes-v2", JSON.stringify(seedRoutes));
     localStorage.setItem("transit-kakao-map-key", "e2e-map-key");
     window.__TRANSIT_E2E_FAST_POLL = true;
     window.__TRANSIT_E2E_MAP_BOUNDS = [];
+    window.__TRANSIT_E2E_GEO_WATCH = null;
     Object.defineProperty(navigator, "geolocation", {
       configurable: true,
       value: {
         getCurrentPosition: (success) => success({ coords: { latitude: 37.4979, longitude: 127.0276 } }),
         watchPosition: (success) => {
+          window.__TRANSIT_E2E_GEO_WATCH = success;
           success({ coords: { latitude: 37.4979, longitude: 127.0276 } });
           return 1;
         },
@@ -87,7 +89,7 @@ async function installBrowserStubs(page, routes = [route]) {
     Object.defineProperty(navigator, "permissions", {
       configurable: true,
       value: {
-        query: async () => ({ state: "prompt", onchange: null })
+        query: async () => ({ state: permissionState, onchange: null })
       }
     });
     class LatLng {
@@ -146,7 +148,7 @@ async function installBrowserStubs(page, routes = [route]) {
         Map
       }
     };
-  }, routes);
+  }, { seedRoutes: routes, permissionState });
 }
 
 test("explains browser location permission persistence before prompting", async ({ page }) => {
@@ -157,7 +159,7 @@ test("explains browser location permission persistence before prompting", async 
 });
 
 test("keeps boarded bus state after reload", async ({ page }) => {
-  await installBrowserStubs(page);
+  await installBrowserStubs(page, [route], "granted");
   await page.route("**/api/bus-positions**", async (requestRoute) => {
     await requestRoute.fulfill({
       status: 200,
@@ -173,10 +175,17 @@ test("keeps boarded bus state after reload", async ({ page }) => {
   await expect(page.locator(".journey-breakdown")).toContainText("도착 도보");
   await expect(page.locator(".journey-breakdown")).toContainText("4분");
   await expect(page.locator(".journey-breakdown")).toContainText("30분");
+  const boundsBeforeBoarding = await page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.length);
   await page.getByRole("button", { name: "이 버스 탑승" }).click();
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
   await expect(page.locator(".boarding-panel-meta")).toContainText("까지 유지");
+  await expect.poll(async () => page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.length)).toBeGreaterThan(boundsBeforeBoarding);
   await expect.poll(async () => page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.at(-1))).toBe(3);
+  const boundsAfterBoarding = await page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.length);
+  await page.evaluate(() => {
+    window.__TRANSIT_E2E_GEO_WATCH({ coords: { latitude: 37.51, longitude: 127.01 } });
+  });
+  await expect.poll(async () => page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.length)).toBeGreaterThan(boundsAfterBoarding);
 
   await page.reload();
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");

@@ -248,6 +248,7 @@ export async function startUserLocationWatch(options = {}) {
         if (!entry?.maps || !entry.userOverlay) return;
         entry.userOverlay.setPosition(new entry.maps.LatLng(state.userLocation.lat, state.userLocation.lng));
       });
+      followBoardedMap();
     },
     (error) => {
       if (error?.code === error.PERMISSION_DENIED) {
@@ -432,7 +433,7 @@ export async function initLiveTransitMaps() {
     const entry = {
       maps, map, container, userOverlay, stopOverlays, busOverlays,
       approachPolyline, ridingPolyline,
-      previewStops, animationFrame: null, pollTimer: null
+      previewStops, points, animationFrame: null, pollTimer: null
     };
     state.liveMaps[routeId] = entry;
     startBusPolling(routeId, candidate);
@@ -522,6 +523,24 @@ function getMapFocusPoints(maps, points, busOverlays, routeId) {
     ];
   }
   return null;
+}
+
+function followBoardedMap(routeId = state.boardedTrip?.routeId) {
+  if (!routeId || state.boardedTrip?.routeId !== routeId) return false;
+  const entry = state.liveMaps[routeId];
+  if (!entry?.maps || !entry.map || !entry.points) return false;
+  const focusBase = {
+    ...entry.points,
+    user: state.userLocation || entry.points.user
+  };
+  const focusPoints = getMapFocusPoints(entry.maps, focusBase, entry.busOverlays || [], routeId);
+  if (!focusPoints) return false;
+
+  const bounds = new entry.maps.LatLngBounds();
+  focusPoints.forEach((point) => bounds.extend(point));
+  entry.map.setBounds(bounds, 28, 28, 28, 28);
+  entry.lastFollowAt = Date.now();
+  return true;
 }
 
 function setLiveMapStatus(entry, message, options = {}) {
@@ -719,6 +738,7 @@ function updateLiveVehicles(routeId, preview) {
       }
       persistBoardedTrip();
       updateBoardingPanelDOM(routeId, trip);
+      followBoardedMap(routeId);
       if (trip.alightingSeq != null && trip.lastProgressSeq >= trip.alightingSeq - 0.1) {
         endBoarding("alighting");
       }
