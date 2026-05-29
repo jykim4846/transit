@@ -72,6 +72,7 @@ async function installBrowserStubs(page, routes = [route]) {
     localStorage.setItem("transit-routes-v2", JSON.stringify(seedRoutes));
     localStorage.setItem("transit-kakao-map-key", "e2e-map-key");
     window.__TRANSIT_E2E_FAST_POLL = true;
+    window.__TRANSIT_E2E_MAP_BOUNDS = [];
     Object.defineProperty(navigator, "geolocation", {
       configurable: true,
       value: {
@@ -119,14 +120,21 @@ async function installBrowserStubs(page, routes = [route]) {
       }
     }
     class LatLngBounds {
-      extend() {}
+      constructor() {
+        this.points = [];
+      }
+      extend(point) {
+        this.points.push(point);
+      }
     }
     class Map {
       constructor(element, options) {
         this.element = element;
         this.options = options;
       }
-      setBounds() {}
+      setBounds(bounds) {
+        window.__TRANSIT_E2E_MAP_BOUNDS.push(bounds.points.length);
+      }
     }
     window.kakao = {
       maps: {
@@ -159,9 +167,16 @@ test("keeps boarded bus state after reload", async ({ page }) => {
   });
 
   await page.goto("/");
+  await expect(page.locator(".journey-breakdown")).toContainText("출발 도보");
+  await expect(page.locator(".journey-breakdown")).toContainText("정류장 대기");
+  await expect(page.locator(".journey-breakdown")).toContainText("버스 탑승");
+  await expect(page.locator(".journey-breakdown")).toContainText("도착 도보");
+  await expect(page.locator(".journey-breakdown")).toContainText("4분");
+  await expect(page.locator(".journey-breakdown")).toContainText("30분");
   await page.getByRole("button", { name: "이 버스 탑승" }).click();
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");
   await expect(page.locator(".boarding-panel-meta")).toContainText("까지 유지");
+  await expect.poll(async () => page.evaluate(() => window.__TRANSIT_E2E_MAP_BOUNDS.at(-1))).toBe(3);
 
   await page.reload();
   await expect(page.locator(".boarding-panel.boarded")).toContainText("탑승 중");

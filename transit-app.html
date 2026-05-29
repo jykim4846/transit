@@ -2302,6 +2302,53 @@
   .fast-metric.transfer span { color: var(--orange); opacity: 0.7; }
   .fast-metric.walk span { color: var(--accent-strong); opacity: 0.7; }
 
+  .journey-breakdown {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .journey-breakdown-item {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+    padding: 11px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.74);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.68);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .journey-breakdown-label {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  .journey-breakdown-item strong {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .journey-breakdown-item > span:last-child {
+    overflow: hidden;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .journey-breakdown-item.wait strong { color: var(--orange); }
+  .journey-breakdown-item.ride strong { color: var(--blue); }
+  .journey-breakdown-item.walk-start strong,
+  .journey-breakdown-item.walk-end strong { color: var(--accent-strong); }
+
   .fast-next-action {
     margin-top: 10px;
     border-radius: 22px;
@@ -4201,6 +4248,10 @@
     font-size: 29px;
   }
 
+  .journey-breakdown-item {
+    background: rgba(255, 255, 255, 0.72);
+  }
+
   .fast-next-action {
     border: 1px solid rgba(255, 255, 255, 0.32);
     background:
@@ -4428,6 +4479,10 @@
 
     .fast-metric strong {
       font-size: 25px;
+    }
+
+    .journey-breakdown {
+      grid-template-columns: 1fr 1fr;
     }
   }
 </style>

@@ -418,13 +418,15 @@ export async function initLiveTransitMaps() {
     });
 
     const bounds = new maps.LatLngBounds();
-    [
+    const focusPoints = getMapFocusPoints(maps, points, busOverlays, route.id);
+    const boundsPoints = focusPoints || [
       ...approachPath,
       ...ridingPathPoints.map((p) => new maps.LatLng(p.lat, p.lng)),
       new maps.LatLng(points.user.lat, points.user.lng),
       ...busOverlays.map((b) => new maps.LatLng(b.position.lat, b.position.lng))
-    ].forEach((point) => bounds.extend(point));
-    map.setBounds(bounds, 24, 24, 24, 24);
+    ];
+    boundsPoints.forEach((point) => bounds.extend(point));
+    map.setBounds(bounds, 28, 28, 28, 28);
     if (fallback) fallback.style.display = "none";
 
     const entry = {
@@ -497,6 +499,29 @@ function vehiclesForMap(preview, routeId) {
   }
 
   return vehicles;
+}
+
+function getMapFocusPoints(maps, points, busOverlays, routeId) {
+  const trip = state.boardedTrip;
+  const boarded = trip?.routeId === routeId
+    ? busOverlays.find((bus) => String(bus.key) === String(trip.vehicleKey))
+    : null;
+  if (boarded) {
+    return [
+      new maps.LatLng(points.user.lat, points.user.lng),
+      new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
+      new maps.LatLng(boarded.position.lat, boarded.position.lng)
+    ];
+  }
+  const nextBus = busOverlays[0];
+  if (nextBus) {
+    return [
+      new maps.LatLng(points.user.lat, points.user.lng),
+      new maps.LatLng(points.boardingStop.lat, points.boardingStop.lng),
+      new maps.LatLng(nextBus.position.lat, nextBus.position.lng)
+    ];
+  }
+  return null;
 }
 
 function setLiveMapStatus(entry, message, options = {}) {

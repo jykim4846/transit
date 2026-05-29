@@ -87,6 +87,69 @@ export function renderEmptyCard() {
   `;
 }
 
+function sumSegmentMinutes(segments, predicate) {
+  return (segments || [])
+    .filter(predicate)
+    .reduce((sum, segment) => sum + minuteNumber(segment.minutes ?? segment.time), 0);
+}
+
+function getPreviewWaitMinutes(candidate) {
+  const vehicles = candidate?.busApproachPreview?.vehicles || [];
+  const catchableVehicle = vehicles.find((vehicle) => vehicle.catchable !== false && vehicle.etaMinutes != null);
+  const firstVehicle = vehicles.find((vehicle) => vehicle.etaMinutes != null);
+  return catchableVehicle?.etaMinutes ?? firstVehicle?.etaMinutes ?? null;
+}
+
+function getJourneyBreakdown(candidate) {
+  const segments = candidate?.segments || [];
+  const transitIndices = segments
+    .map((segment, index) => (segment.type === "bus" || segment.type === "subway" || segment.kind === "버스" || segment.kind === "지하철") ? index : -1)
+    .filter((index) => index >= 0);
+  const firstTransitIndex = transitIndices[0] ?? -1;
+  const lastTransitIndex = transitIndices[transitIndices.length - 1] ?? -1;
+  const initialWalk = candidate?.initialWalkTime != null
+    ? minuteNumber(candidate.initialWalkTime)
+    : sumSegmentMinutes(segments.slice(0, Math.max(0, firstTransitIndex)), (segment) => segment.type === "walk" || segment.kind === "도보");
+  const previewWait = getPreviewWaitMinutes(candidate);
+  const wait = candidate?.firstWaitMin != null ? minuteNumber(candidate.firstWaitMin) : (previewWait != null ? minuteNumber(previewWait) : null);
+  const waitSource = candidate?.firstWaitMin != null ? candidate.firstWaitSource : (previewWait != null ? "seoul_arrival" : null);
+  const ride = sumSegmentMinutes(segments, (segment) => segment.type === "bus" || segment.type === "subway" || segment.kind === "버스" || segment.kind === "지하철");
+  const finalWalk = lastTransitIndex >= 0
+    ? sumSegmentMinutes(segments.slice(lastTransitIndex + 1), (segment) => segment.type === "walk" || segment.kind === "도보")
+    : Math.max(0, minuteNumber(candidate?.walkTime || candidate?.walkTimeText) - initialWalk);
+  return { initialWalk, wait, waitSource, ride, finalWalk };
+}
+
+function renderJourneyBreakdown(candidate) {
+  if (!candidate) return "";
+  const parts = getJourneyBreakdown(candidate);
+  const waitText = parts.wait == null ? "확인 중" : `${parts.wait}분`;
+  return `
+    <div class="journey-breakdown" aria-label="이동 시간 상세">
+      <div class="journey-breakdown-item walk-start">
+        <span class="journey-breakdown-label">출발 도보</span>
+        <strong>${escapeHtml(parts.initialWalk)}분</strong>
+        <span>${escapeHtml(candidate.boardingStopName || "탑승 정류장")}까지</span>
+      </div>
+      <div class="journey-breakdown-item wait">
+        <span class="journey-breakdown-label">정류장 대기</span>
+        <strong>${escapeHtml(waitText)}</strong>
+        <span>${escapeHtml(parts.waitSource === "seoul_arrival" ? "실시간 도착 기준" : "예상 대기")}</span>
+      </div>
+      <div class="journey-breakdown-item ride">
+        <span class="journey-breakdown-label">버스 탑승</span>
+        <strong>${escapeHtml(parts.ride)}분</strong>
+        <span>${escapeHtml(candidate.firstTransitLabel || candidate.routeNo || "이동")}</span>
+      </div>
+      <div class="journey-breakdown-item walk-end">
+        <span class="journey-breakdown-label">도착 도보</span>
+        <strong>${escapeHtml(parts.finalWalk)}분</strong>
+        <span>하차 후 목적지까지</span>
+      </div>
+    </div>
+  `;
+}
+
 export function renderRouteCard(route, options = {}) {
   const { commuteCtx, getSelectedCandidate, getBoardingStatusForRoute, isCommutePinned } = options;
   const ctx = commuteCtx;
@@ -250,6 +313,7 @@ export function renderRouteCard(route, options = {}) {
               <span>도보 · 분</span>
             </div>
           </div>
+          ${renderJourneyBreakdown(primary)}
           <div class="fast-next-action">
             <div class="label">먼저 할 일</div>
             <div class="fast-next-row">
