@@ -1,0 +1,19 @@
+{
+  "key": "19fc044adefa6de16d4d011a827629d139e41609",
+  "mapping": {
+    "routeNo": "마포11",
+    "routeId": "113900004",
+    "stationId": "113900102",
+    "stationSeq": 13,
+    "stationName": "성지빌딩",
+    "alightingStationId": "113900234",
+    "alightingStationSeq": 22,
+    "alightingStationName": "광흥창역.서강동주민센터",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-01T10:47:48.955Z"
+  },
+  "source": "odsay_direct"
+}
