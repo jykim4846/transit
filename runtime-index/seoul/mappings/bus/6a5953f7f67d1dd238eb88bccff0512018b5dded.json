@@ -1,0 +1,19 @@
+{
+  "key": "6a5953f7f67d1dd238eb88bccff0512018b5dded",
+  "mapping": {
+    "routeNo": "마포10",
+    "routeId": "113900008",
+    "stationId": "113000088",
+    "stationSeq": 15,
+    "stationName": "공덕역2번출구",
+    "alightingStationId": "112900125",
+    "alightingStationSeq": 24,
+    "alightingStationName": "신촌아트레온",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-05T09:08:13.511Z"
+  },
+  "source": "odsay_direct"
+}
