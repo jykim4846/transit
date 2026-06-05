@@ -1,0 +1,19 @@
+{
+  "key": "7129aa3a40e8a2a894a0834c2f64673e09fc7bd3",
+  "mapping": {
+    "routeNo": "110A",
+    "routeId": "100100016",
+    "stationId": "113000088",
+    "stationSeq": 48,
+    "stationName": "공덕역2번출구",
+    "alightingStationId": "112000064",
+    "alightingStationSeq": 56,
+    "alightingStationName": "연희동대우아파트",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-05T09:15:33.077Z"
+  },
+  "source": "odsay_direct"
+}
