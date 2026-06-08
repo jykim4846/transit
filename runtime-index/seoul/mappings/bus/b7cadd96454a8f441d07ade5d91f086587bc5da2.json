@@ -1,0 +1,19 @@
+{
+  "key": "b7cadd96454a8f441d07ade5d91f086587bc5da2",
+  "mapping": {
+    "routeNo": "7739",
+    "routeId": "100100552",
+    "stationId": "112000102",
+    "stationSeq": 10,
+    "stationName": "북가좌삼호.DMC아이파크아파트",
+    "alightingStationId": "112000066",
+    "alightingStationSeq": 18,
+    "alightingStationName": "연희교차로",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-08T00:17:55.657Z"
+  },
+  "source": "odsay_direct"
+}
