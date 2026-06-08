@@ -1,0 +1,19 @@
+{
+  "key": "71c2e603617fec22f727428d41878cd4956f09be",
+  "mapping": {
+    "routeNo": "마포11",
+    "routeId": "113900004",
+    "stationId": "113900109",
+    "stationSeq": 14,
+    "stationName": "염리초등학교",
+    "alightingStationId": "113900234",
+    "alightingStationSeq": 22,
+    "alightingStationName": "광흥창역.서강동주민센터",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-08T09:56:57.818Z"
+  },
+  "source": "odsay_direct"
+}
