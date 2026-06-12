@@ -1,0 +1,19 @@
+{
+  "key": "4b06251139f253319e72d9ba04ae7fa549af0bcf",
+  "mapping": {
+    "routeNo": "7013A",
+    "routeId": "100100449",
+    "stationId": "113000151",
+    "stationSeq": 49,
+    "stationName": "용강동입구",
+    "alightingStationId": "113000442",
+    "alightingStationSeq": 69,
+    "alightingStationName": "가좌행복주택.건영월드컵아파트",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-12T10:03:56.339Z"
+  },
+  "source": "odsay_direct"
+}
