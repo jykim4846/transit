@@ -1,0 +1,19 @@
+{
+  "key": "cad45dc8fd659c08f42892067f9e7a484545f521",
+  "mapping": {
+    "routeNo": "260",
+    "routeId": "100100042",
+    "stationId": "113000001",
+    "stationSeq": 52,
+    "stationName": "마포역",
+    "alightingStationId": "113000009",
+    "alightingStationSeq": 56,
+    "alightingStationName": "아현초등학교",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-16T10:02:04.110Z"
+  },
+  "source": "odsay_direct"
+}
