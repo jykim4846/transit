@@ -1,0 +1,19 @@
+{
+  "key": "688ef397b03d446192dd392f9712543f4bbb5500",
+  "mapping": {
+    "routeNo": "7713",
+    "routeId": "100100349",
+    "stationId": "112000102",
+    "stationSeq": 47,
+    "stationName": "북가좌삼호.DMC아이파크아파트",
+    "alightingStationId": "112000073",
+    "alightingStationSeq": 56,
+    "alightingStationName": "서대문구청.보건소.구의회",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-06-23T00:06:05.336Z"
+  },
+  "source": "odsay_direct"
+}
