@@ -1,0 +1,18 @@
+{
+  "key": "1bfac95ec685bf9c4b29908d95085430db79be43",
+  "mapping": {
+    "routeNo": "7611",
+    "routeId": "100100345",
+    "stationId": "113000001",
+    "stationSeq": 45,
+    "stationName": "마포역",
+    "alightingStationId": "112000432",
+    "alightingStationSeq": 61,
+    "alightingStationName": "DMC파크뷰자이",
+    "confidence": "high",
+    "score": 330,
+    "version": 2,
+    "createdAt": "2026-08-13T07:01:47.378Z"
+  },
+  "source": "runtime_resolve"
+}
