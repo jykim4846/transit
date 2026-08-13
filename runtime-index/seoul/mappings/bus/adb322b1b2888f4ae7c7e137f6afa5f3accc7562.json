@@ -1,0 +1,19 @@
+{
+  "key": "adb322b1b2888f4ae7c7e137f6afa5f3accc7562",
+  "mapping": {
+    "routeNo": "8671(맞춤버스.평일운행)",
+    "routeId": "114000003",
+    "stationId": "113000001",
+    "stationSeq": 15,
+    "stationName": "마포역",
+    "alightingStationId": "113000010",
+    "alightingStationSeq": 20,
+    "alightingStationName": "아현초등학교",
+    "confidence": "high",
+    "score": 0,
+    "source": "odsay_direct",
+    "version": 3,
+    "createdAt": "2026-08-13T07:01:53.751Z"
+  },
+  "source": "odsay_direct"
+}
